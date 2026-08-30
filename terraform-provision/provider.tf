@@ -38,4 +38,7 @@ provider "proxmox" {
 
 provider "talos" {}
 
-provider "vault" {}
+provider "vault" {
+  # GitHub Actions JWT tokens cannot create child tokens.
+  skip_child_token = true
+}
