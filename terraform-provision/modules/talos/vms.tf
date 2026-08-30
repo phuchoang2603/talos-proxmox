@@ -1,7 +1,7 @@
 module "nodes" {
-  source = "./modules/vm"
+  source = "../vm"
 
-  for_each = local.nodes
+  for_each = var.nodes
 
   name         = each.key
   node_name    = each.value.node
