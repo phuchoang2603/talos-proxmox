@@ -1,0 +1,18 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-cert
+  namespace: traefik
+spec:
+  secretName: wildcard-tls
+  dnsNames:
+    - "${SSL_LOCAL_DOMAIN}"
+    - "*.${SSL_LOCAL_DOMAIN}"
+  issuerRef:
+    name: cloudflare-clusterissuer
+    kind: ClusterIssuer
+  privateKey:
+    rotationPolicy: Always
+  additionalOutputFormats:
+    - type: CombinedPEM

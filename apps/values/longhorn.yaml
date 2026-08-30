@@ -1,0 +1,18 @@
+defaultSettings:
+  createDefaultDiskLabeledNodes: "true"
+  autoCleanupSystemGeneratedSnapshot: true
+  replicaAutoBalance: best-effort
+  snapshotDataIntegrity: fast-check
+  storageOverProvisioningPercentage: 200
+  storageMinimalAvailablePercentage: 25
+defaultBackupStore:
+  backupTarget: "s3://longhorn@us-east-1/"
+  backupTargetCredentialSecret: "longhorn-minio-credentials"
+persistence:
+  defaultClass: true
+  defaultClassReplicaCount: 2
+  defaultDataLocality: best-effort
+  reclaimPolicy: Delete
+  migratable: false
+  recurringJobSelector:
+    enable: false

@@ -1,0 +1,33 @@
+# Terraform
+*.tfstate
+*.tfstate.backup
+*.tfplan
+.terraform/
+terraform.tfvars
+
+# Secrets / generated
+.env
+*.pem
+*.key
+*.crt
+kubeconfig
+talosconfig
+apps/.rendered/
+
+# Misc
+*.log
+*.bak
+*.swp
+*.swo
+.DS_Store
+
+# direnv / devenv
+.direnv/
+.devenv*
+devenv.local.nix
+devenv.local.yaml
+result
+result-*
+
+# Track direnv even if ignored globally
+!.envrc
