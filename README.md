@@ -2,8 +2,6 @@
 
 This project provisions a [Talos Linux](https://www.talos.dev/) Kubernetes cluster on Proxmox using Terraform, GitHub Actions, and HashiCorp Vault. Cluster access is via `talosctl` / kubeconfig stored in Vault (`kv/{env}/talos`). Vault is also used for CI JWT, Proxmox/MinIO/Cloudflare secrets, and External Secrets.
 
-**Cutover:** Destroy the RKE2 VMs before applying this stack if you reuse the same VM IDs and IPs. This repo is intended to become the live cluster; kubernetes-proxmox remains a learning archive.
-
 ## Quick start
 
 1. **Vault:** Follow [Vault Setup](docs/vault-setup.md).
