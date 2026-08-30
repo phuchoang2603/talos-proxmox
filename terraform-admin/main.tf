@@ -17,8 +17,8 @@ module "vault_admin" {
   source   = "./modules/vault-jwt"
   for_each = toset(var.environments)
 
-  env                 = each.key
-  jwt_backend_path    = vault_jwt_auth_backend.jwt.path
+  env                  = each.key
+  jwt_backend_path     = vault_jwt_auth_backend.jwt.path
   github_organization  = "phuchoang2603"
   github_repository    = "talos-proxmox"
   github_owner_id      = "91061595"
