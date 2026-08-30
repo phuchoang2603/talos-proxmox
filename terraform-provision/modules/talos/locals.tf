@@ -49,53 +49,47 @@ locals {
 
   node_machine_patches = {
     for name, node in var.nodes : name => yamlencode({
-      machine = merge(
-        {
-          install = {
-            image = contains(keys(local.gpu_nodes), name) ? data.talos_image_factory_urls.gpu.urls.installer : data.talos_image_factory_urls.default.urls.installer
-          }
-          network = {
-            hostname    = name
-            nameservers = [var.dns_server]
-            interfaces = [
-              merge(
+      machine = {
+        install = {
+          image = contains(keys(local.gpu_nodes), name) ? data.talos_image_factory_urls.gpu.urls.installer : data.talos_image_factory_urls.default.urls.installer
+        }
+        network = {
+          hostname    = name
+          nameservers = [var.dns_server]
+          interfaces = [
+            {
+              interface = var.talos_network_interface
+              dhcp      = false
+              addresses = [node.address]
+              routes = [
                 {
-                  interface = var.talos_network_interface
-                  dhcp      = false
-                  addresses = [node.address]
-                  routes = [
-                    {
-                      network = "0.0.0.0/0"
-                      gateway = var.vm_ip_gateway
-                    }
-                  ]
-                },
-                node.role == "servers" ? { vip = { ip = local.cluster_vip } } : {}
-              )
-            ]
-          }
-        },
-        node.role == "longhorn" ? {
-          nodeLabels = {
-            "node.longhorn.io/create-default-disk" = "true"
-          }
-        } : {},
-        contains(keys(local.gpu_nodes), name) ? {
-          kernel = {
-            modules = [
+                  network = "0.0.0.0/0"
+                  gateway = var.vm_ip_gateway
+                }
+              ]
+              vip = node.role == "servers" ? { ip = local.cluster_vip } : null
+            }
+          ]
+        }
+        kernel = {
+          modules = concat(
+            [
               { name = "iscsi_tcp" },
               { name = "dm_crypt" },
+            ],
+            contains(keys(local.gpu_nodes), name) ? [
               { name = "nvidia" },
               { name = "nvidia_uvm" },
               { name = "nvidia_drm" },
               { name = "nvidia_modeset" },
-            ]
-          }
-          nodeLabels = {
-            "nvidia.com/gpu.present" = "true"
-          }
-        } : {}
-      )
+            ] : []
+          )
+        }
+        nodeLabels = merge(
+          node.role == "longhorn" ? tomap({ "node.longhorn.io/create-default-disk" = "true" }) : tomap({}),
+          contains(keys(local.gpu_nodes), name) ? tomap({ "nvidia.com/gpu.present" = "true" }) : tomap({}),
+        )
+      }
     })
   }
 }
