@@ -12,9 +12,11 @@ mkdir -p "${RENDER}"
 : "${SSL_DOMAIN:?SSL_DOMAIN is required}"
 : "${SSL_API_TOKEN:?SSL_API_TOKEN is required}"
 : "${SSL_EMAIL:?SSL_EMAIL is required}"
-: "${VAULT_ADDR:?VAULT_ADDR is required}"
+: "${LONGHORN_AWS_ENDPOINTS:?LONGHORN_AWS_ENDPOINTS is required}"
+: "${LONGHORN_AWS_ACCESS_KEY_ID:?LONGHORN_AWS_ACCESS_KEY_ID is required}"
+: "${LONGHORN_AWS_SECRET_ACCESS_KEY:?LONGHORN_AWS_SECRET_ACCESS_KEY is required}"
 
-export ENV_NAME IP_LB_RANGE IP_INGRESS SSL_DOMAIN SSL_API_TOKEN SSL_EMAIL VAULT_ADDR
+export ENV_NAME IP_LB_RANGE IP_INGRESS SSL_DOMAIN SSL_API_TOKEN SSL_EMAIL
 export SSL_LOCAL_DOMAIN="${ENV_NAME}.${SSL_DOMAIN}"
 export KUBE_VIP_VERSION="${KUBE_VIP_VERSION:-v0.8.0}"
 export KUBE_VIP_INTERFACE="${KUBE_VIP_INTERFACE:-eth0}"
@@ -35,7 +37,6 @@ kubectl wait --for=condition=Ready nodes --all --timeout=15m
 
 helm repo add jetstack https://charts.jetstack.io --force-update
 helm repo add traefik https://traefik.github.io/charts --force-update
-helm repo add external-secrets https://charts.external-secrets.io --force-update
 helm repo add longhorn https://charts.longhorn.io --force-update
 helm repo add argo https://argoproj.github.io/argo-helm --force-update
 
@@ -67,28 +68,22 @@ helm upgrade --install traefik traefik/traefik \
 
 kubectl apply -f "$(render "${ROOT}/manifests/traefik-wildcard-cert.yaml.tmpl")"
 
-echo "Installing External Secrets"
-helm upgrade --install external-secrets external-secrets/external-secrets \
-  --namespace external-secrets \
-  --create-namespace \
-  --version v2.2.0 \
-  --set installCRDs=true \
-  --wait --timeout 10m
-
-kubectl apply -f "${ROOT}/manifests/external-secrets-rbac.yaml"
-kubectl apply -f "$(render "${ROOT}/manifests/external-secrets-cluster-store.yaml.tmpl")"
-
 echo "Installing Longhorn"
+kubectl apply -f "${ROOT}/manifests/longhorn-namespace.yaml"
+kubectl create secret generic longhorn-minio-credentials \
+  --namespace longhorn-system \
+  --from-literal=AWS_ENDPOINTS="${LONGHORN_AWS_ENDPOINTS}" \
+  --from-literal=AWS_ACCESS_KEY_ID="${LONGHORN_AWS_ACCESS_KEY_ID}" \
+  --from-literal=AWS_SECRET_ACCESS_KEY="${LONGHORN_AWS_SECRET_ACCESS_KEY}" \
+  --dry-run=client -o yaml | kubectl apply -f -
 helm upgrade --install longhorn longhorn/longhorn \
   --namespace longhorn-system \
-  --create-namespace \
   --version v1.11.1 \
   --values "${ROOT}/values/longhorn.yaml" \
   --wait --timeout 15m
 
 kubectl apply -f "${ROOT}/manifests/longhorn-storage-class.yaml"
 kubectl apply -f "${ROOT}/manifests/longhorn-recurringjob.yaml"
-kubectl apply -f "${ROOT}/manifests/longhorn-minio-cred.yaml"
 kubectl apply -f "$(render "${ROOT}/manifests/longhorn-ingress.yaml.tmpl")"
 
 echo "Installing Argo CD"

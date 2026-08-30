@@ -132,6 +132,9 @@ jobs:
           outputToken: true
           secrets: |
             kv/shared/data/cloudflare * | SSL_ ;
+            kv/shared/data/minio endpoint | LONGHORN_AWS_ENDPOINTS ;
+            kv/shared/data/minio longhorn_a_key | LONGHORN_AWS_ACCESS_KEY_ID ;
+            kv/shared/data/minio longhorn_s_key | LONGHORN_AWS_SECRET_ACCESS_KEY ;
 
       - uses: eLco/setup-vault@v1
         with:
@@ -158,26 +161,10 @@ jobs:
           echo "IP_LB_RANGE=$(jq -r .lb_range terraform-provision/env/${ENV_NAME}/network.json)" >> "$GITHUB_ENV"
           echo "IP_INGRESS=$(jq -r .ingress terraform-provision/env/${ENV_NAME}/network.json)" >> "$GITHUB_ENV"
 
-      - name: Configure Vault Kubernetes Auth
-        env:
-          KUBECONFIG: ${{ github.workspace }}/kubeconfig
-          VAULT_ADDR: ${{ vars.VAULT_ADDR }}
-          VAULT_TOKEN: ${{ steps.vault_auth.outputs.vault_token }}
-          ENV_NAME: ${{ vars.ENV_NAME }}
-        run: |
-          kubectl config view --raw --minify --flatten -o jsonpath='{.clusters[0].cluster.certificate-authority-data}' \
-            | base64 -d > k8s-ca.crt
-
-          vault write auth/${ENV_NAME}-kubernetes/config \
-            kubernetes_host="https://${IP_VIP}:6443" \
-            kubernetes_ca_cert=@k8s-ca.crt \
-            disable_local_ca_jwt=true
-
       - name: Bootstrap Helm apps
         env:
           KUBECONFIG: ${{ github.workspace }}/kubeconfig
           ENV_NAME: ${{ vars.ENV_NAME }}
-          VAULT_ADDR: ${{ vars.VAULT_ADDR }}
         run: |
           chmod +x apps/bootstrap.sh
           apps/bootstrap.sh

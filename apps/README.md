@@ -15,6 +15,8 @@ Required environment:
 | `SSL_DOMAIN` | Vault Cloudflare `domain` |
 | `SSL_API_TOKEN` | Vault Cloudflare `api_token` |
 | `SSL_EMAIL` | Vault Cloudflare `email` |
-| `VAULT_ADDR` | Vault URL for External Secrets ClusterSecretStore |
+| `LONGHORN_AWS_ENDPOINTS` | Vault `kv/shared/minio` `endpoint` |
+| `LONGHORN_AWS_ACCESS_KEY_ID` | Vault `kv/shared/minio` `longhorn_a_key` |
+| `LONGHORN_AWS_SECRET_ACCESS_KEY` | Vault `kv/shared/minio` `longhorn_s_key` |
 
 Optional: `KUBE_VIP_VERSION` (default `v0.8.0`), `KUBE_VIP_INTERFACE` (default `eth0`).

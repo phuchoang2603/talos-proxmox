@@ -33,12 +33,3 @@ module "vault_oidc" {
 
   env = each.key
 }
-
-# Vault Kubernetes Auth Backend for External Secrets (per environment)
-module "vault_k8s_auth" {
-  source   = "./modules/vault-kubernetes-auth"
-  for_each = toset(var.environments)
-
-  env             = each.key
-  kubernetes_host = "https://${jsondecode(file("${path.root}/../terraform-provision/env/${each.key}/network.json")).vip}:6443"
-}

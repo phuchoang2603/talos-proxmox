@@ -1,6 +1,6 @@
 # HashiCorp Vault Setup
 
-This guide covers storing secrets and applying `terraform-admin` so GitHub Actions and External Secrets can use Vault.
+This guide covers storing secrets and applying `terraform-admin` so GitHub Actions can use Vault.
 
 ## Prerequisites
 
@@ -21,7 +21,7 @@ vault kv put kv/shared/cloudflare api_token="..." domain="..." email="..."
 
 Cluster IPs (`vip`, `lb_range`, `ingress`) live in git: `terraform-provision/env/{dev,prod}/network.json`. Do not store them in Vault.
 
-There is no RKE2 join token. Talos machine secrets live in the provision Terraform state (`talos-${ENV}.tfstate`). After each provision apply, Terraform also writes **`kv/{env}/talos`** (`talosconfig`, `kubeconfig`) so laptops can `vault kv get` without Terraform. That path is admin-only; GitHub Actions JWT may create/update it.
+There is no RKE2 join token. Talos machine secrets live in the provision Terraform state (`talos-${ENV}.tfstate`). After each provision apply, Terraform also writes **`kv/{env}/talos`** (`talosconfig`, `kubeconfig`) so laptops can `vault kv get` without Terraform. That path is admin-only; GitHub Actions JWT may create, update, and delete it.
 
 ## Step 2: Configure Vault Users
 
@@ -50,7 +50,6 @@ This configures:
 
 - JWT auth for GitHub Actions, bound to the immutable GitHub OIDC `sub` for this repo (`repo:phuchoang2603@91061595/talos-proxmox@1351657631:...`). Repos created after 2026-07-15 include owner and repo IDs in `sub`.
 - Per-environment Vault policies and identity groups
-- Kubernetes auth backends for External Secrets (CA is completed after cluster bootstrap)
 
 After this apply, kubernetes-proxmox GitHub Actions will no longer match the JWT `sub` claim.
 

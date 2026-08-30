@@ -41,16 +41,11 @@ resource "vault_policy" "vault_env_policy" {
     }
 
     path "kv/${var.env}/data/talos" {
-      capabilities = ["create", "update", "read"]
+      capabilities = ["create", "update", "read", "delete"]
     }
 
     path "kv/${var.env}/metadata/talos" {
-      capabilities = ["create", "update", "read"]
-    }
-
-    # Grant permission to configure and read Kubernetes auth backend
-    path "auth/${var.env}-kubernetes/config" {
-      capabilities = ["create", "update", "read"]
+      capabilities = ["create", "update", "read", "delete"]
     }
 
     # Shared policy

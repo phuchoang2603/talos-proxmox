@@ -51,7 +51,7 @@ Repository → Settings → Secrets and variables → Actions → Variables:
 ## Step 4: Deploy
 
 1. **Pull request:** Terraform plan + PR comment. No apply.
-2. **Push to `main`:** Apply VMs + Talos, write `kv/{ENV}/talos`, configure Vault Kubernetes auth, then `apps/bootstrap.sh`. Helm reads kubeconfig from that Vault path, not from Terraform.
+2. **Push to `main`:** Apply VMs + Talos, write `kv/{ENV}/talos`, then `apps/bootstrap.sh`. Helm reads kubeconfig from that Vault path, not from Terraform. In-cluster secrets (Longhorn MinIO) are created by bootstrap from Vault values CI already imported.
 
 Provision state key: `talos-${ENV_NAME}.tfstate` (does not overwrite the RKE2 `dev.tfstate` / `prod.tfstate` keys).
 
