@@ -29,7 +29,13 @@ render() {
 }
 
 echo "Waiting for Kubernetes API..."
-until kubectl get nodes >/dev/null 2>&1; do
+until kubectl get --raw=/readyz >/dev/null 2>&1; do
+  sleep 5
+done
+
+expected_nodes=$(($(jq 'length' "${ROOT}/../terraform-provision/env/${ENV_NAME}/k8s_nodes.json") + $(jq 'length' "${ROOT}/../terraform-provision/env/${ENV_NAME}/longhorn_nodes.json")))
+echo "Waiting for ${expected_nodes} nodes to register..."
+until [ "$(kubectl get nodes --no-headers 2>/dev/null | grep -c . || true)" -ge "${expected_nodes}" ]; do
   sleep 5
 done
 
