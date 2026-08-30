@@ -19,9 +19,11 @@ module "vault_admin" {
 
   env                 = each.key
   jwt_backend_path    = vault_jwt_auth_backend.jwt.path
-  github_organization = "phuchoang2603"
-  github_repository   = "talos-proxmox"
-  github_branch       = "main"
+  github_organization  = "phuchoang2603"
+  github_repository    = "talos-proxmox"
+  github_owner_id      = "91061595"
+  github_repository_id = "1351657631"
+  github_branch        = "main"
 }
 
 # Identity groups and Vault policies (per environment)

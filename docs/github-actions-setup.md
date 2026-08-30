@@ -6,7 +6,7 @@ This guide covers CI with GitHub Actions and HashiCorp Vault for Talos on Proxmo
 
 - [HashiCorp Vault Setup](./vault-setup.md)
 - Tailscale (if using GitHub-hosted runners)
-- GitHub repository `talos-proxmox` (JWT bound claims must match)
+- GitHub repository `talos-proxmox` (JWT `sub` uses the post-2026-07-15 immutable format with owner/repo IDs; see `terraform-admin`)
 - Proxmox API access
 - MinIO (or S3) for Terraform state
 

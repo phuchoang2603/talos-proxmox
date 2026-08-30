@@ -1,3 +1,9 @@
+# Repos created after 2026-07-15 use immutable GitHub Actions OIDC subjects:
+# repo:OWNER@OWNER_ID/REPO@REPO_ID:...
+locals {
+  github_oidc_repo = "repo:${var.github_organization}@${var.github_owner_id}/${var.github_repository}@${var.github_repository_id}"
+}
+
 # GitHub Actions Push Role
 resource "vault_jwt_auth_backend_role" "github_actions_push_role" {
   backend           = var.jwt_backend_path
@@ -7,7 +13,7 @@ resource "vault_jwt_auth_backend_role" "github_actions_push_role" {
   bound_audiences   = ["https://github.com/${var.github_organization}"]
   bound_claims_type = "glob"
   bound_claims = {
-    "sub" = "repo:${var.github_organization}/${var.github_repository}:ref:refs/heads/${var.github_branch}"
+    "sub" = "${local.github_oidc_repo}:ref:refs/heads/${var.github_branch}"
   }
   user_claim = "actor"
 }
@@ -21,7 +27,7 @@ resource "vault_jwt_auth_backend_role" "github_actions_pr_role" {
   bound_audiences   = ["https://github.com/${var.github_organization}"]
   bound_claims_type = "glob"
   bound_claims = {
-    "sub" = "repo:${var.github_organization}/${var.github_repository}:pull_request"
+    "sub" = "${local.github_oidc_repo}:pull_request"
   }
   user_claim = "actor"
 }

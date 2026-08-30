@@ -48,7 +48,7 @@ terraform apply
 
 This configures:
 
-- JWT auth for GitHub Actions, bound to `phuchoang2603/talos-proxmox`
+- JWT auth for GitHub Actions, bound to the immutable GitHub OIDC `sub` for this repo (`repo:phuchoang2603@91061595/talos-proxmox@1351657631:...`). Repos created after 2026-07-15 include owner and repo IDs in `sub`.
 - Per-environment Vault policies and identity groups
 - Kubernetes auth backends for External Secrets (CA is completed after cluster bootstrap)
 

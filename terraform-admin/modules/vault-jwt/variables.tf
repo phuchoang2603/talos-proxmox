@@ -18,6 +18,16 @@ variable "github_repository" {
   description = "The GitHub repository name."
 }
 
+variable "github_owner_id" {
+  type        = string
+  description = "Numeric GitHub owner ID (immutable OIDC sub uses owner@id)."
+}
+
+variable "github_repository_id" {
+  type        = string
+  description = "Numeric GitHub repository ID (immutable OIDC sub uses repo@id)."
+}
+
 variable "github_branch" {
   type        = string
   description = "The GitHub branch name to restrict access to."
