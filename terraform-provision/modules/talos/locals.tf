@@ -9,12 +9,12 @@ locals {
   bootstrap_ip       = local.controlplane_nodes[local.bootstrap_name].ip
   controlplane_ips   = [for name in local.controlplane_names : local.controlplane_nodes[name].ip]
   cert_sans          = concat([local.cluster_vip], local.controlplane_ips)
+  gpu_nodes          = { for name, node in var.nodes : name => node if node.role == "gpu" || length(node.pci) > 0 }
 
   common_machine_patch = {
     machine = {
       install = {
-        disk  = var.talos_install_disk
-        image = data.talos_image_factory_urls.this.urls.installer
+        disk = var.talos_install_disk
       }
       certSANs = local.cert_sans
       kernel = {
@@ -51,6 +51,9 @@ locals {
     for name, node in var.nodes : name => yamlencode({
       machine = merge(
         {
+          install = {
+            image = contains(keys(local.gpu_nodes), name) ? data.talos_image_factory_urls.gpu.urls.installer : data.talos_image_factory_urls.default.urls.installer
+          }
           network = {
             hostname    = name
             nameservers = [var.dns_server]
@@ -75,6 +78,21 @@ locals {
         node.role == "longhorn" ? {
           nodeLabels = {
             "node.longhorn.io/create-default-disk" = "true"
+          }
+        } : {},
+        contains(keys(local.gpu_nodes), name) ? {
+          kernel = {
+            modules = [
+              { name = "iscsi_tcp" },
+              { name = "dm_crypt" },
+              { name = "nvidia" },
+              { name = "nvidia_uvm" },
+              { name = "nvidia_drm" },
+              { name = "nvidia_modeset" },
+            ]
+          }
+          nodeLabels = {
+            "nvidia.com/gpu.present" = "true"
           }
         } : {}
       )

@@ -41,6 +41,11 @@ output "controlplane_ips" {
 }
 
 output "schematic_id" {
-  description = "Talos Image Factory schematic ID"
+  description = "Talos Image Factory schematic ID (default nodes)"
   value       = module.talos.schematic_id
+}
+
+output "gpu_schematic_id" {
+  description = "Talos Image Factory schematic ID (NVIDIA GPU nodes)"
+  value       = module.talos.gpu_schematic_id
 }

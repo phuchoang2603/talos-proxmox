@@ -56,6 +56,16 @@ resource "proxmox_virtual_environment_vm" "vm" {
     bridge = var.bridge
   }
 
+  dynamic "hostpci" {
+    for_each = { for index, id in var.pci : index => id }
+    content {
+      device = "hostpci${hostpci.key}"
+      id     = hostpci.value
+      pcie   = true
+      rombar = true
+    }
+  }
+
   initialization {
     dns {
       servers = [var.dns_server]

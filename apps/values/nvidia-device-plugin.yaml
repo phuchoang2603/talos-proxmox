@@ -1,0 +1,4 @@
+nodeSelector:
+  nvidia.com/gpu.present: "true"
+compatWithCPUManager: true
+failOnInitError: false

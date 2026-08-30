@@ -36,6 +36,7 @@ variable "nodes" {
     memory_mb    = number
     datastore_id = string
     disk_size_gb = number
+    pci          = optional(list(string), [])
   }))
 }
 

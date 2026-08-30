@@ -62,3 +62,9 @@ variable "ip_gateway" {
   description = "The IP gateway for the VM."
   type        = string
 }
+
+variable "pci" {
+  description = "Host PCI device IDs to pass through (GPU and related functions)."
+  type        = list(string)
+  default     = []
+}

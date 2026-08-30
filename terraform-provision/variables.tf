@@ -56,56 +56,6 @@ variable "dns_server" {
   type        = string
 }
 
-variable "k8s_cpu_cores" {
-  description = "Number of CPU cores per Kubernetes VM"
-  type        = number
-}
-
-variable "k8s_cpu_type" {
-  description = "CPU type for Kubernetes VMs"
-  type        = string
-}
-
-variable "k8s_memory_mb" {
-  description = "Memory size in MB per Kubernetes VM"
-  type        = number
-}
-
-variable "k8s_datastore_id" {
-  description = "Datastore ID where Kubernetes VM disks are stored"
-  type        = string
-}
-
-variable "k8s_disk_size_gb" {
-  description = "Disk size in GB for Kubernetes VM disks"
-  type        = number
-}
-
-variable "longhorn_cpu_cores" {
-  description = "Number of CPU cores per Longhorn VM"
-  type        = number
-}
-
-variable "longhorn_cpu_type" {
-  description = "CPU type for Longhorn VMs"
-  type        = string
-}
-
-variable "longhorn_memory_mb" {
-  description = "Memory size in MB per Longhorn VM"
-  type        = number
-}
-
-variable "longhorn_datastore_id" {
-  description = "Datastore ID where Longhorn VM disks are stored"
-  type        = string
-}
-
-variable "longhorn_disk_size_gb" {
-  description = "Disk size in GB for Longhorn VM disks"
-  type        = number
-}
-
 variable "talos_version" {
   description = "Talos Linux version (including v prefix)"
   type        = string

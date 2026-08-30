@@ -33,5 +33,9 @@ output "controlplane_ips" {
 }
 
 output "schematic_id" {
-  value = talos_image_factory_schematic.this.id
+  value = talos_image_factory_schematic.default.id
+}
+
+output "gpu_schematic_id" {
+  value = talos_image_factory_schematic.gpu.id
 }

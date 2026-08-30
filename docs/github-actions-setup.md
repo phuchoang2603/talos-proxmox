@@ -14,7 +14,7 @@ This guide covers CI with GitHub Actions and HashiCorp Vault for Talos on Proxmo
 
 ## Step 1: Update VM Inventory
 
-Edit `terraform-provision/env/{dev,prod}/k8s_nodes.json` and `longhorn_nodes.json`. Shape:
+Edit `terraform-provision/env/{dev,prod}/k8s_nodes.json`, `longhorn_nodes.json`, and `gpu_nodes.json`. Shape:
 
 ```json
 {
@@ -22,12 +22,17 @@ Edit `terraform-provision/env/{dev,prod}/k8s_nodes.json` and `longhorn_nodes.jso
     "vm_id": 111,
     "node": "pve",
     "role": "servers",
-    "address": "10.69.1.111/16"
+    "address": "10.69.1.111/16",
+    "cpu_cores": 4,
+    "cpu_type": "x86-64-v2-AES",
+    "memory_mb": 8196,
+    "disk_size_gb": 64,
+    "datastore_id": "local-lvm"
   }
 }
 ```
 
-`role` `servers` becomes Talos control plane. `longhorn` (and any non-`servers` k8s node) becomes a worker.
+`role` `servers` is control plane. `longhorn` and `gpu` (and any other non-`servers` role) are workers. GPU nodes also set `pci` to Proxmox host PCI IDs and boot a second Factory image with NVIDIA production extensions.
 
 Edit `terraform-provision/env/{env}/network.json` for the API VIP, kube-vip LoadBalancer pool, and Traefik IP.
 
