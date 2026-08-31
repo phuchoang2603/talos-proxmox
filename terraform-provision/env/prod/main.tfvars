@@ -8,4 +8,5 @@ vm_bridge       = "vmbr1"
 vm_ip_gateway   = "10.69.0.1"
 dns_server      = "10.69.0.1"
 
-talos_version = "v1.13.9"
+talos_version      = "v1.13.9"
+kubernetes_version = "v1.36.3"

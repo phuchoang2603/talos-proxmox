@@ -64,6 +64,10 @@ variable "talos_version" {
   type = string
 }
 
+variable "kubernetes_version" {
+  type = string
+}
+
 variable "talos_install_disk" {
   type = string
 }

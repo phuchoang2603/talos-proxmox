@@ -6,19 +6,15 @@ hostPaths:
   driverInstallDir: /usr/local
 cdi:
   enabled: true
-devicePlugin:
-  env:
-    - name: NVIDIA_CDI_HOOK_PATH
-      value: /usr/local/bin/nvidia-cdi-hook
-migManager:
-  enabled: false
-vgpuDeviceManager:
-  enabled: false
-vfioManager:
-  enabled: false
-ccManager:
-  enabled: false
-sandboxDevicePlugin:
-  enabled: false
-kataSandboxDevicePlugin:
-  enabled: false
+clusterPolicy:
+  deployCR: false
+gpuCluster:
+  deployCR: true
+draDriver:
+  computeDomains:
+    enabled: false
+  gpus:
+    kubeletPlugin:
+      env:
+        - name: NVIDIA_CDI_HOOK_PATH
+          value: /usr/local/bin/nvidia-cdi-hook

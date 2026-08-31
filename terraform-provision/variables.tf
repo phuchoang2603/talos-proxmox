@@ -62,6 +62,12 @@ variable "talos_version" {
   default     = "v1.13.9"
 }
 
+variable "kubernetes_version" {
+  description = "Kubernetes version shipped with Talos (including v prefix)"
+  type        = string
+  default     = "v1.36.3"
+}
+
 variable "talos_install_disk" {
   description = "Install disk path inside the VM (virtio0 is /dev/vda)"
   type        = string
