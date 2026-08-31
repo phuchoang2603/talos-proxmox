@@ -44,7 +44,7 @@ kubectl wait --for=condition=Ready nodes --all --timeout=15m
 helm repo add jetstack https://charts.jetstack.io --force-update
 helm repo add traefik https://traefik.github.io/charts --force-update
 helm repo add longhorn https://charts.longhorn.io --force-update
-helm repo add nvdp https://nvidia.github.io/k8s-device-plugin --force-update
+helm repo add nvidia https://helm.ngc.nvidia.com/nvidia --force-update
 helm repo add argo https://argoproj.github.io/argo-helm --force-update
 
 echo "Applying kube-vip (LoadBalancer services only; API VIP is Talos)"
@@ -94,13 +94,13 @@ kubectl apply -f "${ROOT}/manifests/longhorn-recurringjob.yaml"
 kubectl apply -f "$(render "${ROOT}/manifests/longhorn-ingress.yaml.tmpl")"
 
 if [ "$(jq 'length' "${ROOT}/../terraform-provision/env/${ENV_NAME}/gpu_nodes.json")" -gt 0 ]; then
-  echo "Installing NVIDIA device plugin"
-  helm upgrade --install nvidia-device-plugin nvdp/nvidia-device-plugin \
-    --namespace nvidia-device-plugin \
-    --create-namespace \
-    --version 0.17.1 \
-    --values "${ROOT}/values/nvidia-device-plugin.yaml" \
-    --wait --timeout 10m
+  echo "Installing NVIDIA GPU Operator"
+  kubectl apply -f "${ROOT}/manifests/gpu-operator-namespace.yaml"
+  helm upgrade --install gpu-operator nvidia/gpu-operator \
+    --namespace gpu-operator \
+    --version v26.7.0 \
+    --values "${ROOT}/values/gpu-operator.yaml" \
+    --wait --timeout 15m
 fi
 
 echo "Installing Argo CD"

@@ -1,0 +1,24 @@
+driver:
+  enabled: false
+toolkit:
+  enabled: false
+hostPaths:
+  driverInstallDir: /usr/local
+cdi:
+  enabled: true
+devicePlugin:
+  env:
+    - name: NVIDIA_CDI_HOOK_PATH
+      value: /usr/local/bin/nvidia-cdi-hook
+migManager:
+  enabled: false
+vgpuDeviceManager:
+  enabled: false
+vfioManager:
+  enabled: false
+ccManager:
+  enabled: false
+sandboxDevicePlugin:
+  enabled: false
+kataSandboxDevicePlugin:
+  enabled: false

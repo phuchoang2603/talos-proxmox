@@ -59,7 +59,7 @@ variable "dns_server" {
 variable "talos_version" {
   description = "Talos Linux version (including v prefix)"
   type        = string
-  default     = "v1.12.6"
+  default     = "v1.13.9"
 }
 
 variable "talos_install_disk" {
