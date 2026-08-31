@@ -75,6 +75,9 @@ jobs:
                 exec terraform "$@"' bash "$@"
           }
           tf init -backend-config="key=talos-${ENV_NAME}.tfstate"
+          if tf state list | grep -qx 'module.talos.vault_kv_secret_v2.cluster_access'; then
+            tf state rm 'module.talos.vault_kv_secret_v2.cluster_access'
+          fi
           extra=()
           [ "$ACTION" = destroy ] && extra+=(-destroy)
           tf plan "${extra[@]}" -var-file="env/${ENV_NAME}/main.tfvars" -out .planfile
