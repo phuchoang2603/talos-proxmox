@@ -3,5 +3,5 @@ kind: Kustomization
 resources:
   - gateways.yaml
   - httproutes.yaml
-  - ../../manifests/longhorn-storage-class.yaml
-  - ../../manifests/longhorn-recurringjob.yaml
+  - longhorn-storage-class.yaml
+  - longhorn-recurringjob.yaml

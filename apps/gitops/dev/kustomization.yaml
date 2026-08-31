@@ -3,6 +3,6 @@ kind: Kustomization
 resources:
   - gateways.yaml
   - httproutes.yaml
-  - ../../manifests/gpu-operator-namespace.yaml
-  - ../../manifests/longhorn-storage-class.yaml
-  - ../../manifests/longhorn-recurringjob.yaml
+  - gpu-operator-namespace.yaml
+  - longhorn-storage-class.yaml
+  - longhorn-recurringjob.yaml
