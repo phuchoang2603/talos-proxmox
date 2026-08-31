@@ -2,162 +2,99 @@ name: Provision and Bootstrap
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        options: [dev, prod]
+        default: dev
+      action:
+        type: choice
+        options: [apply, destroy]
+        default: apply
 
 jobs:
   lint:
     uses: ./.github/workflows/lint.yml
 
-  terraform-plan-apply:
-    runs-on: ubuntu-latest
+  provision:
     needs: lint
-
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'dev' }}
+    concurrency:
+      group: provision-${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'dev' }}
+      cancel-in-progress: false
     permissions:
       contents: read
-      id-token: write
       pull-requests: write
-
-    defaults:
-      run:
-        shell: bash
-        working-directory: ./terraform-provision
-
+      deployments: write
+    env:
+      DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+      DOPPLER_PROJECT: talos-proxmox
+      ENV_NAME: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'dev' }}
+      DOPPLER_CONFIG: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'dev' }}
+      TF_VAR_env: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'dev' }}
+      ACTION: ${{ inputs.action }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Connect to Tailscale
-        uses: tailscale/github-action@v2
-        with:
-          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-          tags: tag:ci
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - uses: actions/checkout@v4
+      - uses: dopplerhq/cli-action@v3
+      - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.6.6
+          terraform_wrapper: false
+      - uses: azure/setup-helm@v4
+        if: github.event_name != 'pull_request' && inputs.action != 'destroy'
+      - uses: azure/setup-kubectl@v4
+        if: github.event_name != 'pull_request' && inputs.action != 'destroy'
 
-      - name: Set Vault Role
-        id: set-role
+      - name: Tailscale
         run: |
-          if [ "${{ github.event_name }}" == "push" ]; then
-            echo "role=${{ vars.ENV_NAME }}-github-actions-push-role" >> $GITHUB_OUTPUT
-          else
-            echo "role=${{ vars.ENV_NAME }}-github-actions-pr-role" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Import secrets from Vault
-        uses: hashicorp/vault-action@v3
-        id: vault_auth
+          for k in TS_OAUTH_CLIENT_ID TS_OAUTH_SECRET; do
+            v=$(doppler secrets get "$k" --plain)
+            echo "::add-mask::${v}"
+            echo "${k}=${v}" >> "$GITHUB_ENV"
+          done
+      - uses: tailscale/github-action@v2
         with:
-          method: jwt
-          url: ${{ vars.VAULT_ADDR }}
-          role: ${{ steps.set-role.outputs.role }}
-          outputToken: true
-          secrets: |
-            kv/shared/data/minio access_key | AWS_ACCESS_KEY_ID ;
-            kv/shared/data/minio secret_key | AWS_SECRET_ACCESS_KEY ;
-            kv/shared/data/proxmox ** | TF_VAR_proxmox_ ;
+          oauth-client-id: ${{ env.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ env.TS_OAUTH_SECRET }}
+          tags: tag:ci
 
-      - name: Terraform Init (Provision)
-        run: terraform init --backend-config="key=talos-${{ vars.ENV_NAME }}.tfstate"
-
-      - name: Terraform Plan (Provision)
+      - name: Terraform
+        working-directory: terraform-provision
         env:
-          TF_VAR_env: ${{ vars.ENV_NAME }}
-          VAULT_ADDR: ${{ vars.VAULT_ADDR }}
-          VAULT_TOKEN: ${{ steps.vault_auth.outputs.vault_token }}
+          APPLY: ${{ github.event_name != 'pull_request' }}
         run: |
-          PLAN_ARGS=""
-          if [ "${{ vars.DESTROY }}" == "true" ]; then
-            PLAN_ARGS="-destroy"
-          fi
+          tf() {
+            doppler run --only-secrets AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,PROXMOX_ENDPOINT,PROXMOX_USERNAME,PROXMOX_PASSWORD -- \
+              bash -c 'export TF_VAR_proxmox_endpoint="$PROXMOX_ENDPOINT" TF_VAR_proxmox_username="$PROXMOX_USERNAME" TF_VAR_proxmox_password="$PROXMOX_PASSWORD"
+                exec terraform "$@"' bash "$@"
+          }
+          tf init -backend-config="key=talos-${ENV_NAME}.tfstate"
+          extra=()
+          [ "$ACTION" = destroy ] && extra+=(-destroy)
+          tf plan "${extra[@]}" -var-file="env/${ENV_NAME}/main.tfvars" -out .planfile
+          [ "$APPLY" = true ] || exit 0
+          tf apply -auto-approve .planfile
+          [ "$ACTION" = destroy ] && exit 0
+          tf output -raw kubeconfig | doppler secrets set --silent --type yaml KUBECONFIG
+          tf output -raw talosconfig | doppler secrets set --silent --type yaml TALOSCONFIG
+          tf output -raw kubeconfig > "$GITHUB_WORKSPACE/kubeconfig"
+          chmod 600 "$GITHUB_WORKSPACE/kubeconfig"
 
-          terraform plan $PLAN_ARGS -var-file="env/${{ vars.ENV_NAME }}/main.tfvars" -out .planfile
-
-      - name: Post PR comment (Provision)
-        uses: borchero/terraform-plan-comment@v2
+      - uses: borchero/terraform-plan-comment@v2
         if: github.event_name == 'pull_request'
         with:
           token: ${{ github.token }}
-          working-directory: "./terraform-provision"
+          working-directory: terraform-provision
           planfile: .planfile
 
-      - name: Terraform Apply (Provision)
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        working-directory: ./terraform-provision
-        env:
-          TF_VAR_env: ${{ vars.ENV_NAME }}
-          VAULT_ADDR: ${{ vars.VAULT_ADDR }}
-          VAULT_TOKEN: ${{ steps.vault_auth.outputs.vault_token }}
-        run: terraform apply -auto-approve .planfile
-
-  helm-bootstrap:
-    runs-on: ubuntu-latest
-    needs: terraform-plan-apply
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.DESTROY != 'true'
-
-    permissions:
-      contents: read
-      id-token: write
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Connect to Tailscale
-        uses: tailscale/github-action@v2
-        with:
-          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-          tags: tag:ci
-
-      - name: Set Vault Role
-        id: set-role
-        run: echo "role=${{ vars.ENV_NAME }}-github-actions-push-role" >> $GITHUB_OUTPUT
-
-      - name: Import Secrets from Vault
-        uses: hashicorp/vault-action@v3
-        id: vault_auth
-        with:
-          method: jwt
-          url: ${{ vars.VAULT_ADDR }}
-          role: ${{ steps.set-role.outputs.role }}
-          outputToken: true
-          secrets: |
-            kv/shared/data/minio endpoint | LONGHORN_AWS_ENDPOINTS ;
-            kv/shared/data/minio longhorn_a_key | LONGHORN_AWS_ACCESS_KEY_ID ;
-            kv/shared/data/minio longhorn_s_key | LONGHORN_AWS_SECRET_ACCESS_KEY ;
-
-      - uses: eLco/setup-vault@v1
-        with:
-          vault_version: 1.21.0
-
-      - name: Setup Helm
-        uses: azure/setup-helm@v4
-
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v4
-
-      - name: Write kubeconfig
-        env:
-          VAULT_ADDR: ${{ vars.VAULT_ADDR }}
-          VAULT_TOKEN: ${{ steps.vault_auth.outputs.vault_token }}
-          ENV_NAME: ${{ vars.ENV_NAME }}
-        run: |
-          vault kv get -field=kubeconfig "kv/${ENV_NAME}/talos" > "${GITHUB_WORKSPACE}/kubeconfig"
-          chmod 600 "${GITHUB_WORKSPACE}/kubeconfig"
-
-      - name: Bootstrap Helm apps
+      - name: Helm bootstrap
+        if: github.event_name != 'pull_request' && inputs.action != 'destroy'
         env:
           KUBECONFIG: ${{ github.workspace }}/kubeconfig
-          ENV_NAME: ${{ vars.ENV_NAME }}
-        run: |
-          chmod +x apps/bootstrap.sh
-          apps/bootstrap.sh
+        run: doppler run --only-secrets LONGHORN_AWS_ENDPOINTS,LONGHORN_AWS_ACCESS_KEY_ID,LONGHORN_AWS_SECRET_ACCESS_KEY -- apps/bootstrap.sh

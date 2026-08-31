@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        stack: [terraform-provision, terraform-admin]
+        stack: [terraform-provision]
     defaults:
       run:
         working-directory: ./${{ matrix.stack }}

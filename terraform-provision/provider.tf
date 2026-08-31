@@ -9,10 +9,6 @@ terraform {
       source  = "siderolabs/talos"
       version = "0.9.0"
     }
-    vault = {
-      source  = "hashicorp/vault"
-      version = "5.0.0"
-    }
   }
   backend "s3" {
     bucket = "terraform"
@@ -37,8 +33,3 @@ provider "proxmox" {
 }
 
 provider "talos" {}
-
-provider "vault" {
-  # GitHub Actions JWT tokens cannot create child tokens.
-  skip_child_token = true
-}

@@ -6,9 +6,6 @@ terraform {
     talos = {
       source = "siderolabs/talos"
     }
-    vault = {
-      source = "hashicorp/vault"
-    }
   }
 }
 

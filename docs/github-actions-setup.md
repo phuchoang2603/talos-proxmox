@@ -1,12 +1,12 @@
 # GitHub Actions Automated Deployment
 
-This guide covers CI with GitHub Actions and HashiCorp Vault for Talos on Proxmox.
+CI uses GitHub Actions Environments and Doppler for Talos on Proxmox.
 
 ## Prerequisites
 
-- [HashiCorp Vault Setup](./vault-setup.md)
-- Tailscale (if using GitHub-hosted runners)
-- GitHub repository `talos-proxmox` (JWT `sub` uses the post-2026-07-15 immutable format with owner/repo IDs; see `terraform-admin`)
+- [Doppler Setup](./doppler-setup.md)
+- Tailscale (GitHub-hosted runners)
+- GitHub repository `talos-proxmox`
 - Proxmox API access
 - MinIO (or S3) for Terraform state
 
@@ -36,37 +36,33 @@ Edit `terraform-provision/env/{dev,prod}/k8s_nodes.json`, `longhorn_nodes.json`,
 
 Edit `terraform-provision/env/{env}/network.json` for the Talos API VIP and Cilium LoadBalancer pool (`lb_range`). Gateway and L2 LAN IPs live in `apps/manifests/env/{env}/network.yaml`.
 
-## Step 2: Set GitHub Variables
+## Step 2: GitHub Environments
 
-Repository → Settings → Secrets and variables → Actions → Variables:
+Settings → Environments. Create **`dev`** and **`prod`** (same names as `terraform-provision/env/`). You can add required reviewers on `prod`.
 
-| Variable | Value | Description |
-| --- | --- | --- |
-| `ENV_NAME` | `dev` or `prod` | Environment |
-| `VAULT_ADDR` | `https://vault.example.com` | Vault address |
-| `DESTROY` | `false` | Set `true` to destroy provisioned infra |
+Pushes and pull requests against `main` always use **`dev`**. **`prod`** is only selected via **Run workflow**.
 
-## Step 3: Set GitHub Secrets (Tailscale)
+Optional: store `DOPPLER_TOKEN` as an environment secret (per env) instead of a repository secret. The job reads `secrets.DOPPLER_TOKEN` from the Environment first.
+
+## Step 3: GitHub secret
+
+If not using environment secrets, repository secret:
 
 | Secret | Description |
 | --- | --- |
-| `TS_OAUTH_CLIENT_ID` | Tailscale OAuth client |
-| `TS_OAUTH_SECRET` | Tailscale OAuth secret |
+| `DOPPLER_TOKEN` | Doppler read/write service token for that Doppler config |
 
 ## Step 4: Deploy
 
-1. **Pull request:** Terraform plan + PR comment. No apply.
-2. **Push to `main`:** Apply VMs + Talos, write `kv/{ENV}/talos`, then `apps/bootstrap.sh`. Helm reads kubeconfig from that Vault path, not from Terraform. In-cluster secrets (Longhorn MinIO) are created by bootstrap from Vault values CI already imported.
+1. **Pull request:** Plans `dev`, comments on the PR. No apply or Helm.
+2. **Push to `main`:** Applies `dev`, writes `TALOSCONFIG` / `KUBECONFIG` to Doppler, then `apps/bootstrap.sh`.
+3. **Run workflow:** Pick Environment `dev` or `prod` and action **apply** or **destroy**.
 
-Provision state key: `talos-${ENV_NAME}.tfstate` (does not overwrite the RKE2 `dev.tfstate` / `prod.tfstate` keys).
+State key: `talos-${environment}.tfstate` (does not overwrite the RKE2 `dev.tfstate` / `prod.tfstate` keys). Doppler config names match (`dev`, `prod`).
 
 ## Destroy
 
-1. Set `DESTROY=true`
-2. Push to `main` or run `workflow_dispatch`
-3. Workflow runs `terraform destroy` on provision
-
-Helm releases are not torn down separately; destroying nodes removes the cluster.
+Actions → Provision and Bootstrap → Run workflow → environment + **destroy**. Helm is skipped; destroying nodes removes the cluster.
 
 ## Next
 
