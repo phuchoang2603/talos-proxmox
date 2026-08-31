@@ -27,6 +27,12 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+    retry:
+      limit: 10
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -86,6 +92,11 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
+        pod-security.kubernetes.io/audit: privileged
+        pod-security.kubernetes.io/warn: privileged
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -110,3 +121,10 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      - SkipDryRunOnMissingResource=true
+    retry:
+      limit: 20
+      backoff:
+        duration: 15s
+        factor: 2
+        maxDuration: 5m

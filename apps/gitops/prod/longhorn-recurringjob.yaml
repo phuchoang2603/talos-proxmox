@@ -5,6 +5,7 @@ metadata:
   namespace: longhorn-system
   annotations:
     argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   cron: "0 2 * * *"
   task: backup
@@ -22,6 +23,7 @@ metadata:
   namespace: longhorn-system
   annotations:
     argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   cron: "0 * * * *"
   task: snapshot
