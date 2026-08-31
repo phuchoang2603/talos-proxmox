@@ -18,8 +18,10 @@ mkdir -p "${RENDER}"
 
 export ENV_NAME IP_LB_RANGE IP_INGRESS SSL_DOMAIN SSL_API_TOKEN SSL_EMAIL
 export SSL_LOCAL_DOMAIN="${ENV_NAME}.${SSL_DOMAIN}"
-export KUBE_VIP_VERSION="${KUBE_VIP_VERSION:-v0.8.0}"
-export KUBE_VIP_INTERFACE="${KUBE_VIP_INTERFACE:-eth0}"
+export CILIUM_VERSION="${CILIUM_VERSION:-1.18.13}"
+export CILIUM_INTERFACE="${CILIUM_INTERFACE:-eth0}"
+export IP_LB_START="${IP_LB_RANGE%%-*}"
+export IP_LB_STOP="${IP_LB_RANGE##*-}"
 
 render() {
   local src="$1"
@@ -39,18 +41,34 @@ until [ "$(kubectl get nodes --no-headers 2>/dev/null | grep -c . || true)" -ge 
   sleep 5
 done
 
-kubectl wait --for=condition=Ready nodes --all --timeout=15m
-
+helm repo add cilium https://helm.cilium.io/ --force-update
 helm repo add jetstack https://charts.jetstack.io --force-update
 helm repo add traefik https://traefik.github.io/charts --force-update
 helm repo add longhorn https://charts.longhorn.io --force-update
 helm repo add nvidia https://helm.ngc.nvidia.com/nvidia --force-update
 helm repo add argo https://argoproj.github.io/argo-helm --force-update
 
-echo "Applying kube-vip (LoadBalancer services only; API VIP is Talos)"
-kubectl apply -f "${ROOT}/manifests/kube-vip-rbac.yaml"
-kubectl apply -f "$(render "${ROOT}/manifests/kube-vip-ds.yaml.tmpl")"
-kubectl apply -f "$(render "${ROOT}/manifests/kube-vip-cloud-controller.yaml.tmpl")"
+echo "Removing leftover kube-vip (if any)"
+kubectl delete daemonset kube-vip-ds -n kube-system --ignore-not-found
+kubectl delete deployment kube-vip-cloud-provider -n kube-system --ignore-not-found
+kubectl delete configmap kubevip -n kube-system --ignore-not-found
+kubectl delete serviceaccount kube-vip kube-vip-cloud-controller -n kube-system --ignore-not-found
+kubectl delete clusterrole system:kube-vip-role system:kube-vip-cloud-controller-role --ignore-not-found
+kubectl delete clusterrolebinding system:kube-vip-binding system:kube-vip-cloud-controller-binding --ignore-not-found
+
+echo "Installing Cilium (CNI, kube-proxy replacement, L2 LoadBalancer)"
+helm upgrade --install cilium cilium/cilium \
+  --namespace kube-system \
+  --version "${CILIUM_VERSION}" \
+  --values "$(render "${ROOT}/values/cilium.yaml.tmpl")" \
+  --wait --timeout 15m
+
+kubectl wait --for=condition=Established crd/ciliumloadbalancerippools.cilium.io --timeout=5m
+kubectl wait --for=condition=Established crd/ciliuml2announcementpolicies.cilium.io --timeout=5m
+kubectl apply -f "$(render "${ROOT}/manifests/cilium-l2.yaml.tmpl")"
+
+echo "Waiting for nodes to become Ready..."
+kubectl wait --for=condition=Ready nodes --all --timeout=15m
 
 echo "Installing cert-manager"
 helm upgrade --install cert-manager jetstack/cert-manager \

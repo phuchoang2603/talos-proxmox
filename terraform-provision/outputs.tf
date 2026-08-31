@@ -14,7 +14,7 @@ output "cluster_endpoint" {
 }
 
 output "lb_range" {
-  description = "kube-vip LoadBalancer IP range"
+  description = "Cilium LoadBalancer IP range (L2 announcements)"
   value       = module.talos.lb_range
 }
 
