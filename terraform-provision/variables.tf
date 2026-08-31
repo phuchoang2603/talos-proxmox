@@ -65,7 +65,7 @@ variable "talos_version" {
 variable "kubernetes_version" {
   description = "Kubernetes version shipped with Talos (including v prefix)"
   type        = string
-  default     = "v1.35.8"
+  default     = "v1.36.3"
 }
 
 variable "talos_install_disk" {
