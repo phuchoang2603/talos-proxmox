@@ -1,16 +1,16 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: longhorn
-  namespace: longhorn-system
+  name: hubble
+  namespace: kube-system
 spec:
   parentRefs:
     - name: cilium
       namespace: cilium-ingress
       sectionName: https
   hostnames:
-    - longhorn.${SSL_LOCAL_DOMAIN}
+    - hubble.${SSL_LOCAL_DOMAIN}
   rules:
     - backendRefs:
-        - name: longhorn-frontend
+        - name: hubble-ui
           port: 80

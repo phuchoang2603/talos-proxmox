@@ -34,7 +34,7 @@ Edit `terraform-provision/env/{dev,prod}/k8s_nodes.json`, `longhorn_nodes.json`,
 
 `role` `servers` is control plane. `longhorn` and `gpu` (and any other non-`servers` role) are workers. GPU nodes also set `pci` to Proxmox host PCI IDs and boot a second Factory image with NVIDIA production extensions.
 
-Edit `terraform-provision/env/{env}/network.json` for the API VIP, kube-vip LoadBalancer pool, and Traefik IP.
+Edit `terraform-provision/env/{env}/network.json` for the Talos API VIP, Cilium LoadBalancer pool (`lb_range`), and Cilium Gateway IP (`ingress`).
 
 ## Step 2: Set GitHub Variables
 

@@ -18,8 +18,11 @@ mkdir -p "${RENDER}"
 
 export ENV_NAME IP_LB_RANGE IP_INGRESS SSL_DOMAIN SSL_API_TOKEN SSL_EMAIL
 export SSL_LOCAL_DOMAIN="${ENV_NAME}.${SSL_DOMAIN}"
-export KUBE_VIP_VERSION="${KUBE_VIP_VERSION:-v0.8.0}"
-export KUBE_VIP_INTERFACE="${KUBE_VIP_INTERFACE:-eth0}"
+export CILIUM_VERSION="${CILIUM_VERSION:-1.18.13}"
+export CILIUM_INTERFACE="${CILIUM_INTERFACE:-eth0}"
+export GATEWAY_API_VERSION="${GATEWAY_API_VERSION:-v1.3.0}"
+export IP_LB_START="${IP_LB_RANGE%%-*}"
+export IP_LB_STOP="${IP_LB_RANGE##*-}"
 
 render() {
   local src="$1"
@@ -39,18 +42,31 @@ until [ "$(kubectl get nodes --no-headers 2>/dev/null | grep -c . || true)" -ge 
   sleep 5
 done
 
-kubectl wait --for=condition=Ready nodes --all --timeout=15m
-
+helm repo add cilium https://helm.cilium.io/ --force-update
 helm repo add jetstack https://charts.jetstack.io --force-update
-helm repo add traefik https://traefik.github.io/charts --force-update
 helm repo add longhorn https://charts.longhorn.io --force-update
 helm repo add nvidia https://helm.ngc.nvidia.com/nvidia --force-update
 helm repo add argo https://argoproj.github.io/argo-helm --force-update
 
-echo "Applying kube-vip (LoadBalancer services only; API VIP is Talos)"
-kubectl apply -f "${ROOT}/manifests/kube-vip-rbac.yaml"
-kubectl apply -f "$(render "${ROOT}/manifests/kube-vip-ds.yaml.tmpl")"
-kubectl apply -f "$(render "${ROOT}/manifests/kube-vip-cloud-controller.yaml.tmpl")"
+echo "Installing Gateway API CRDs ${GATEWAY_API_VERSION}"
+kubectl apply -f "https://github.com/kubernetes-sigs/gateway-api/releases/download/${GATEWAY_API_VERSION}/standard-install.yaml"
+kubectl wait --for=condition=Established crd/gatewayclasses.gateway.networking.k8s.io --timeout=2m
+kubectl wait --for=condition=Established crd/gateways.gateway.networking.k8s.io --timeout=2m
+kubectl wait --for=condition=Established crd/httproutes.gateway.networking.k8s.io --timeout=2m
+
+echo "Installing Cilium (CNI, kube-proxy replacement, L2 LoadBalancer, Gateway API)"
+helm upgrade --install cilium cilium/cilium \
+  --namespace kube-system \
+  --version "${CILIUM_VERSION}" \
+  --values "$(render "${ROOT}/values/cilium.yaml.tmpl")" \
+  --wait --timeout 15m
+
+kubectl wait --for=condition=Established crd/ciliumloadbalancerippools.cilium.io --timeout=5m
+kubectl wait --for=condition=Established crd/ciliuml2announcementpolicies.cilium.io --timeout=5m
+kubectl apply -f "$(render "${ROOT}/manifests/cilium-l2.yaml.tmpl")"
+
+echo "Waiting for nodes to become Ready..."
+kubectl wait --for=condition=Ready nodes --all --timeout=15m
 
 echo "Installing cert-manager"
 helm upgrade --install cert-manager jetstack/cert-manager \
@@ -65,15 +81,10 @@ helm upgrade --install cert-manager jetstack/cert-manager \
 echo "Applying cert-manager issuer"
 kubectl apply -f "$(render "${ROOT}/manifests/cert-manager-issuer.yaml.tmpl")"
 
-echo "Installing Traefik"
-helm upgrade --install traefik traefik/traefik \
-  --namespace traefik \
-  --create-namespace \
-  --version v39.0.7 \
-  --values "$(render "${ROOT}/values/traefik.yaml.tmpl")" \
-  --wait --timeout 10m
-
-kubectl apply -f "$(render "${ROOT}/manifests/traefik-wildcard-cert.yaml.tmpl")"
+echo "Applying Cilium Gateway"
+kubectl apply -f "$(render "${ROOT}/manifests/cilium-gateway.yaml.tmpl")"
+kubectl wait --for=condition=Ready certificate/wildcard-cert -n cilium-ingress --timeout=10m
+kubectl apply -f "$(render "${ROOT}/manifests/hubble-ingress.yaml.tmpl")"
 
 echo "Installing Longhorn"
 kubectl apply -f "${ROOT}/manifests/longhorn-namespace.yaml"

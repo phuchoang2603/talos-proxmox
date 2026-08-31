@@ -38,11 +38,13 @@ locals {
       apiServer = {
         certSANs = local.cert_sans
       }
-      proxy = {
-        extraArgs = {
-          "proxy-mode"      = "ipvs"
-          "ipvs-strict-arp" = "true"
+      network = {
+        cni = {
+          name = "none"
         }
+      }
+      proxy = {
+        disabled = true
       }
     }
   }

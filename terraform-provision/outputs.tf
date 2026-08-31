@@ -14,12 +14,12 @@ output "cluster_endpoint" {
 }
 
 output "lb_range" {
-  description = "kube-vip LoadBalancer IP range"
+  description = "Cilium LoadBalancer IP range (L2 announcements)"
   value       = module.talos.lb_range
 }
 
 output "ingress_ip" {
-  description = "Traefik LoadBalancer IP"
+  description = "Cilium Gateway LoadBalancer IP"
   value       = module.talos.ingress_ip
 }
 
