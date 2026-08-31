@@ -20,6 +20,7 @@ export ENV_NAME IP_LB_RANGE IP_INGRESS SSL_DOMAIN SSL_API_TOKEN SSL_EMAIL
 export SSL_LOCAL_DOMAIN="${ENV_NAME}.${SSL_DOMAIN}"
 export CILIUM_VERSION="${CILIUM_VERSION:-1.18.13}"
 export CILIUM_INTERFACE="${CILIUM_INTERFACE:-eth0}"
+export GATEWAY_API_VERSION="${GATEWAY_API_VERSION:-v1.3.0}"
 export IP_LB_START="${IP_LB_RANGE%%-*}"
 export IP_LB_STOP="${IP_LB_RANGE##*-}"
 
@@ -43,20 +44,17 @@ done
 
 helm repo add cilium https://helm.cilium.io/ --force-update
 helm repo add jetstack https://charts.jetstack.io --force-update
-helm repo add traefik https://traefik.github.io/charts --force-update
 helm repo add longhorn https://charts.longhorn.io --force-update
 helm repo add nvidia https://helm.ngc.nvidia.com/nvidia --force-update
 helm repo add argo https://argoproj.github.io/argo-helm --force-update
 
-echo "Removing leftover kube-vip (if any)"
-kubectl delete daemonset kube-vip-ds -n kube-system --ignore-not-found
-kubectl delete deployment kube-vip-cloud-provider -n kube-system --ignore-not-found
-kubectl delete configmap kubevip -n kube-system --ignore-not-found
-kubectl delete serviceaccount kube-vip kube-vip-cloud-controller -n kube-system --ignore-not-found
-kubectl delete clusterrole system:kube-vip-role system:kube-vip-cloud-controller-role --ignore-not-found
-kubectl delete clusterrolebinding system:kube-vip-binding system:kube-vip-cloud-controller-binding --ignore-not-found
+echo "Installing Gateway API CRDs ${GATEWAY_API_VERSION}"
+kubectl apply -f "https://github.com/kubernetes-sigs/gateway-api/releases/download/${GATEWAY_API_VERSION}/standard-install.yaml"
+kubectl wait --for=condition=Established crd/gatewayclasses.gateway.networking.k8s.io --timeout=2m
+kubectl wait --for=condition=Established crd/gateways.gateway.networking.k8s.io --timeout=2m
+kubectl wait --for=condition=Established crd/httproutes.gateway.networking.k8s.io --timeout=2m
 
-echo "Installing Cilium (CNI, kube-proxy replacement, L2 LoadBalancer)"
+echo "Installing Cilium (CNI, kube-proxy replacement, L2 LoadBalancer, Gateway API)"
 helm upgrade --install cilium cilium/cilium \
   --namespace kube-system \
   --version "${CILIUM_VERSION}" \
@@ -83,15 +81,10 @@ helm upgrade --install cert-manager jetstack/cert-manager \
 echo "Applying cert-manager issuer"
 kubectl apply -f "$(render "${ROOT}/manifests/cert-manager-issuer.yaml.tmpl")"
 
-echo "Installing Traefik"
-helm upgrade --install traefik traefik/traefik \
-  --namespace traefik \
-  --create-namespace \
-  --version v39.0.7 \
-  --values "$(render "${ROOT}/values/traefik.yaml.tmpl")" \
-  --wait --timeout 10m
-
-kubectl apply -f "$(render "${ROOT}/manifests/traefik-wildcard-cert.yaml.tmpl")"
+echo "Applying Cilium Gateway"
+kubectl apply -f "$(render "${ROOT}/manifests/cilium-gateway.yaml.tmpl")"
+kubectl wait --for=condition=Ready certificate/wildcard-cert -n cilium-ingress --timeout=10m
+kubectl apply -f "$(render "${ROOT}/manifests/hubble-ingress.yaml.tmpl")"
 
 echo "Installing Longhorn"
 kubectl apply -f "${ROOT}/manifests/longhorn-namespace.yaml"

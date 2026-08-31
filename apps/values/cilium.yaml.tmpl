@@ -35,3 +35,13 @@ k8sClientRateLimit:
 # Avoid ARP drops between XDP and TC on Talos (cilium/cilium#36829)
 loadBalancer:
   acceleration: best-effort
+gatewayAPI:
+  enabled: true
+  enableAlpn: true
+  enableAppProtocol: true
+hubble:
+  enabled: true
+  relay:
+    enabled: true
+  ui:
+    enabled: true

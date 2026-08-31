@@ -19,7 +19,7 @@ output "lb_range" {
 }
 
 output "ingress_ip" {
-  description = "Traefik LoadBalancer IP"
+  description = "Cilium Gateway LoadBalancer IP"
   value       = module.talos.ingress_ip
 }
 
