@@ -1,6 +1,6 @@
 # Cluster bootstrap apps
 
-Cilium (CNI) and Argo CD are installed by `bootstrap.sh`. Everything else is an Argo CD Application pointing at this repo.
+Cilium (CNI) and Argo CD are installed by `bootstrap.sh`. Longhorn, GPU Operator, metrics-server, and Gateway routes are Argo CD Applications.
 
 Bootstrap still writes the Longhorn MinIO secret from Vault. LAN IPs are hardcoded in `apps/gitops/{dev,prod}/` and `apps/manifests/env/{dev,prod}/cilium-l2.yaml`.
 
