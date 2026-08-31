@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - gateways.yaml
+  - httproutes.yaml
+  - ../../manifests/gpu-operator-namespace.yaml
+  - ../../manifests/longhorn-storage-class.yaml
+  - ../../manifests/longhorn-recurringjob.yaml

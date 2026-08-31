@@ -20,7 +20,6 @@ variable "network" {
   type = object({
     vip      = string
     lb_range = string
-    ingress  = string
   })
 }
 

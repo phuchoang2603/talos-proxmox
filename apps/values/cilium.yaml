@@ -26,13 +26,12 @@ cgroup:
   autoMount:
     enabled: false
   hostRoot: /sys/fs/cgroup
-devices: ${CILIUM_INTERFACE}
+devices: eth0
 l2announcements:
   enabled: true
 k8sClientRateLimit:
   qps: 20
   burst: 40
-# Avoid ARP drops between XDP and TC on Talos (cilium/cilium#36829)
 loadBalancer:
   acceleration: best-effort
 gatewayAPI:

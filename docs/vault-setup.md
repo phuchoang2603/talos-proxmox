@@ -16,10 +16,9 @@ export VAULT_TOKEN="your-vault-token"
 
 vault kv put kv/shared/minio access_key="..." secret_key="..."
 vault kv put kv/shared/proxmox endpoint="..." username="..." password="..."
-vault kv put kv/shared/cloudflare api_token="..." domain="..." email="..."
 ```
 
-Cluster IPs (`vip`, `lb_range`, `ingress`) live in git: `terraform-provision/env/{dev,prod}/network.json`. Do not store them in Vault.
+Cluster IPs (`vip`, `lb_range`) live in git: `terraform-provision/env/{dev,prod}/network.json`. Gateway LAN IPs are in `apps/gitops/{env}/gateways.yaml`. Do not store them in Vault.
 
 There is no RKE2 join token. Talos machine secrets live in the provision Terraform state (`talos-${ENV}.tfstate`). After each provision apply, Terraform also writes **`kv/{env}/talos`** (`talosconfig`, `kubeconfig`) so laptops can `vault kv get` without Terraform. That path is admin-only; GitHub Actions JWT may create, update, and delete it.
 

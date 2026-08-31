@@ -4,8 +4,8 @@ metadata:
   name: default
 spec:
   blocks:
-    - start: "${IP_LB_START}"
-      stop: "${IP_LB_STOP}"
+    - start: "10.69.101.0"
+      stop: "10.69.101.255"
 ---
 apiVersion: cilium.io/v2alpha1
 kind: CiliumL2AnnouncementPolicy
@@ -14,4 +14,4 @@ metadata:
 spec:
   loadBalancerIPs: true
   interfaces:
-    - ${CILIUM_INTERFACE}
+    - eth0

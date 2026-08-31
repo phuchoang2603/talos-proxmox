@@ -14,10 +14,6 @@ output "lb_range" {
   value = var.network.lb_range
 }
 
-output "ingress_ip" {
-  value = var.network.ingress
-}
-
 output "talosconfig" {
   value     = data.talos_client_configuration.this.talos_config
   sensitive = true

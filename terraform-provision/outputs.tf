@@ -18,11 +18,6 @@ output "lb_range" {
   value       = module.talos.lb_range
 }
 
-output "ingress_ip" {
-  description = "Cilium Gateway LoadBalancer IP"
-  value       = module.talos.ingress_ip
-}
-
 output "talosconfig" {
   description = "talosctl client configuration. Endpoints are node IPs, not the VIP."
   value       = module.talos.talosconfig
