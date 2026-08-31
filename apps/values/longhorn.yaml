@@ -1,6 +1,3 @@
-# Argo runs Helm pre-upgrade hooks on first install; the job needs a SA the chart has not created yet.
-preUpgradeChecker:
-  jobEnabled: false
 defaultSettings:
   createDefaultDiskLabeledNodes: "true"
   autoCleanupSystemGeneratedSnapshot: true

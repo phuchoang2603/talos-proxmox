@@ -14,7 +14,7 @@ This project provisions a [Talos Linux](https://www.talos.dev/) Kubernetes clust
 | -------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | `terraform-provision/env/{env}/` | Node inventory (`k8s_nodes.json`, `longhorn_nodes.json`, `gpu_nodes.json`) and `network.json` |
 | `terraform-admin/`               | Vault JWT (GHA) and identity groups                                                                     |
-| `apps/`                          | Cilium + Argo CD bootstrap; Longhorn/GPU Operator/routes synced by Argo CD |
+| `apps/`                          | Helm bootstrap: Cilium, metrics-server, Longhorn, GPU Operator, Argo CD; env IPs in `apps/manifests/env/` |
 
 Terraform provision state uses the MinIO key `talos-${ENV}.tfstate` so it does not collide with the RKE2 state until you destroy that cluster.
 
