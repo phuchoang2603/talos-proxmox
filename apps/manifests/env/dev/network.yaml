@@ -1,3 +1,21 @@
+apiVersion: cilium.io/v2alpha1
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: default
+spec:
+  blocks:
+    - start: "10.69.100.0"
+      stop: "10.69.100.255"
+---
+apiVersion: cilium.io/v2alpha1
+kind: CiliumL2AnnouncementPolicy
+metadata:
+  name: default
+spec:
+  loadBalancerIPs: true
+  interfaces:
+    - eth0
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -12,7 +30,7 @@ spec:
   gatewayClassName: cilium
   addresses:
     - type: IPAddress
-      value: 10.69.101.1
+      value: 10.69.100.1
   listeners:
     - name: http
       protocol: HTTP
@@ -30,7 +48,7 @@ spec:
   gatewayClassName: cilium
   addresses:
     - type: IPAddress
-      value: 10.69.101.2
+      value: 10.69.100.2
   listeners:
     - name: http
       protocol: HTTP
@@ -48,7 +66,7 @@ spec:
   gatewayClassName: cilium
   addresses:
     - type: IPAddress
-      value: 10.69.101.3
+      value: 10.69.100.3
   listeners:
     - name: http
       protocol: HTTP

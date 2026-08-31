@@ -1,6 +1,6 @@
 # Talos Kubernetes on Proxmox with Terraform
 
-This project provisions a [Talos Linux](https://www.talos.dev/) Kubernetes cluster on Proxmox using Terraform, GitHub Actions, and HashiCorp Vault. Cluster access is via `talosctl` / kubeconfig stored in Vault (`kv/{env}/talos`). Vault is also used for CI JWT and Proxmox/MinIO/Cloudflare secrets. GitHub Actions writes in-cluster secrets (for example Longhorn MinIO) at bootstrap; nothing in the cluster authenticates to Vault.
+This project provisions a [Talos Linux](https://www.talos.dev/) Kubernetes cluster on Proxmox using Terraform, GitHub Actions, and HashiCorp Vault. Cluster access is via `talosctl` / kubeconfig stored in Vault (`kv/{env}/talos`). GitHub Actions writes in-cluster secrets (Longhorn MinIO) at bootstrap; nothing in the cluster authenticates to Vault.
 
 ## Quick start
 
@@ -14,7 +14,7 @@ This project provisions a [Talos Linux](https://www.talos.dev/) Kubernetes clust
 | -------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | `terraform-provision/env/{env}/` | Node inventory (`k8s_nodes.json`, `longhorn_nodes.json`, `gpu_nodes.json`) and `network.json` |
 | `terraform-admin/`               | Vault JWT (GHA) and identity groups                                                                     |
-| `apps/`                          | Helm bootstrap: Cilium, metrics-server, Longhorn, GPU Operator, Argo CD; env IPs in `apps/manifests/env/` |
+| `apps/`                          | Helm bootstrap (Cilium, metrics-server, Longhorn, GPU Operator, Argo CD) |
 
 Terraform provision state uses the MinIO key `talos-${ENV}.tfstate` so it does not collide with the RKE2 state until you destroy that cluster.
 
