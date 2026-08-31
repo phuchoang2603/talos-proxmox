@@ -1,0 +1,8 @@
+nvidiaDriverRoot: /usr/local
+nvidiaCDIHookPath: /usr/local/bin/nvidia-cdi-hook
+gpuResourcesEnabledOverride: true
+resources:
+  gpus:
+    enabled: true
+  computeDomains:
+    enabled: false

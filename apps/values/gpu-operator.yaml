@@ -2,19 +2,13 @@ driver:
   enabled: false
 toolkit:
   enabled: false
+devicePlugin:
+  enabled: false
 hostPaths:
   driverInstallDir: /usr/local
 cdi:
   enabled: true
 clusterPolicy:
-  deployCR: false
-gpuCluster:
   deployCR: true
-draDriver:
-  computeDomains:
-    enabled: false
-  gpus:
-    kubeletPlugin:
-      env:
-        - name: NVIDIA_CDI_HOOK_PATH
-          value: /usr/local/bin/nvidia-cdi-hook
+gpuCluster:
+  deployCR: false

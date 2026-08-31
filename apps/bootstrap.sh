@@ -16,6 +16,7 @@ GATEWAY_API_VERSION="${GATEWAY_API_VERSION:-v1.3.0}"
 LONGHORN_VERSION="${LONGHORN_VERSION:-1.11.1}"
 METRICS_SERVER_VERSION="${METRICS_SERVER_VERSION:-3.14.0}"
 GPU_OPERATOR_VERSION="${GPU_OPERATOR_VERSION:-v26.7.0}"
+NVIDIA_DRA_VERSION="${NVIDIA_DRA_VERSION:-25.12.0}"
 ARGO_CD_VERSION="${ARGO_CD_VERSION:-v9.4.17}"
 
 helm_up() {
@@ -96,9 +97,11 @@ kubectl apply -f "${MANIFESTS}/longhorn.yaml"
 
 if [ "$(jq 'length' "${INV}/gpu_nodes.json")" -gt 0 ]; then
   helm repo add nvidia https://helm.ngc.nvidia.com/nvidia --force-update
-  echo "Installing NVIDIA GPU Operator"
+  echo "Installing NVIDIA GPU Operator and DRA driver"
   privileged_ns gpu-operator
   helm_up gpu-operator nvidia/gpu-operator gpu-operator "${GPU_OPERATOR_VERSION}" "${VALUES}/gpu-operator.yaml"
+  privileged_ns nvidia-dra-driver-gpu
+  helm_up nvidia-dra-driver-gpu nvidia/nvidia-dra-driver-gpu nvidia-dra-driver-gpu "${NVIDIA_DRA_VERSION}" "${VALUES}/nvidia-dra-driver.yaml"
 fi
 
 echo "Installing Argo CD"
