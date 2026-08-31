@@ -12,7 +12,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
   name      = var.name
   node_name = var.node_name
   vm_id     = var.vm_id
-  tags      = ["terraform", "talos"]
+  tags      = ["talos", var.env, var.role]
   on_boot   = true
 
   agent {

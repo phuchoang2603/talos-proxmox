@@ -4,6 +4,8 @@ module "nodes" {
   for_each = var.nodes
 
   name         = each.key
+  env          = var.env
+  role         = each.value.role
   node_name    = each.value.node
   vm_id        = each.value.vm_id
   cpu_cores    = each.value.cpu_cores

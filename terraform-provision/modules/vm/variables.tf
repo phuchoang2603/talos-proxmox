@@ -3,6 +3,16 @@ variable "name" {
   type        = string
 }
 
+variable "env" {
+  description = "Environment name used as a Proxmox tag (dev or prod)."
+  type        = string
+}
+
+variable "role" {
+  description = "Node role used as a Proxmox tag (servers, longhorn, gpu)."
+  type        = string
+}
+
 variable "node_name" {
   description = "The name of the Proxmox node where the VM will be created."
   type        = string
