@@ -1,6 +1,6 @@
 # Doppler setup
 
-Secrets live in Doppler project `talos-proxmox`. Cluster access is `TALOSCONFIG` / `KUBECONFIG`. GitHub Actions writes the Longhorn MinIO secret at bootstrap. The **gpu** cluster uses External Secrets Operator to sync from Doppler in-cluster.
+Secrets live in Doppler project `talos-proxmox`. Cluster access is `TALOSCONFIG` / `KUBECONFIG`. GitHub Actions writes the Longhorn MinIO secret at bootstrap on prod/gpu. The **gpu** cluster uses External Secrets Operator to sync from Doppler in-cluster.
 
 Laptop CLI is `pkgs.doppler` via devenv. After `direnv allow`, run `doppler login` once.
 
@@ -12,7 +12,7 @@ Configs: `dev`, `prod`, and `gpu` (same names as git env folders and GitHub Envi
 | --- | --- |
 | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | Terraform S3/MinIO backend |
 | `PROXMOX_ENDPOINT`, `PROXMOX_USERNAME`, `PROXMOX_PASSWORD` | Mapped to `TF_VAR_proxmox_*` in CI |
-| `LONGHORN_AWS_ENDPOINTS`, `LONGHORN_AWS_ACCESS_KEY_ID`, `LONGHORN_AWS_SECRET_ACCESS_KEY` | `apps/bootstrap.sh` |
+| `LONGHORN_AWS_ENDPOINTS`, `LONGHORN_AWS_ACCESS_KEY_ID`, `LONGHORN_AWS_SECRET_ACCESS_KEY` | `apps/bootstrap.sh` when `longhorn_nodes.json` is non-empty (prod/gpu) |
 | `TS_OAUTH_CLIENT_ID`, `TS_OAUTH_SECRET` | GitHub Actions Tailscale |
 | `TALOSCONFIG`, `KUBECONFIG` | Laptop access (YAML); written after provision apply |
 | `DOPPLER_READ_TOKEN` | **gpu config only** — project read token for External Secrets Operator and Argo CD remote cluster registration (dev/prod/gpu configs) |

@@ -1,6 +1,6 @@
 # Talos Kubernetes on Proxmox with Terraform
 
-This project provisions a [Talos Linux](https://www.talos.dev/) Kubernetes cluster on Proxmox using Terraform, GitHub Actions, and Doppler. Cluster access is via `talosctl` / kubeconfig stored in Doppler (`TALOSCONFIG`, `KUBECONFIG`). GitHub Actions writes in-cluster secrets (Longhorn MinIO) at bootstrap. The **gpu** cluster runs Argo CD and External Secrets Operator (Doppler sync).
+This project provisions a [Talos Linux](https://www.talos.dev/) Kubernetes cluster on Proxmox using Terraform, GitHub Actions, and Doppler. Cluster access is via `talosctl` / kubeconfig stored in Doppler (`TALOSCONFIG`, `KUBECONFIG`). GitHub Actions writes in-cluster secrets (Longhorn MinIO on prod/gpu) at bootstrap. The **gpu** cluster runs Argo CD and External Secrets Operator (Doppler sync).
 
 ## Quick start
 

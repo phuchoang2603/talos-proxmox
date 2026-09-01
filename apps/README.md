@@ -1,18 +1,20 @@
 # Cluster bootstrap
 
-`bootstrap.sh` installs Cilium (Gateway API, WireGuard encryption, Envoy L7), metrics-server, Longhorn, and the NVIDIA GPU stack when `gpu_nodes.json` is non-empty. Argo CD and External Secrets Operator are **gpu only** — see `bootstrap-gpu.sh`.
+`bootstrap.sh` installs Cilium (Gateway API, WireGuard encryption, Envoy L7), metrics-server, and Longhorn when `longhorn_nodes.json` is non-empty. The NVIDIA GPU stack installs when `gpu_nodes.json` is non-empty. Argo CD and External Secrets Operator are **gpu only** — see `bootstrap-gpu.sh`.
 
-Per-env Cilium L2 pool: `apps/manifests/env/{dev,prod,gpu}/network.yaml`. Longhorn Gateway/HTTPRoute: `longhorn-ingress.yaml` (`longhorn-system`). Argo ingress: `env/gpu/argo-ingress.yaml` only.
+Per-env Cilium L2 pool: `apps/manifests/env/{dev,prod,gpu}/network.yaml`. Longhorn Gateway/HTTPRoute: `longhorn-ingress.yaml` on prod/gpu only. Argo ingress: `env/gpu/argo-ingress.yaml` only.
 
 | | Longhorn | Argo CD |
 | --- | --- | --- |
-| dev | http://10.69.1.114 | — |
+| dev | — | — |
 | prod | http://10.69.101.2 | — |
 | gpu | http://10.69.102.2 | http://10.69.102.3 |
 
 ## bootstrap.sh
 
-Required: `KUBECONFIG`, `ENV_NAME`, `LONGHORN_AWS_ENDPOINTS`, `LONGHORN_AWS_ACCESS_KEY_ID`, `LONGHORN_AWS_SECRET_ACCESS_KEY`.
+Required: `KUBECONFIG`, `ENV_NAME`.
+
+When `longhorn_nodes.json` has nodes: `LONGHORN_AWS_ENDPOINTS`, `LONGHORN_AWS_ACCESS_KEY_ID`, `LONGHORN_AWS_SECRET_ACCESS_KEY`.
 
 Optional chart pins: `CILIUM_VERSION`, `GATEWAY_API_VERSION`, `LONGHORN_VERSION`, `METRICS_SERVER_VERSION`, `GPU_OPERATOR_VERSION`, `NVIDIA_DRA_VERSION`.
 

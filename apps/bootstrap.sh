@@ -2,14 +2,18 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-INV="${ROOT}/../terraform-provision/env/${ENV_NAME:?ENV_NAME is required}"
 MANIFESTS="${ROOT}/manifests"
 VALUES="${ROOT}/values"
 
 : "${KUBECONFIG:?KUBECONFIG is required}"
-: "${LONGHORN_AWS_ENDPOINTS:?LONGHORN_AWS_ENDPOINTS is required}"
-: "${LONGHORN_AWS_ACCESS_KEY_ID:?LONGHORN_AWS_ACCESS_KEY_ID is required}"
-: "${LONGHORN_AWS_SECRET_ACCESS_KEY:?LONGHORN_AWS_SECRET_ACCESS_KEY is required}"
+
+INV="${ROOT}/../terraform-provision/env/${ENV_NAME:?ENV_NAME is required}"
+LONGHORN_NODES="$(jq 'length' "${INV}/longhorn_nodes.json")"
+if [ "${LONGHORN_NODES}" -gt 0 ]; then
+  : "${LONGHORN_AWS_ENDPOINTS:?LONGHORN_AWS_ENDPOINTS is required}"
+  : "${LONGHORN_AWS_ACCESS_KEY_ID:?LONGHORN_AWS_ACCESS_KEY_ID is required}"
+  : "${LONGHORN_AWS_SECRET_ACCESS_KEY:?LONGHORN_AWS_SECRET_ACCESS_KEY is required}"
+fi
 
 CILIUM_VERSION="${CILIUM_VERSION:-1.18.13}"
 GATEWAY_API_VERSION="${GATEWAY_API_VERSION:-v1.3.0}"
@@ -59,8 +63,10 @@ until [ "$(kubectl get nodes --no-headers 2>/dev/null | grep -c . || true)" -ge 
 done
 
 helm repo add cilium https://helm.cilium.io/ --force-update
-helm repo add longhorn https://charts.longhorn.io --force-update
 helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/ --force-update
+if [ "${LONGHORN_NODES}" -gt 0 ]; then
+  helm repo add longhorn https://charts.longhorn.io --force-update
+fi
 
 echo "Installing Gateway API CRDs ${GATEWAY_API_VERSION}"
 kubectl apply -f "https://github.com/kubernetes-sigs/gateway-api/releases/download/${GATEWAY_API_VERSION}/standard-install.yaml"
@@ -82,17 +88,19 @@ kubectl wait --for=condition=Ready nodes --all --timeout=15m
 echo "Installing metrics-server"
 helm_up metrics-server metrics-server/metrics-server kube-system "${METRICS_SERVER_VERSION}" "${VALUES}/metrics-server.yaml" 5m
 
-echo "Installing Longhorn"
-privileged_ns longhorn-system
-kubectl create secret generic longhorn-minio-credentials \
-  --namespace longhorn-system \
-  --from-literal=AWS_ENDPOINTS="${LONGHORN_AWS_ENDPOINTS}" \
-  --from-literal=AWS_ACCESS_KEY_ID="${LONGHORN_AWS_ACCESS_KEY_ID}" \
-  --from-literal=AWS_SECRET_ACCESS_KEY="${LONGHORN_AWS_SECRET_ACCESS_KEY}" \
-  --dry-run=client -o yaml | kubectl apply -f -
-helm_up longhorn longhorn/longhorn longhorn-system "${LONGHORN_VERSION}" "${VALUES}/longhorn.yaml"
-kubectl apply -f "${MANIFESTS}/longhorn.yaml"
-kubectl apply -f "${MANIFESTS}/env/${ENV_NAME}/longhorn-ingress.yaml"
+if [ "${LONGHORN_NODES}" -gt 0 ]; then
+  echo "Installing Longhorn"
+  privileged_ns longhorn-system
+  kubectl create secret generic longhorn-minio-credentials \
+    --namespace longhorn-system \
+    --from-literal=AWS_ENDPOINTS="${LONGHORN_AWS_ENDPOINTS}" \
+    --from-literal=AWS_ACCESS_KEY_ID="${LONGHORN_AWS_ACCESS_KEY_ID}" \
+    --from-literal=AWS_SECRET_ACCESS_KEY="${LONGHORN_AWS_SECRET_ACCESS_KEY}" \
+    --dry-run=client -o yaml | kubectl apply -f -
+  helm_up longhorn longhorn/longhorn longhorn-system "${LONGHORN_VERSION}" "${VALUES}/longhorn.yaml"
+  kubectl apply -f "${MANIFESTS}/longhorn.yaml"
+  kubectl apply -f "${MANIFESTS}/env/${ENV_NAME}/longhorn-ingress.yaml"
+fi
 
 if [ "$(jq 'length' "${INV}/gpu_nodes.json")" -gt 0 ]; then
   helm repo add nvidia https://helm.ngc.nvidia.com/nvidia --force-update

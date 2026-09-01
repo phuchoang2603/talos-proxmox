@@ -97,7 +97,12 @@ jobs:
         if: github.event_name != 'pull_request' && inputs.action != 'destroy'
         env:
           KUBECONFIG: ${{ github.workspace }}/kubeconfig
-        run: doppler run --only-secrets LONGHORN_AWS_ENDPOINTS,LONGHORN_AWS_ACCESS_KEY_ID,LONGHORN_AWS_SECRET_ACCESS_KEY -- apps/bootstrap.sh
+        run: |
+          if [ "$(jq 'length' "terraform-provision/env/${ENV_NAME}/longhorn_nodes.json")" -gt 0 ]; then
+            doppler run --only-secrets LONGHORN_AWS_ENDPOINTS,LONGHORN_AWS_ACCESS_KEY_ID,LONGHORN_AWS_SECRET_ACCESS_KEY -- apps/bootstrap.sh
+          else
+            apps/bootstrap.sh
+          fi
 
       - name: Helm bootstrap gpu
         if: github.event_name != 'pull_request' && inputs.action != 'destroy' && env.ENV_NAME == 'gpu'

@@ -1,13 +1,1 @@
-{
-  "dev-longhorn1": {
-    "vm_id": 112,
-    "node": "pve",
-    "role": "longhorn",
-    "address": "10.69.1.112/16",
-    "cpu_cores": 2,
-    "cpu_type": "host",
-    "memory_mb": 4096,
-    "disk_size_gb": 300,
-    "datastore_id": "local-lvm"
-  }
-}
+{}
