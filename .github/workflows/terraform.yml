@@ -98,3 +98,12 @@ jobs:
         env:
           KUBECONFIG: ${{ github.workspace }}/kubeconfig
         run: doppler run --only-secrets LONGHORN_AWS_ENDPOINTS,LONGHORN_AWS_ACCESS_KEY_ID,LONGHORN_AWS_SECRET_ACCESS_KEY -- apps/bootstrap.sh
+
+      - name: Helm bootstrap gpu
+        if: github.event_name != 'pull_request' && inputs.action != 'destroy' && env.ENV_NAME == 'gpu'
+        env:
+          KUBECONFIG: ${{ github.workspace }}/kubeconfig
+        run: |
+          chmod +x apps/bootstrap-gpu.sh
+          export DOPPLER_READ_TOKEN="$(doppler secrets get DOPPLER_READ_TOKEN --plain)"
+          apps/bootstrap-gpu.sh

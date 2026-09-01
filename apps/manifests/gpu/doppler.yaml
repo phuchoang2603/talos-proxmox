@@ -1,0 +1,47 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ClusterSecretStore
+metadata:
+  name: doppler-gpu
+spec:
+  provider:
+    doppler:
+      auth:
+        secretRef:
+          dopplerToken:
+            name: doppler-token
+            key: dopplerToken
+            namespace: external-secrets
+      project: talos-proxmox
+      config: gpu
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ClusterSecretStore
+metadata:
+  name: doppler-dev
+spec:
+  provider:
+    doppler:
+      auth:
+        secretRef:
+          dopplerToken:
+            name: doppler-token
+            key: dopplerToken
+            namespace: external-secrets
+      project: talos-proxmox
+      config: dev
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ClusterSecretStore
+metadata:
+  name: doppler-prod
+spec:
+  provider:
+    doppler:
+      auth:
+        secretRef:
+          dopplerToken:
+            name: doppler-token
+            key: dopplerToken
+            namespace: external-secrets
+      project: talos-proxmox
+      config: prod

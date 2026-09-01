@@ -17,7 +17,6 @@ LONGHORN_VERSION="${LONGHORN_VERSION:-1.11.1}"
 METRICS_SERVER_VERSION="${METRICS_SERVER_VERSION:-3.14.0}"
 GPU_OPERATOR_VERSION="${GPU_OPERATOR_VERSION:-v26.7.0}"
 NVIDIA_DRA_VERSION="${NVIDIA_DRA_VERSION:-25.12.0}"
-ARGO_CD_VERSION="${ARGO_CD_VERSION:-v9.4.17}"
 
 helm_up() {
   local name="$1" chart="$2" ns="$3" version="$4" values="$5"
@@ -62,7 +61,6 @@ done
 helm repo add cilium https://helm.cilium.io/ --force-update
 helm repo add longhorn https://charts.longhorn.io --force-update
 helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/ --force-update
-helm repo add argo https://argoproj.github.io/argo-helm --force-update
 
 echo "Installing Gateway API CRDs ${GATEWAY_API_VERSION}"
 kubectl apply -f "https://github.com/kubernetes-sigs/gateway-api/releases/download/${GATEWAY_API_VERSION}/standard-install.yaml"
@@ -104,9 +102,5 @@ if [ "$(jq 'length' "${INV}/gpu_nodes.json")" -gt 0 ]; then
   privileged_ns nvidia-dra-driver-gpu
   helm_up nvidia-dra-driver-gpu nvidia/nvidia-dra-driver-gpu nvidia-dra-driver-gpu "${NVIDIA_DRA_VERSION}" "${VALUES}/nvidia-dra-driver.yaml"
 fi
-
-echo "Installing Argo CD"
-helm_up argo-cd argo/argo-cd argo-cd "${ARGO_CD_VERSION}" "${VALUES}/argo-cd.yaml" --create-namespace
-kubectl apply -f "${MANIFESTS}/env/${ENV_NAME}/argo-ingress.yaml"
 
 echo "Bootstrap complete."
