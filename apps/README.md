@@ -6,7 +6,7 @@ Per-env L2 pool and Gateway IPs: `apps/manifests/env/{dev,prod}/network.yaml`. T
 
 | | Hubble | Longhorn | Argo CD |
 | --- | --- | --- | --- |
-| dev | http://10.69.100.1 | http://10.69.100.2 | http://10.69.100.3 |
+| dev | http://10.69.1.113 | http://10.69.1.114 | http://10.69.1.115 |
 | prod | http://10.69.101.1 | http://10.69.101.2 | http://10.69.101.3 |
 
 Required: `KUBECONFIG`, `ENV_NAME`, `LONGHORN_AWS_ENDPOINTS`, `LONGHORN_AWS_ACCESS_KEY_ID`, `LONGHORN_AWS_SECRET_ACCESS_KEY`.

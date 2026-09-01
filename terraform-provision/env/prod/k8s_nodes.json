@@ -4,8 +4,8 @@
     "node": "pve",
     "role": "servers",
     "address": "10.69.1.121/16",
-    "cpu_cores": 2,
-    "cpu_type": "x86-64-v2-AES",
+    "cpu_cores": 4,
+    "cpu_type": "host",
     "memory_mb": 4096,
     "disk_size_gb": 64,
     "datastore_id": "local-lvm"
@@ -15,8 +15,8 @@
     "node": "pve2",
     "role": "servers",
     "address": "10.69.1.122/16",
-    "cpu_cores": 2,
-    "cpu_type": "x86-64-v2-AES",
+    "cpu_cores": 4,
+    "cpu_type": "host",
     "memory_mb": 4096,
     "disk_size_gb": 64,
     "datastore_id": "local-lvm"
@@ -26,8 +26,8 @@
     "node": "pve3",
     "role": "servers",
     "address": "10.69.1.123/16",
-    "cpu_cores": 2,
-    "cpu_type": "x86-64-v2-AES",
+    "cpu_cores": 4,
+    "cpu_type": "host",
     "memory_mb": 4096,
     "disk_size_gb": 64,
     "datastore_id": "local-lvm"

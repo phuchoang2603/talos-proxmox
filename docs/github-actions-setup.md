@@ -24,8 +24,8 @@ Edit `terraform-provision/env/{dev,prod}/k8s_nodes.json`, `longhorn_nodes.json`,
     "role": "servers",
     "address": "10.69.1.111/16",
     "cpu_cores": 4,
-    "cpu_type": "x86-64-v2-AES",
-    "memory_mb": 8196,
+    "cpu_type": "host",
+    "memory_mb": 8192,
     "disk_size_gb": 64,
     "datastore_id": "local-lvm"
   }

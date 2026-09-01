@@ -5,30 +5,8 @@
     "role": "servers",
     "address": "10.69.1.111/16",
     "cpu_cores": 4,
-    "cpu_type": "x86-64-v2-AES",
-    "memory_mb": 8196,
-    "disk_size_gb": 64,
-    "datastore_id": "local-lvm"
-  },
-  "dev-server2": {
-    "vm_id": 112,
-    "node": "pve2",
-    "role": "servers",
-    "address": "10.69.1.112/16",
-    "cpu_cores": 4,
-    "cpu_type": "x86-64-v2-AES",
-    "memory_mb": 4096,
-    "disk_size_gb": 64,
-    "datastore_id": "local-lvm"
-  },
-  "dev-server3": {
-    "vm_id": 113,
-    "node": "pve3",
-    "role": "servers",
-    "address": "10.69.1.113/16",
-    "cpu_cores": 4,
-    "cpu_type": "x86-64-v2-AES",
-    "memory_mb": 4096,
+    "cpu_type": "host",
+    "memory_mb": 8192,
     "disk_size_gb": 64,
     "datastore_id": "local-lvm"
   }
