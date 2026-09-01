@@ -37,6 +37,12 @@ loadBalancer:
 encryption:
   enabled: true
   type: wireguard
+authentication:
+  mutual:
+    spire:
+      enabled: true
+      install:
+        enabled: true
 l7Proxy: true
 envoy:
   enabled: true
