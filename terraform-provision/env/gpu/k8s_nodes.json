@@ -1,35 +1,17 @@
 {
-  "gpu-server1": {
-    "vm_id": 131,
+  "gpu-gpu1": {
+    "vm_id": 199,
     "node": "pve",
     "role": "servers",
-    "address": "10.69.1.131/16",
-    "cpu_cores": 4,
+    "address": "10.69.1.199/16",
+    "cpu_cores": 8,
     "cpu_type": "host",
-    "memory_mb": 4096,
+    "memory_mb": 8192,
     "disk_size_gb": 64,
-    "datastore_id": "local-lvm"
-  },
-  "gpu-server2": {
-    "vm_id": 132,
-    "node": "pve2",
-    "role": "servers",
-    "address": "10.69.1.132/16",
-    "cpu_cores": 4,
-    "cpu_type": "host",
-    "memory_mb": 4096,
-    "disk_size_gb": 64,
-    "datastore_id": "local-lvm"
-  },
-  "gpu-server3": {
-    "vm_id": 133,
-    "node": "pve3",
-    "role": "servers",
-    "address": "10.69.1.133/16",
-    "cpu_cores": 4,
-    "cpu_type": "host",
-    "memory_mb": 4096,
-    "disk_size_gb": 64,
-    "datastore_id": "local-lvm"
+    "datastore_id": "local-lvm",
+    "pci": [
+      "0000:b3:00.0",
+      "0000:b3:00.1"
+    ]
   }
 }

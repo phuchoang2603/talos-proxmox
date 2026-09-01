@@ -6,7 +6,7 @@
     "address": "10.69.1.134/16",
     "cpu_cores": 4,
     "cpu_type": "host",
-    "memory_mb": 4096,
+    "memory_mb": 2048,
     "disk_size_gb": 300,
     "datastore_id": "local-lvm"
   },
@@ -17,7 +17,7 @@
     "address": "10.69.1.135/16",
     "cpu_cores": 4,
     "cpu_type": "host",
-    "memory_mb": 4096,
+    "memory_mb": 2048,
     "disk_size_gb": 300,
     "datastore_id": "local-lvm"
   },
@@ -28,7 +28,7 @@
     "address": "10.69.1.136/16",
     "cpu_cores": 4,
     "cpu_type": "host",
-    "memory_mb": 4096,
+    "memory_mb": 2048,
     "disk_size_gb": 300,
     "datastore_id": "local-lvm"
   }

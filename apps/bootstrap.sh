@@ -114,7 +114,12 @@ else
     -n local-path-storage --timeout=5m
 fi
 
-if [ "$(jq 'length' "${INV}/gpu_nodes.json")" -gt 0 ]; then
+has_gpu_nodes() {
+  jq -s 'add | [.[] | select((.pci // []) | length > 0 or .role == "gpu")]' \
+    "${INV}/k8s_nodes.json" "${INV}/longhorn_nodes.json" "${INV}/gpu_nodes.json"
+}
+
+if [ "$(has_gpu_nodes | jq 'length')" -gt 0 ]; then
   helm repo add nvidia https://helm.ngc.nvidia.com/nvidia --force-update
   echo "Installing NVIDIA GPU Operator and DRA driver"
   privileged_ns gpu-operator
