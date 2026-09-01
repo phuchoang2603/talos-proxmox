@@ -94,6 +94,7 @@ kubectl create secret generic longhorn-minio-credentials \
   --dry-run=client -o yaml | kubectl apply -f -
 helm_up longhorn longhorn/longhorn longhorn-system "${LONGHORN_VERSION}" "${VALUES}/longhorn.yaml"
 kubectl apply -f "${MANIFESTS}/longhorn.yaml"
+kubectl apply -f "${MANIFESTS}/env/${ENV_NAME}/longhorn-ingress.yaml"
 
 if [ "$(jq 'length' "${INV}/gpu_nodes.json")" -gt 0 ]; then
   helm repo add nvidia https://helm.ngc.nvidia.com/nvidia --force-update
@@ -106,6 +107,6 @@ fi
 
 echo "Installing Argo CD"
 helm_up argo-cd argo/argo-cd argo-cd "${ARGO_CD_VERSION}" "${VALUES}/argo-cd.yaml" --create-namespace
-kubectl apply -f "${MANIFESTS}/routes.yaml"
+kubectl apply -f "${MANIFESTS}/env/${ENV_NAME}/argo-ingress.yaml"
 
 echo "Bootstrap complete."
