@@ -9,7 +9,7 @@ on:
     inputs:
       environment:
         type: choice
-        options: [dev, prod]
+        options: [dev, prod, gpu]
         default: dev
       action:
         type: choice

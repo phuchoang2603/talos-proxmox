@@ -14,7 +14,7 @@ CI uses GitHub Actions Environments and Doppler for Talos on Proxmox.
 
 ## Step 1: Update VM Inventory
 
-Edit `terraform-provision/env/{dev,prod}/k8s_nodes.json`, `longhorn_nodes.json`, and `gpu_nodes.json`. Shape:
+Edit `terraform-provision/env/{dev,prod,gpu}/k8s_nodes.json`, `longhorn_nodes.json`, and `gpu_nodes.json`. Shape:
 
 ```json
 {
@@ -38,9 +38,9 @@ Edit `terraform-provision/env/{env}/network.json` for the Talos API VIP and Cili
 
 ## Step 2: GitHub Environments
 
-Settings → Environments. Create **`dev`** and **`prod`** (same names as `terraform-provision/env/`). You can add required reviewers on `prod`.
+Settings → Environments. Create **`dev`**, **`prod`**, and **`gpu`** (same names as `terraform-provision/env/`). You can add required reviewers on `prod`.
 
-Pushes and pull requests against `main` always use **`dev`**. **`prod`** is only selected via **Run workflow**.
+Pushes and pull requests against `main` always use **`dev`**. **`prod`** and **`gpu`** are only selected via **Run workflow**.
 
 Optional: store `DOPPLER_TOKEN` as an environment secret (per env) instead of a repository secret. The job reads `secrets.DOPPLER_TOKEN` from the Environment first.
 
@@ -56,9 +56,9 @@ If not using environment secrets, repository secret:
 
 1. **Pull request:** Plans `dev`, comments on the PR. No apply or Helm.
 2. **Push to `main`:** Applies `dev`, writes `TALOSCONFIG` / `KUBECONFIG` to Doppler, then `apps/bootstrap.sh`.
-3. **Run workflow:** Pick Environment `dev` or `prod` and action **apply** or **destroy**.
+3. **Run workflow:** Pick Environment `dev`, `prod`, or `gpu` and action **apply** or **destroy**.
 
-State key: `talos-${environment}.tfstate` (does not overwrite the RKE2 `dev.tfstate` / `prod.tfstate` keys). Doppler config names match (`dev`, `prod`).
+State key: `talos-${environment}.tfstate` (does not overwrite the RKE2 `dev.tfstate` / `prod.tfstate` keys). Doppler config names match (`dev`, `prod`, `gpu`).
 
 ## Destroy
 

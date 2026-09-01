@@ -1,0 +1,35 @@
+{
+  "gpu-longhorn1": {
+    "vm_id": 134,
+    "node": "pve",
+    "role": "longhorn",
+    "address": "10.69.1.134/16",
+    "cpu_cores": 4,
+    "cpu_type": "host",
+    "memory_mb": 4096,
+    "disk_size_gb": 300,
+    "datastore_id": "local-lvm"
+  },
+  "gpu-longhorn2": {
+    "vm_id": 135,
+    "node": "pve2",
+    "role": "longhorn",
+    "address": "10.69.1.135/16",
+    "cpu_cores": 4,
+    "cpu_type": "host",
+    "memory_mb": 4096,
+    "disk_size_gb": 300,
+    "datastore_id": "local-lvm"
+  },
+  "gpu-longhorn3": {
+    "vm_id": 136,
+    "node": "pve3",
+    "role": "longhorn",
+    "address": "10.69.1.136/16",
+    "cpu_cores": 4,
+    "cpu_type": "host",
+    "memory_mb": 4096,
+    "disk_size_gb": 300,
+    "datastore_id": "local-lvm"
+  }
+}

@@ -6,7 +6,7 @@ Laptop CLI is `pkgs.doppler` via devenv. After `direnv allow`, run `doppler logi
 
 ## Layout
 
-Configs: `dev` and `prod` (same names as git env folders and GitHub Environments). Shared keys are in both.
+Configs: `dev`, `prod`, and `gpu` (same names as git env folders and GitHub Environments). Shared keys are in all three.
 
 | Secret | Use |
 | --- | --- |
@@ -16,7 +16,7 @@ Configs: `dev` and `prod` (same names as git env folders and GitHub Environments
 | `TS_OAUTH_CLIENT_ID`, `TS_OAUTH_SECRET` | GitHub Actions Tailscale |
 | `TALOSCONFIG`, `KUBECONFIG` | Laptop access (YAML); written after provision apply |
 
-`.doppler.yaml` pins the project and default config `dev`. Override with `DOPPLER_CONFIG=prod` or `devenv.local.nix`.
+`.doppler.yaml` pins the project and default config `dev`. Override with `DOPPLER_CONFIG=prod` / `DOPPLER_CONFIG=gpu` or `devenv.local.nix`.
 
 CI needs a read/write service token as GitHub secret `DOPPLER_TOKEN` (repository or Environment).
 

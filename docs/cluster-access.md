@@ -10,7 +10,7 @@ GitHub Actions (and a laptop `terraform apply` plus `doppler secrets set`) write
 
 ```bash
 doppler login
-# default config is dev (.doppler.yaml); use --config prod for prod
+# default config is dev (.doppler.yaml); use --config prod or --config gpu for those clusters
 
 doppler secrets get TALOSCONFIG --plain > talosconfig
 doppler secrets get KUBECONFIG --plain > kubeconfig

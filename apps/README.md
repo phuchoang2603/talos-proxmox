@@ -2,12 +2,13 @@
 
 `bootstrap.sh` installs Cilium (Gateway API, Hubble, WireGuard encryption, Envoy L7), metrics-server, Longhorn, GPU Operator plus the NVIDIA DRA driver (if `gpu_nodes.json` is non-empty), and Argo CD. Argo CD is a UI only. GPU access is DRA (`nvidia-dra-driver-gpu`), not the device plugin.
 
-Per-env L2 pool and Gateway IPs: `apps/manifests/env/{dev,prod}/network.yaml`. Terraform `network.json` is only `vip` and `lb_range`. Longhorn MinIO credentials come from Doppler.
+Per-env L2 pool and Gateway IPs: `apps/manifests/env/{dev,prod,gpu}/network.yaml`. Terraform `network.json` is only `vip` and `lb_range`. Longhorn MinIO credentials come from Doppler.
 
 | | Hubble | Longhorn | Argo CD |
 | --- | --- | --- | --- |
 | dev | http://10.69.1.113 | http://10.69.1.114 | http://10.69.1.115 |
 | prod | http://10.69.101.1 | http://10.69.101.2 | http://10.69.101.3 |
+| gpu | http://10.69.102.1 | http://10.69.102.2 | http://10.69.102.3 |
 
 Required: `KUBECONFIG`, `ENV_NAME`, `LONGHORN_AWS_ENDPOINTS`, `LONGHORN_AWS_ACCESS_KEY_ID`, `LONGHORN_AWS_SECRET_ACCESS_KEY`.
 
