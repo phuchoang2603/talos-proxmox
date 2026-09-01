@@ -87,7 +87,7 @@ kubectl create secret generic doppler-token \
   --namespace external-secrets \
   --from-literal=dopplerToken="${DOPPLER_READ_TOKEN}" \
   --dry-run=client -o yaml | kubectl apply -f -
-kubectl apply -f "${MANIFESTS}/gpu/doppler.yaml"
+kubectl apply -f "${MANIFESTS}/env/gpu/doppler.yaml"
 
 echo "Installing Argo CD"
 helm repo add argo https://argoproj.github.io/argo-helm --force-update
