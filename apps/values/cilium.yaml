@@ -48,8 +48,4 @@ gatewayAPI:
   enableAlpn: true
   enableAppProtocol: true
 hubble:
-  enabled: true
-  relay:
-    enabled: true
-  ui:
-    enabled: true
+  enabled: false

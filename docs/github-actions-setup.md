@@ -34,7 +34,7 @@ Edit `terraform-provision/env/{dev,prod,gpu}/k8s_nodes.json`, `longhorn_nodes.js
 
 `role` `servers` is control plane. `longhorn` and `gpu` (and any other non-`servers` role) are workers. GPU nodes also set `pci` to Proxmox host PCI IDs and boot a second Factory image with NVIDIA production extensions.
 
-Edit `terraform-provision/env/{env}/network.json` for the Talos API VIP and Cilium LoadBalancer pool (`lb_range`). Per-app Gateway LAN IPs: `network.yaml` (Hubble), `longhorn-ingress.yaml` (Longhorn). Argo ingress is gpu-only (`env/gpu/argo-ingress.yaml`).
+Edit `terraform-provision/env/{env}/network.json` for the Talos API VIP and Cilium LoadBalancer pool (`lb_range`). Longhorn Gateway LAN IP: `longhorn-ingress.yaml`. Argo ingress is gpu-only (`env/gpu/argo-ingress.yaml`).
 
 After **gpu** provision, CI runs `apps/bootstrap-gpu.sh` (Argo CD, External Secrets Operator, Doppler stores). Provision **dev** and **prod** first so their `KUBECONFIG` values exist in Doppler when gpu registers remote clusters.
 

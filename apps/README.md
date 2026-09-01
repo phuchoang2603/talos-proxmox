@@ -1,14 +1,14 @@
 # Cluster bootstrap
 
-`bootstrap.sh` installs Cilium (Gateway API, Hubble, WireGuard encryption, Envoy L7), metrics-server, Longhorn, and the NVIDIA GPU stack when `gpu_nodes.json` is non-empty. Argo CD and External Secrets Operator are **gpu only** — see `bootstrap-gpu.sh`.
+`bootstrap.sh` installs Cilium (Gateway API, WireGuard encryption, Envoy L7), metrics-server, Longhorn, and the NVIDIA GPU stack when `gpu_nodes.json` is non-empty. Argo CD and External Secrets Operator are **gpu only** — see `bootstrap-gpu.sh`.
 
-Per-env Cilium L2 pool and Hubble Gateway: `apps/manifests/env/{dev,prod,gpu}/network.yaml` (`kube-system`). Longhorn Gateway/HTTPRoute: `longhorn-ingress.yaml` (`longhorn-system`). Argo ingress: `env/gpu/argo-ingress.yaml` only.
+Per-env Cilium L2 pool: `apps/manifests/env/{dev,prod,gpu}/network.yaml`. Longhorn Gateway/HTTPRoute: `longhorn-ingress.yaml` (`longhorn-system`). Argo ingress: `env/gpu/argo-ingress.yaml` only.
 
-| | Hubble | Longhorn | Argo CD |
-| --- | --- | --- | --- |
-| dev | http://10.69.1.113 | http://10.69.1.114 | — |
-| prod | http://10.69.101.1 | http://10.69.101.2 | — |
-| gpu | http://10.69.102.1 | http://10.69.102.2 | http://10.69.102.3 |
+| | Longhorn | Argo CD |
+| --- | --- | --- |
+| dev | http://10.69.1.114 | — |
+| prod | http://10.69.101.2 | — |
+| gpu | http://10.69.102.2 | http://10.69.102.3 |
 
 ## bootstrap.sh
 
