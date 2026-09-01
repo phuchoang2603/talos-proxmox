@@ -91,6 +91,11 @@ locals {
         nodeLabels = merge(
           node.role == "longhorn" ? tomap({ "node.longhorn.io/create-default-disk" = "true" }) : tomap({}),
           contains(keys(local.gpu_nodes), name) ? tomap({ "nvidia.com/gpu.present" = "true" }) : tomap({}),
+          node.role == "servers" ? tomap({
+            "node.kubernetes.io/exclude-from-external-load-balancers" = {
+              "$patch" = "delete"
+            }
+          }) : tomap({}),
         )
       }
     })
