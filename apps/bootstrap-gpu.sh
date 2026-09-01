@@ -91,7 +91,7 @@ kubectl apply -f "${MANIFESTS}/gpu/doppler.yaml"
 
 echo "Installing Argo CD"
 helm repo add argo https://argoproj.github.io/argo-helm --force-update
-helm_up argo-cd argo/argo-cd argo-cd "${ARGO_CD_VERSION}" "${VALUES}/argo-cd.yaml" --create-namespace 20m
+helm_up argo-cd argo/argo-cd argo-cd "${ARGO_CD_VERSION}" "${VALUES}/argo-cd.yaml" 20m --create-namespace
 kubectl apply -f "${MANIFESTS}/env/gpu/argo-ingress.yaml"
 
 tmpdir="$(mktemp -d)"
