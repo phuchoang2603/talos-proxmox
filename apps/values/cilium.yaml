@@ -34,6 +34,15 @@ k8sClientRateLimit:
   burst: 40
 loadBalancer:
   acceleration: best-effort
+encryption:
+  enabled: true
+  type: wireguard
+l7Proxy: true
+envoy:
+  enabled: true
+cluster:
+  name: talos
+  id: 1
 gatewayAPI:
   enabled: true
   enableAlpn: true
