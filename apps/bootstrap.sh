@@ -76,7 +76,14 @@ kubectl wait --for=condition=Established --timeout=2m \
   crd/httproutes.gateway.networking.k8s.io
 
 echo "Installing Cilium"
-helm_up cilium cilium/cilium kube-system "${CILIUM_VERSION}" "${VALUES}/cilium.yaml"
+cilium_values=(--values "${VALUES}/cilium.yaml")
+if [ -f "${VALUES}/env/${ENV_NAME}/cilium.yaml" ]; then
+  cilium_values+=(--values "${VALUES}/env/${ENV_NAME}/cilium.yaml")
+fi
+helm upgrade --install --wait --timeout 15m \
+  --namespace kube-system --version "${CILIUM_VERSION}" \
+  "${cilium_values[@]}" \
+  cilium cilium/cilium
 kubectl wait --for=condition=Established --timeout=5m \
   crd/ciliumloadbalancerippools.cilium.io \
   crd/ciliuml2announcementpolicies.cilium.io
