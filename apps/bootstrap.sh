@@ -107,6 +107,11 @@ if [ "${LONGHORN_NODES}" -gt 0 ]; then
   helm_up longhorn longhorn/longhorn longhorn-system "${LONGHORN_VERSION}" "${VALUES}/longhorn.yaml"
   kubectl apply -f "${MANIFESTS}/longhorn.yaml"
   kubectl apply -f "${MANIFESTS}/env/${ENV_NAME}/longhorn-ingress.yaml"
+else
+  echo "Installing local-path-provisioner"
+  kubectl apply -f "${MANIFESTS}/local-path-provisioner.yaml"
+  kubectl wait --for=condition=Available deployment/local-path-provisioner \
+    -n local-path-storage --timeout=5m
 fi
 
 if [ "$(jq 'length' "${INV}/gpu_nodes.json")" -gt 0 ]; then

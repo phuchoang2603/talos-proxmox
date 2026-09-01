@@ -1,6 +1,6 @@
 # Cluster bootstrap
 
-`bootstrap.sh` installs Cilium (Gateway API, WireGuard encryption, Envoy L7), metrics-server, and Longhorn when `longhorn_nodes.json` is non-empty. The NVIDIA GPU stack installs when `gpu_nodes.json` is non-empty. Argo CD and External Secrets Operator are **gpu only** — see `bootstrap-gpu.sh`.
+`bootstrap.sh` installs Cilium (Gateway API, WireGuard encryption, Envoy L7), metrics-server, and Longhorn when `longhorn_nodes.json` is non-empty. Envs without Longhorn nodes get `local-path-provisioner` as the default StorageClass. The NVIDIA GPU stack installs when `gpu_nodes.json` is non-empty. Argo CD and External Secrets Operator are **gpu only** — see `bootstrap-gpu.sh`.
 
 Per-env Cilium: `values/env/{env}/cilium.yaml` (optional Helm overrides) and `manifests/env/{dev,prod,gpu}/network.yaml` (L2 pool). Longhorn Gateway/HTTPRoute: `longhorn-ingress.yaml` on prod/gpu only. Gpu-only: `env/gpu/doppler.yaml` (ESO stores), `env/gpu/argo-ingress.yaml`.
 
