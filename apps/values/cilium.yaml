@@ -43,6 +43,7 @@ authentication:
       enabled: true
       install:
         enabled: true
+        existingNamespace: true
 l7Proxy: true
 envoy:
   enabled: true

@@ -76,6 +76,7 @@ kubectl wait --for=condition=Established --timeout=2m \
   crd/httproutes.gateway.networking.k8s.io
 
 echo "Installing Cilium"
+privileged_ns cilium-spire
 cilium_values=(--values "${VALUES}/cilium.yaml")
 if [ -f "${VALUES}/env/${ENV_NAME}/cilium.yaml" ]; then
   cilium_values+=(--values "${VALUES}/env/${ENV_NAME}/cilium.yaml")
