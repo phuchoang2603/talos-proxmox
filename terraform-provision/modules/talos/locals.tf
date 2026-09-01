@@ -35,6 +35,7 @@ locals {
       }
     }
     cluster = {
+      allowSchedulingOnControlPlanes = true
       apiServer = {
         certSANs = local.cert_sans
       }
