@@ -77,6 +77,10 @@ kubectl wait --for=condition=Established --timeout=2m \
 
 echo "Installing Cilium"
 privileged_ns cilium-spire
+# SPIRE dataStorage is disabled (no SC yet during Cilium install). Drop any prior
+# PVC-backed StatefulSet so Helm can recreate without immutable field conflicts.
+kubectl delete sts -n cilium-spire spire-server --ignore-not-found --wait=false
+kubectl delete pvc -n cilium-spire spire-data-spire-server-0 --ignore-not-found --wait=false
 cilium_values=(--values "${VALUES}/cilium.yaml")
 if [ -f "${VALUES}/env/${ENV_NAME}/cilium.yaml" ]; then
   cilium_values+=(--values "${VALUES}/env/${ENV_NAME}/cilium.yaml")
