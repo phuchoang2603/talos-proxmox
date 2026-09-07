@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# GPU-only bootstrap: Argo CD (multi-cluster UI), External Secrets Operator, Doppler stores.
+# GPU-only bootstrap: Argo CD (multi-cluster UI) and remote cluster registration.
 # Run after apps/bootstrap.sh with ENV_NAME=gpu.
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -19,7 +19,6 @@ if [ "${ENV_NAME}" != gpu ]; then
 fi
 
 ARGO_CD_VERSION="${ARGO_CD_VERSION:-v9.4.17}"
-EXTERNAL_SECRETS_VERSION="${EXTERNAL_SECRETS_VERSION:-0.13.0}"
 DOPPLER_PROJECT="${DOPPLER_PROJECT:-talos-proxmox}"
 
 helm_up() {
@@ -74,20 +73,6 @@ fetch_kubeconfig() {
   DOPPLER_TOKEN="${DOPPLER_READ_TOKEN}" doppler secrets get KUBECONFIG \
     --project "${DOPPLER_PROJECT}" --config "${config}" --plain > "${dest}"
 }
-
-echo "Installing External Secrets Operator"
-helm repo add external-secrets https://charts.external-secrets.io --force-update
-helm_up external-secrets external-secrets/external-secrets external-secrets "${EXTERNAL_SECRETS_VERSION}" "${VALUES}/external-secrets.yaml" --create-namespace
-kubectl wait --for=condition=Established --timeout=5m \
-  crd/clustersecretstores.external-secrets.io \
-  crd/externalsecrets.external-secrets.io
-
-kubectl create namespace external-secrets --dry-run=client -o yaml | kubectl apply -f -
-kubectl create secret generic doppler-token \
-  --namespace external-secrets \
-  --from-literal=dopplerToken="${DOPPLER_READ_TOKEN}" \
-  --dry-run=client -o yaml | kubectl apply -f -
-kubectl apply -f "${MANIFESTS}/env/gpu/doppler.yaml"
 
 echo "Installing Argo CD"
 helm repo add argo https://argoproj.github.io/argo-helm --force-update

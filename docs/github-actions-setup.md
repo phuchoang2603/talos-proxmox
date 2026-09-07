@@ -36,7 +36,7 @@ Edit `terraform-provision/env/{dev,prod,gpu}/k8s_nodes.json`, `longhorn_nodes.js
 
 Edit `terraform-provision/env/{env}/network.json` for the Talos API VIP and Cilium LoadBalancer pool (`lb_range`). Longhorn Gateway LAN IP: `longhorn-ingress.yaml` on prod/gpu. Argo ingress is gpu-only (`env/gpu/argo-ingress.yaml`). **dev** uses an empty `longhorn_nodes.json` (single control-plane node, no storage).
 
-After **gpu** provision, CI runs `apps/bootstrap-gpu.sh` (Argo CD, External Secrets Operator, Doppler stores). Provision **dev** and **prod** first so their `KUBECONFIG` values exist in Doppler when gpu registers remote clusters.
+After **gpu** provision, CI runs `apps/bootstrap-gpu.sh` (Argo CD + remote cluster registration). Provision **dev** and **prod** first so their `KUBECONFIG` values exist in Doppler when gpu registers remote clusters.
 
 ## Step 2: GitHub Environments
 
