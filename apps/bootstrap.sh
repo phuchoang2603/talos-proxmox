@@ -75,20 +75,17 @@ kubectl wait --for=condition=Established --timeout=2m \
   crd/gateways.gateway.networking.k8s.io \
   crd/httproutes.gateway.networking.k8s.io
 
-echo "Installing Cilium"
+echo "Installing Cilium (CNI first; SPIRE waits for a StorageClass)"
 privileged_ns cilium-spire
-# SPIRE dataStorage is disabled (no SC yet during Cilium install). Drop any prior
-# PVC-backed StatefulSet so Helm can recreate without immutable field conflicts.
-kubectl delete sts -n cilium-spire spire-server --ignore-not-found --wait=false
-kubectl delete pvc -n cilium-spire spire-data-spire-server-0 --ignore-not-found --wait=false
 cilium_values=(--values "${VALUES}/cilium.yaml")
 if [ -f "${VALUES}/env/${ENV_NAME}/cilium.yaml" ]; then
   cilium_values+=(--values "${VALUES}/env/${ENV_NAME}/cilium.yaml")
 fi
-helm upgrade --install --wait --timeout 15m \
+helm upgrade --install --timeout 15m \
   --namespace kube-system --version "${CILIUM_VERSION}" \
   "${cilium_values[@]}" \
   cilium cilium/cilium
+kubectl -n kube-system rollout status ds/cilium --timeout=10m
 kubectl wait --for=condition=Established --timeout=5m \
   crd/ciliumloadbalancerippools.cilium.io \
   crd/ciliuml2announcementpolicies.cilium.io
@@ -96,9 +93,6 @@ kubectl apply -f "${MANIFESTS}/env/${ENV_NAME}/network.yaml"
 
 echo "Waiting for nodes to become Ready..."
 kubectl wait --for=condition=Ready nodes --all --timeout=15m
-
-echo "Installing metrics-server"
-helm_up metrics-server metrics-server/metrics-server kube-system "${METRICS_SERVER_VERSION}" "${VALUES}/metrics-server.yaml" 5m
 
 if [ "${LONGHORN_NODES}" -gt 0 ]; then
   echo "Installing Longhorn"
@@ -118,6 +112,15 @@ else
   kubectl wait --for=condition=Available deployment/local-path-provisioner \
     -n local-path-storage --timeout=5m
 fi
+
+echo "Waiting for Cilium (including SPIRE) to become ready..."
+helm upgrade --install --wait --timeout 15m \
+  --namespace kube-system --version "${CILIUM_VERSION}" \
+  "${cilium_values[@]}" \
+  cilium cilium/cilium
+
+echo "Installing metrics-server"
+helm_up metrics-server metrics-server/metrics-server kube-system "${METRICS_SERVER_VERSION}" "${VALUES}/metrics-server.yaml" 5m
 
 has_gpu_nodes() {
   jq -s 'add | [.[] | select((.pci // []) | length > 0 or .role == "gpu")]' \

@@ -45,9 +45,6 @@ authentication:
         enabled: true
         existingNamespace: true
         server:
-          # PVC needs a StorageClass; bootstrap installs local-path/Longhorn after Cilium.
-          dataStorage:
-            enabled: false
           podSecurityContext:
             runAsUser: 1000
             runAsGroup: 1000
@@ -60,11 +57,13 @@ authentication:
               image: docker.io/library/busybox:1.37.0
               command: ["sh", "-c"]
               args:
-                - chown -R 1000:1000 /tmp/spire-server
+                - chown -R 1000:1000 /run/spire/data /tmp/spire-server
               securityContext:
                 runAsUser: 0
                 runAsGroup: 0
               volumeMounts:
+                - name: spire-data
+                  mountPath: /run/spire/data
                 - name: spire-server-socket
                   mountPath: /tmp/spire-server
 l7Proxy: true
