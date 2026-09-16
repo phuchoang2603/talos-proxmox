@@ -8,7 +8,7 @@ VALUES="${ROOT}/values"
 : "${KUBECONFIG:?KUBECONFIG is required}"
 
 INV="${ROOT}/../terraform-provision/env/${ENV_NAME:?ENV_NAME is required}"
-LONGHORN_NODES="$(jq 'length' "${INV}/longhorn_nodes.json")"
+LONGHORN_NODES="$(jq '[.[] | select(.role == "longhorn")] | length' "${INV}/k8s_nodes.json")"
 if [ "${LONGHORN_NODES}" -gt 0 ]; then
   : "${LONGHORN_AWS_ENDPOINTS:?LONGHORN_AWS_ENDPOINTS is required}"
   : "${LONGHORN_AWS_ACCESS_KEY_ID:?LONGHORN_AWS_ACCESS_KEY_ID is required}"
@@ -53,10 +53,7 @@ until kubectl get --raw=/readyz >/dev/null 2>&1; do
   sleep 5
 done
 
-expected_nodes=0
-for inventory in k8s_nodes.json longhorn_nodes.json gpu_nodes.json; do
-  expected_nodes=$((expected_nodes + $(jq 'length' "${INV}/${inventory}")))
-done
+expected_nodes="$(jq 'length' "${INV}/k8s_nodes.json")"
 echo "Waiting for ${expected_nodes} nodes to register..."
 until [ "$(kubectl get nodes --no-headers 2>/dev/null | grep -c . || true)" -ge "${expected_nodes}" ]; do
   sleep 5
@@ -123,8 +120,7 @@ echo "Installing metrics-server"
 helm_up metrics-server metrics-server/metrics-server kube-system "${METRICS_SERVER_VERSION}" "${VALUES}/metrics-server.yaml" 5m
 
 has_gpu_nodes() {
-  jq -s 'add | [.[] | select((.pci // []) | length > 0 or .role == "gpu")]' \
-    "${INV}/k8s_nodes.json" "${INV}/longhorn_nodes.json" "${INV}/gpu_nodes.json"
+  jq '[.[] | select((.pci // []) | length > 0)]' "${INV}/k8s_nodes.json"
 }
 
 if [ "$(has_gpu_nodes | jq 'length')" -gt 0 ]; then

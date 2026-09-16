@@ -1,6 +1,6 @@
 # Talos Kubernetes on Proxmox with Terraform
 
-This project provisions a [Talos Linux](https://www.talos.dev/) Kubernetes cluster on Proxmox using Terraform, GitHub Actions, and Doppler. Cluster access is via `talosctl` / kubeconfig stored in Doppler (`TALOSCONFIG`, `KUBECONFIG`). GitHub Actions writes in-cluster secrets (Longhorn MinIO on prod/gpu) at bootstrap. The **gpu** cluster runs Argo CD for multi-cluster management.
+This project provisions a [Talos Linux](https://www.talos.dev/) Kubernetes cluster on Proxmox using Terraform, GitHub Actions, and Doppler. Cluster access is via `talosctl` / kubeconfig stored in Doppler (`TALOSCONFIG`, `KUBECONFIG`). GitHub Actions writes in-cluster secrets (Longhorn MinIO on prod) at bootstrap. The **argocd** cluster runs Argo CD for multi-cluster management.
 
 ## Quick start
 
@@ -12,8 +12,8 @@ This project provisions a [Talos Linux](https://www.talos.dev/) Kubernetes clust
 
 | Path | Role |
 | --- | --- |
-| `terraform-provision/env/{env}/` | Node inventory (`k8s_nodes.json`, `longhorn_nodes.json`, `gpu_nodes.json`) and `network.json` |
-| `apps/` | Helm bootstrap (`bootstrap.sh`); gpu adds `bootstrap-gpu.sh` (Argo CD) |
+| `terraform-provision/env/{env}/` | Node inventory (`k8s_nodes.json`) and `network.json` |
+| `apps/` | Helm bootstrap (`bootstrap.sh`); argocd adds `bootstrap-argocd.sh` (Argo CD) |
 
 Terraform provision state uses the MinIO key `talos-${ENV}.tfstate` so it does not collide with the RKE2 state until you destroy that cluster.
 

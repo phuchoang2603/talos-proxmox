@@ -1,11 +1,9 @@
 locals {
-  network            = jsondecode(file("${path.root}/env/${var.env}/network.json"))
-  k8s_nodes_raw      = jsondecode(file("${path.root}/env/${var.env}/k8s_nodes.json"))
-  longhorn_nodes_raw = jsondecode(file("${path.root}/env/${var.env}/longhorn_nodes.json"))
-  gpu_nodes_raw      = jsondecode(file("${path.root}/env/${var.env}/gpu_nodes.json"))
+  network       = jsondecode(file("${path.root}/env/${var.env}/network.json"))
+  k8s_nodes_raw = jsondecode(file("${path.root}/env/${var.env}/k8s_nodes.json"))
 
   nodes = {
-    for name, node in merge(local.k8s_nodes_raw, local.longhorn_nodes_raw, local.gpu_nodes_raw) : name => {
+    for name, node in local.k8s_nodes_raw : name => {
       role         = node.role
       node         = node.node
       vm_id        = node.vm_id

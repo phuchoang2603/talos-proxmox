@@ -4,12 +4,12 @@ variable "name" {
 }
 
 variable "env" {
-  description = "Environment name used as a Proxmox tag (dev, prod, or gpu)."
+  description = "Environment name used as a Proxmox tag (dev, prod, or argocd)."
   type        = string
 }
 
 variable "role" {
-  description = "Node role (servers, longhorn, gpu). Used for Talos machine config, not Proxmox tags."
+  description = "Node role (servers, worker, longhorn). Used for Talos machine config, not Proxmox tags."
   type        = string
 }
 

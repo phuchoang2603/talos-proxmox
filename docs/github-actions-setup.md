@@ -14,15 +14,15 @@ CI uses GitHub Actions Environments and Doppler for Talos on Proxmox.
 
 ## Step 1: Update VM Inventory
 
-Edit `terraform-provision/env/{dev,prod,gpu}/k8s_nodes.json`, `longhorn_nodes.json`, and `gpu_nodes.json`. Shape:
+Edit `terraform-provision/env/{dev,prod,argocd}/k8s_nodes.json`. Shape:
 
 ```json
 {
   "dev-server1": {
-    "vm_id": 111,
+    "vm_id": 1111,
     "node": "pve",
     "role": "servers",
-    "address": "10.69.1.111/16",
+    "address": "10.69.11.11/16",
     "cpu_cores": 4,
     "cpu_type": "host",
     "memory_mb": 8192,
@@ -32,17 +32,17 @@ Edit `terraform-provision/env/{dev,prod,gpu}/k8s_nodes.json`, `longhorn_nodes.js
 }
 ```
 
-`role` `servers` is control plane. `longhorn` and `gpu` (and any other non-`servers` role) are workers. GPU nodes also set `pci` to Proxmox host PCI IDs and boot a second Factory image with NVIDIA production extensions.
+`role` `servers` is control plane, `worker` is a general worker, `longhorn` is a storage worker. GPU passthrough is `pci` on any node (Proxmox host PCI IDs); those nodes boot a second Factory image with NVIDIA production extensions.
 
-Edit `terraform-provision/env/{env}/network.json` for the Talos API VIP and Cilium LoadBalancer pool (`lb_range`). Longhorn Gateway LAN IP: `longhorn-ingress.yaml` on prod/gpu. Argo ingress is gpu-only (`env/gpu/argo-ingress.yaml`). **dev** uses an empty `longhorn_nodes.json` (single control-plane node, no storage).
+Edit `terraform-provision/env/{env}/network.json` for the Talos API VIP and Cilium LoadBalancer pool (`lb_range`). Longhorn Gateway LAN IP: `longhorn-ingress.yaml` on prod. Argo ingress is argocd-only (`env/argocd/argo-ingress.yaml`). **dev** and **argocd** have no `longhorn` nodes (local-path storage).
 
-After **gpu** provision, CI runs `apps/bootstrap-gpu.sh` (Argo CD + remote cluster registration). Provision **dev** and **prod** first so their `KUBECONFIG` values exist in Doppler when gpu registers remote clusters.
+After **argocd** provision, CI runs `apps/bootstrap-argocd.sh` (Argo CD + remote cluster registration). Provision **dev** and **prod** first so their `KUBECONFIG` values exist in Doppler when argocd registers remote clusters.
 
 ## Step 2: GitHub Environments
 
-Settings → Environments. Create **`dev`**, **`prod`**, and **`gpu`** (same names as `terraform-provision/env/`). You can add required reviewers on `prod`.
+Settings → Environments. Create **`dev`**, **`prod`**, and **`argocd`** (same names as `terraform-provision/env/`). You can add required reviewers on `prod`.
 
-Pushes and pull requests against `main` always use **`dev`**. **`prod`** and **`gpu`** are only selected via **Run workflow**.
+Pushes and pull requests against `main` always use **`dev`**. **`prod`** and **`argocd`** are only selected via **Run workflow**.
 
 Optional: store `DOPPLER_TOKEN` as an environment secret (per env) instead of a repository secret. The job reads `secrets.DOPPLER_TOKEN` from the Environment first.
 
@@ -58,9 +58,9 @@ If not using environment secrets, repository secret:
 
 1. **Pull request:** Plans `dev`, comments on the PR. No apply or Helm.
 2. **Push to `main`:** Applies `dev`, writes `TALOSCONFIG` / `KUBECONFIG` to Doppler, then `apps/bootstrap.sh`.
-3. **Run workflow:** Pick Environment `dev`, `prod`, or `gpu` and action **apply** or **destroy**.
+3. **Run workflow:** Pick Environment `dev`, `prod`, or `argocd` and action **apply** or **destroy**.
 
-State key: `talos-${environment}.tfstate` (does not overwrite the RKE2 `dev.tfstate` / `prod.tfstate` keys). Doppler config names match (`dev`, `prod`, `gpu`).
+State key: `talos-${environment}.tfstate` (does not overwrite the RKE2 `dev.tfstate` / `prod.tfstate` keys). Doppler config names match (`dev`, `prod`, `argocd`).
 
 ## Destroy
 

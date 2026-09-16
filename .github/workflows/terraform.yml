@@ -9,7 +9,7 @@ on:
     inputs:
       environment:
         type: choice
-        options: [dev, prod, gpu]
+        options: [dev, prod, argocd]
         default: dev
       action:
         type: choice
@@ -98,17 +98,17 @@ jobs:
         env:
           KUBECONFIG: ${{ github.workspace }}/kubeconfig
         run: |
-          if [ "$(jq 'length' "terraform-provision/env/${ENV_NAME}/longhorn_nodes.json")" -gt 0 ]; then
+          if [ "$(jq '[.[] | select(.role == "longhorn")] | length' "terraform-provision/env/${ENV_NAME}/k8s_nodes.json")" -gt 0 ]; then
             doppler run --only-secrets LONGHORN_AWS_ENDPOINTS,LONGHORN_AWS_ACCESS_KEY_ID,LONGHORN_AWS_SECRET_ACCESS_KEY -- apps/bootstrap.sh
           else
             apps/bootstrap.sh
           fi
 
-      - name: Helm bootstrap gpu
-        if: github.event_name != 'pull_request' && inputs.action != 'destroy' && env.ENV_NAME == 'gpu'
+      - name: Helm bootstrap Argo CD
+        if: github.event_name != 'pull_request' && inputs.action != 'destroy' && env.ENV_NAME == 'argocd'
         env:
           KUBECONFIG: ${{ github.workspace }}/kubeconfig
         run: |
-          chmod +x apps/bootstrap-gpu.sh
+          chmod +x apps/bootstrap-argocd.sh
           export DOPPLER_READ_TOKEN="$(doppler secrets get DOPPLER_READ_TOKEN --plain)"
-          apps/bootstrap-gpu.sh
+          apps/bootstrap-argocd.sh

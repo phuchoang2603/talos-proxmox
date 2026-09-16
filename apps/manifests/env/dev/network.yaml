@@ -4,8 +4,8 @@ metadata:
   name: default
 spec:
   blocks:
-    - start: "10.69.1.113"
-      stop: "10.69.1.119"
+    - start: "10.69.11.128"
+      stop: "10.69.11.254"
 ---
 apiVersion: cilium.io/v2alpha1
 kind: CiliumL2AnnouncementPolicy

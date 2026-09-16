@@ -1,13 +1,17 @@
 {
   "dev-server1": {
-    "vm_id": 111,
+    "vm_id": 1111,
     "node": "pve",
     "role": "servers",
-    "address": "10.69.1.111/16",
+    "address": "10.69.11.11/16",
     "cpu_cores": 4,
     "cpu_type": "host",
     "memory_mb": 12288,
     "disk_size_gb": 64,
-    "datastore_id": "local-lvm"
+    "datastore_id": "local-lvm",
+    "pci": [
+      "0000:65:00.0",
+      "0000:65:00.1"
+    ]
   }
 }

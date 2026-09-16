@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# GPU-only bootstrap: Argo CD (multi-cluster UI) and remote cluster registration.
-# Run after apps/bootstrap.sh with ENV_NAME=gpu.
+# Argo CD bootstrap: multi-cluster UI and remote cluster registration.
+# Run after apps/bootstrap.sh with ENV_NAME=argocd.
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MANIFESTS="${ROOT}/manifests"
@@ -13,8 +13,8 @@ TF_ENV="${ROOT}/../terraform-provision/env"
 : "${KUBECONFIG:?KUBECONFIG is required}"
 : "${DOPPLER_READ_TOKEN:?DOPPLER_READ_TOKEN is required}"
 
-if [ "${ENV_NAME}" != gpu ]; then
-  echo "bootstrap-gpu.sh is only for ENV_NAME=gpu (got ${ENV_NAME})" >&2
+if [ "${ENV_NAME}" != argocd ]; then
+  echo "bootstrap-argocd.sh is only for ENV_NAME=argocd (got ${ENV_NAME})" >&2
   exit 1
 fi
 
@@ -77,7 +77,7 @@ fetch_kubeconfig() {
 echo "Installing Argo CD"
 helm repo add argo https://argoproj.github.io/argo-helm --force-update
 helm_up argo-cd argo/argo-cd argo-cd "${ARGO_CD_VERSION}" "${VALUES}/argo-cd.yaml" 20m --create-namespace
-kubectl apply -f "${MANIFESTS}/env/gpu/argo-ingress.yaml"
+kubectl apply -f "${MANIFESTS}/env/argocd/argo-ingress.yaml"
 
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "${tmpdir}"' EXIT
@@ -89,4 +89,4 @@ for remote in dev prod; do
   register_argo_cluster "${remote}" "${server}" "${kc}"
 done
 
-echo "GPU bootstrap complete."
+echo "Argo CD bootstrap complete."

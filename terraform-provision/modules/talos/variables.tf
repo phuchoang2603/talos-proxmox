@@ -34,6 +34,18 @@ variable "nodes" {
     disk_size_gb = number
     pci          = optional(list(string), [])
   }))
+
+  validation {
+    condition = alltrue([
+      for node in values(var.nodes) : contains(["servers", "worker", "longhorn"], node.role)
+    ])
+    error_message = "node role must be servers, worker, or longhorn."
+  }
+
+  validation {
+    condition     = length([for node in values(var.nodes) : node if node.role == "servers"]) > 0
+    error_message = "at least one node must have role servers (control plane)."
+  }
 }
 
 variable "vm_node_name" {

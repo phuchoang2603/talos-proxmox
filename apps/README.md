@@ -1,29 +1,29 @@
 # Cluster bootstrap
 
-`bootstrap.sh` installs Cilium (Gateway API, WireGuard encryption, Envoy L7), metrics-server, and Longhorn when `longhorn_nodes.json` is non-empty. Envs without Longhorn nodes get `local-path-provisioner` as the default StorageClass. The NVIDIA GPU stack installs when `gpu_nodes.json` is non-empty. Argo CD is **gpu only** — see `bootstrap-gpu.sh`.
+`bootstrap.sh` installs Cilium (Gateway API, WireGuard encryption, Envoy L7), metrics-server, and Longhorn when any `k8s_nodes.json` entry has `role` `longhorn`. Envs without Longhorn nodes get `local-path-provisioner` as the default StorageClass. The NVIDIA GPU stack installs when any inventory node has a non-empty `pci` list. Argo CD is **argocd only** — see `bootstrap-argocd.sh`.
 
-Per-env Cilium: `values/env/{env}/cilium.yaml` (optional Helm overrides) and `manifests/env/{dev,prod,gpu}/network.yaml` (L2 pool). Longhorn Gateway/HTTPRoute: `longhorn-ingress.yaml` on prod/gpu only. Gpu-only: `env/gpu/argo-ingress.yaml`.
+Per-env Cilium: `values/env/{env}/cilium.yaml` (optional Helm overrides) and `manifests/env/{dev,prod,argocd}/network.yaml` (L2 pool). Longhorn Gateway/HTTPRoute: `longhorn-ingress.yaml` on prod only. Argo CD ingress: `env/argocd/argo-ingress.yaml`.
 
 | | Longhorn | Argo CD |
 | --- | --- | --- |
 | dev | — | — |
-| prod | http://10.69.101.2 | — |
-| gpu | http://10.69.102.2 | http://10.69.102.3 |
+| prod | http://10.69.12.128 | — |
+| argocd | — | http://10.69.13.128 |
 
 ## bootstrap.sh
 
 Required: `KUBECONFIG`, `ENV_NAME`.
 
-When `longhorn_nodes.json` has nodes: `LONGHORN_AWS_ENDPOINTS`, `LONGHORN_AWS_ACCESS_KEY_ID`, `LONGHORN_AWS_SECRET_ACCESS_KEY`.
+When any node has `role` `longhorn`: `LONGHORN_AWS_ENDPOINTS`, `LONGHORN_AWS_ACCESS_KEY_ID`, `LONGHORN_AWS_SECRET_ACCESS_KEY`.
 
 Optional chart pins: `CILIUM_VERSION`, `GATEWAY_API_VERSION`, `LONGHORN_VERSION`, `METRICS_SERVER_VERSION`, `GPU_OPERATOR_VERSION`, `NVIDIA_DRA_VERSION`.
 
-## bootstrap-gpu.sh
+## bootstrap-argocd.sh
 
-Run after `bootstrap.sh` with `ENV_NAME=gpu`. Installs Argo CD and registers **dev** and **prod** as remote clusters (kubeconfigs fetched from Doppler via CLI).
+Run after `bootstrap.sh` with `ENV_NAME=argocd`. Installs Argo CD and registers **dev** and **prod** as remote clusters (kubeconfigs fetched from Doppler via CLI).
 
-Required: `KUBECONFIG`, `ENV_NAME=gpu`, `DOPPLER_READ_TOKEN` (project read token with access to dev and prod configs).
+Required: `KUBECONFIG`, `ENV_NAME=argocd`, `DOPPLER_READ_TOKEN` (project read token with access to dev and prod configs).
 
-Provision dev and prod before gpu so `KUBECONFIG` exists in each Doppler config.
+Provision dev and prod before argocd so `KUBECONFIG` exists in each Doppler config.
 
 Optional: `ARGO_CD_VERSION`, `DOPPLER_PROJECT`.

@@ -1,6 +1,6 @@
 # Environment name is set via GitHub Actions: TF_VAR_env
 # Proxmox credentials come from Doppler (`PROXMOX_*`, mapped to TF_VAR_proxmox_*).
-# Node sizing lives in env/gpu/{k8s,longhorn,gpu}_nodes.json.
+# Node sizing lives in env/argocd/k8s_nodes.json.
 
 vm_node_name    = "pve"
 vm_datastore_id = "truenas"

@@ -1,0 +1,13 @@
+{
+  "argocd-server1": {
+    "vm_id": 1311,
+    "node": "pve",
+    "role": "servers",
+    "address": "10.69.13.11/16",
+    "cpu_cores": 2,
+    "cpu_type": "host",
+    "memory_mb": 4096,
+    "disk_size_gb": 64,
+    "datastore_id": "local-lvm"
+  }
+}
