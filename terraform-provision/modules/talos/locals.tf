@@ -54,7 +54,7 @@ locals {
     for name, node in var.nodes : name => yamlencode({
       machine = {
         install = {
-          image = contains(keys(local.gpu_nodes), name) ? data.talos_image_factory_urls.gpu.urls.installer : data.talos_image_factory_urls.default.urls.installer
+          image = contains(keys(local.gpu_nodes), name) ? one(data.talos_image_factory_urls.gpu[*].urls.installer) : data.talos_image_factory_urls.default.urls.installer
         }
         network = {
           hostname    = name
