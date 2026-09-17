@@ -1,14 +1,15 @@
-driver:
-  enabled: false
-toolkit:
-  enabled: false
-devicePlugin:
-  enabled: false
-hostPaths:
-  driverInstallDir: /usr/local
-cdi:
-  enabled: true
-clusterPolicy:
-  deployCR: true
-gpuCluster:
-  deployCR: false
+gpu-operator:
+  driver:
+    enabled: false
+  toolkit:
+    enabled: false
+  devicePlugin:
+    enabled: false
+  hostPaths:
+    driverInstallDir: /usr/local
+  cdi:
+    enabled: true
+  clusterPolicy:
+    deployCR: true
+  gpuCluster:
+    deployCR: false

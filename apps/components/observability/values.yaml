@@ -13,10 +13,9 @@ victoria-metrics-k8s-stack:
   defaultDashboards:
     enabled: true
 
-  # Upstream renders vmks-sync-job as a Helm hook, which Argo CD does not run.
-  # The wrapper chart creates an equivalent PostSync Job instead.
+  # Argo CD maps the upstream post-install/post-upgrade hook to PostSync.
   syncJob:
-    createJob: false
+    enabled: true
 
   grafana:
     enabled: true
@@ -253,9 +252,6 @@ victoria-metrics-k8s-stack:
 
   kube-state-metrics:
     enabled: true
-
-dashboardSyncJob:
-  enabled: true
 
 customDashboards:
   enabled: true

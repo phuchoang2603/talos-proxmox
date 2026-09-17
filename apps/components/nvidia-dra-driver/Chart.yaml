@@ -1,0 +1,9 @@
+apiVersion: v2
+name: platform-nvidia-dra-driver
+description: nvidia-dra-driver wrapper
+type: application
+version: 0.1.0
+dependencies:
+  - name: nvidia-dra-driver-gpu
+    version: "25.12.0"
+    repository: https://helm.ngc.nvidia.com/nvidia

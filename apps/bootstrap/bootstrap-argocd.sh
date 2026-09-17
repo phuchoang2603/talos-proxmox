@@ -59,7 +59,7 @@ fetch_kubeconfig() {
 }
 
 echo "Installing Argo CD"
-helm_component argo-cd argo-cd argo-cd 20m --wait --create-namespace
+helm_component argo-cd 20m --wait --create-namespace
 kubectl apply -f "${COMPONENTS}/argo-cd/environments/argocd/ingress.yaml"
 
 tmpdir="$(mktemp -d)"

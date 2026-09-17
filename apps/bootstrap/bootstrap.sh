@@ -35,7 +35,7 @@ kubectl wait --for=condition=Established --timeout=2m \
 
 echo "Installing Cilium (CNI first; SPIRE waits for a StorageClass)"
 privileged_ns cilium-spire
-helm_component cilium cilium kube-system 15m
+helm_component cilium 15m
 kubectl -n kube-system rollout status ds/cilium --timeout=10m
 kubectl wait --for=condition=Established --timeout=5m \
   crd/ciliumloadbalancerippools.cilium.io \
@@ -54,20 +54,20 @@ if [ "${LONGHORN_NODES}" -gt 0 ]; then
     --from-literal=AWS_ACCESS_KEY_ID="${LONGHORN_AWS_ACCESS_KEY_ID}" \
     --from-literal=AWS_SECRET_ACCESS_KEY="${LONGHORN_AWS_SECRET_ACCESS_KEY}" \
     --dry-run=client -o yaml | kubectl apply -f -
-  helm_component longhorn longhorn longhorn-system 15m --wait
+  helm_component longhorn 15m --wait
   kubectl apply -f "${COMPONENTS}/longhorn/resources/storage.yaml"
   kubectl apply -f "${COMPONENTS}/longhorn/environments/${ENV_NAME}/ingress.yaml"
 else
   echo "Installing local-path-provisioner"
   privileged_ns local-path-storage
-  helm_component local-path-provisioner local-path-provisioner local-path-storage 5m --wait
+  helm_component local-path-provisioner 5m --wait
 fi
 
 echo "Waiting for Cilium (including SPIRE) to become ready..."
-helm_component cilium cilium kube-system 15m --wait
+helm_component cilium 15m --wait
 
 echo "Installing metrics-server"
-helm_component metrics-server metrics-server kube-system 5m --wait
+helm_component metrics-server 5m --wait
 
 has_gpu_nodes() {
   jq '[.[] | select((.pci // []) | length > 0)]' "${INV}/k8s_nodes.json"
@@ -76,9 +76,9 @@ has_gpu_nodes() {
 if [ "$(has_gpu_nodes | jq 'length')" -gt 0 ]; then
   echo "Installing NVIDIA GPU Operator and DRA driver"
   privileged_ns gpu-operator
-  helm_component gpu-operator gpu-operator gpu-operator 15m --wait
+  helm_component gpu-operator 15m --wait
   privileged_ns nvidia-dra-driver-gpu
-  helm_component nvidia-dra-driver nvidia-dra-driver-gpu nvidia-dra-driver-gpu 15m --wait
+  helm_component nvidia-dra-driver 15m --wait
 fi
 
 echo "Bootstrap complete."

@@ -9,9 +9,7 @@ KUBE_VERSION="${KUBE_VERSION:-1.36.3}"
 for script in "${APPS_ROOT}"/bootstrap/*.sh; do
   bash -n "${script}"
 done
-for config in "${COMPONENTS}"/*/release.json; do
-  jq -e '.version | type == "string"' "${config}" >/dev/null
-done
+jq -e '.version | type == "string"' "${COMPONENTS}/gateway-api/release.json" >/dev/null
 
 for cluster in dev prod; do
   helm lint "${APPS_ROOT}/argocd/platform" --strict --set "cluster=${cluster}"
@@ -22,34 +20,20 @@ done
 for chart in "${COMPONENTS}"/*/Chart.yaml; do
   chart="$(dirname "${chart}")"
   namespace=operators
-  [ "$(basename "${chart}")" != observability ] || namespace=monitoring
-  helm lint "${chart}"
-  helm template "$(basename "${chart}")" "${chart}" \
+  release="$(basename "${chart}")"
+  if [ -f "${chart}/release.json" ]; then
+    namespace="$(jq -er .namespace "${chart}/release.json")"
+    release="$(jq -er .releaseName "${chart}/release.json")"
+  elif [ "${release}" = observability ]; then
+    namespace=monitoring
+  fi
+  helm lint "${chart}" --namespace "${namespace}" --kube-version "${KUBE_VERSION}"
+  helm template "${release}" "${chart}" --kube-version "${KUBE_VERSION}" \
     --namespace "${namespace}" --include-crds >/dev/null
   for overlay in "${chart}"/environments/*/values.yaml; do
     [ -f "${overlay}" ] || continue
-    helm lint "${chart}" --values "${overlay}"
-    helm template "$(basename "${chart}")" "${chart}" \
+    helm lint "${chart}" --namespace "${namespace}" --kube-version "${KUBE_VERSION}" --values "${overlay}"
+    helm template "${release}" "${chart}" --kube-version "${KUBE_VERSION}" \
       --namespace "${namespace}" --values "${overlay}" --include-crds >/dev/null
-  done
-done
-
-# Bootstrap charts are installed directly from their committed packages.
-for config in "${COMPONENTS}"/*/release.json; do
-  chart_path="$(jq -r '.chartPath // empty' "${config}")"
-  [ -n "${chart_path}" ] || continue
-  dir="$(dirname "${config}")"
-  chart="${dir}/${chart_path}"
-  namespace="$(jq -er .namespace "${config}")"
-  release="$(jq -er .releaseName "${config}")"
-  test -f "${chart}"
-  helm lint "${chart}" --namespace "${namespace}" --kube-version "${KUBE_VERSION}" --values "${dir}/values.yaml"
-  helm template "${release}" "${chart}" --namespace "${namespace}" \
-    --values "${dir}/values.yaml" --kube-version "${KUBE_VERSION}" >/dev/null
-  for overlay in "${dir}"/environments/*/values.yaml; do
-    [ -f "${overlay}" ] || continue
-    helm lint "${chart}" --namespace "${namespace}" --kube-version "${KUBE_VERSION}" --values "${dir}/values.yaml" --values "${overlay}"
-    helm template "${release}" "${chart}" --namespace "${namespace}" \
-      --values "${dir}/values.yaml" --values "${overlay}" --kube-version "${KUBE_VERSION}" >/dev/null
   done
 done

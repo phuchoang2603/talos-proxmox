@@ -1,0 +1,9 @@
+apiVersion: v2
+name: platform-longhorn
+description: longhorn wrapper
+type: application
+version: 0.1.0
+dependencies:
+  - name: longhorn
+    version: "1.11.1"
+    repository: https://charts.longhorn.io

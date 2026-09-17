@@ -1,0 +1,9 @@
+apiVersion: v2
+name: platform-gpu-operator
+description: gpu-operator wrapper
+type: application
+version: 0.1.0
+dependencies:
+  - name: gpu-operator
+    version: "v26.7.0"
+    repository: https://helm.ngc.nvidia.com/nvidia

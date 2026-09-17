@@ -1,3 +1,4 @@
-# Single-node argocd: one cilium-operator replica is enough.
-operator:
-  replicas: 1
+cilium:
+  # Single-node argocd: one cilium-operator replica is enough.
+  operator:
+    replicas: 1

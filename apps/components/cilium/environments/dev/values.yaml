@@ -1,3 +1,4 @@
-# Single-node dev: one cilium-operator replica is enough.
-operator:
-  replicas: 1
+cilium:
+  # Single-node dev: one cilium-operator replica is enough.
+  operator:
+    replicas: 1

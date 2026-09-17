@@ -1,11 +1,4 @@
 {
-  "chart": "metrics-server/metrics-server",
-  "repository": {
-    "name": "metrics-server",
-    "url": "https://kubernetes-sigs.github.io/metrics-server/"
-  },
-  "version": "3.14.0",
-  "chartPath": "charts/metrics-server-3.14.0.tgz",
   "namespace": "kube-system",
   "releaseName": "metrics-server"
 }

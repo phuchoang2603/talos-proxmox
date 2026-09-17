@@ -13,24 +13,21 @@ component_version() {
   printf '%s\n' "${version}"
 }
 
-# component, release name, namespace, timeout, additional Helm flags.
+# component, timeout, additional Helm flags.
 # Callers pass --wait where appropriate; Cilium's first pass must not wait for SPIRE.
 helm_component() {
-  local component="$1" release="$2" namespace="$3" timeout="$4"
-  shift 4
-  local dir="${COMPONENTS}/${component}" chart
-  chart="${dir}/$(jq -er .chartPath "${dir}/release.json")"
-  if [ ! -f "${chart}" ]; then
-    echo "Missing packaged chart: ${chart}" >&2
-    return 1
-  fi
+  local component="$1" timeout="$2"
+  shift 2
+  local dir="${COMPONENTS}/${component}" release namespace
+  release="$(jq -er .releaseName "${dir}/release.json")"
+  namespace="$(jq -er .namespace "${dir}/release.json")"
   local values=(--values "${dir}/values.yaml")
   if [ -f "${dir}/environments/${ENV_NAME}/values.yaml" ]; then
     values+=(--values "${dir}/environments/${ENV_NAME}/values.yaml")
   fi
   helm upgrade --install --timeout "${timeout}" \
     --namespace "${namespace}" \
-    "${values[@]}" "$@" "${release}" "${chart}"
+    "${values[@]}" "$@" "${release}" "${dir}"
 }
 
 privileged_ns() {

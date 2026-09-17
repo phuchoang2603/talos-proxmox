@@ -1,14 +1,21 @@
-fullnameOverride: local-path-provisioner
-storageClass:
-  name: local-path
-  provisionerName: rancher.io/local-path
-  defaultClass: true
-  defaultVolumeType: hostPath
-  reclaimPolicy: Delete
-  volumeBindingMode: WaitForFirstConsumer
-nodePathMap:
-  - node: DEFAULT_PATH_FOR_NON_LISTED_NODES
-    paths:
-      - /opt/local-path-provisioner
-helperImage:
-  tag: "1.37.0"
+local-path-provisioner:
+  fullnameOverride: local-path-provisioner
+  storageClass:
+    name: local-path
+    provisionerName: rancher.io/local-path
+    defaultClass: true
+    defaultVolumeType: hostPath
+    reclaimPolicy: Delete
+    volumeBindingMode: WaitForFirstConsumer
+  nodePathMap:
+    - node: DEFAULT_PATH_FOR_NON_LISTED_NODES
+      paths:
+        - /opt/local-path-provisioner
+  helperImage:
+    tag: "1.37.0"
+  configmap:
+    helperPod:
+      tolerations:
+        - key: node.kubernetes.io/disk-pressure
+          operator: Exists
+          effect: NoSchedule
