@@ -36,7 +36,7 @@ Edit `terraform-provision/env/{dev,prod,argocd}/k8s_nodes.json`. Shape:
 
 Edit `terraform-provision/env/{env}/network.json` for the Talos API VIP and Cilium LoadBalancer pool (`lb_range`). Longhorn Gateway LAN IP: `longhorn-ingress.yaml` on prod. Argo ingress is argocd-only (`env/argocd/argo-ingress.yaml`). **dev** and **argocd** have no `longhorn` nodes (local-path storage).
 
-After **argocd** provision, CI runs `apps/bootstrap-argocd.sh` (Argo CD + remote cluster registration). Provision **dev** and **prod** first so their `KUBECONFIG` values exist in Doppler when argocd registers remote clusters.
+After **argocd** provision, CI runs `apps/bootstrap/bootstrap-argocd.sh` (Argo CD + remote cluster registration). Provision **dev** and **prod** first so their `KUBECONFIG` values exist in Doppler when argocd registers remote clusters.
 
 ## Step 2: GitHub Environments
 
@@ -57,7 +57,7 @@ If not using environment secrets, repository secret:
 ## Step 4: Deploy
 
 1. **Pull request:** Plans `dev`, comments on the PR. No apply or Helm.
-2. **Push to `main`:** Applies `dev`, writes `TALOSCONFIG` / `KUBECONFIG` to Doppler, then `apps/bootstrap.sh`.
+2. **Push to `main`:** Applies `dev`, writes `TALOSCONFIG` / `KUBECONFIG` to Doppler, then `apps/bootstrap/bootstrap.sh`.
 3. **Run workflow:** Pick Environment `dev`, `prod`, or `argocd` and action **apply** or **destroy**.
 
 State key: `talos-${environment}.tfstate` (does not overwrite the RKE2 `dev.tfstate` / `prod.tfstate` keys). Doppler config names match (`dev`, `prod`, `argocd`).

@@ -99,9 +99,9 @@ jobs:
           KUBECONFIG: ${{ github.workspace }}/kubeconfig
         run: |
           if [ "$(jq '[.[] | select(.role == "longhorn")] | length' "terraform-provision/env/${ENV_NAME}/k8s_nodes.json")" -gt 0 ]; then
-            doppler run --only-secrets LONGHORN_AWS_ENDPOINTS,LONGHORN_AWS_ACCESS_KEY_ID,LONGHORN_AWS_SECRET_ACCESS_KEY -- apps/bootstrap.sh
+            doppler run --only-secrets LONGHORN_AWS_ENDPOINTS,LONGHORN_AWS_ACCESS_KEY_ID,LONGHORN_AWS_SECRET_ACCESS_KEY -- apps/bootstrap/bootstrap.sh
           else
-            apps/bootstrap.sh
+            apps/bootstrap/bootstrap.sh
           fi
 
       - name: Helm bootstrap Argo CD
@@ -109,6 +109,6 @@ jobs:
         env:
           KUBECONFIG: ${{ github.workspace }}/kubeconfig
         run: |
-          chmod +x apps/bootstrap-argocd.sh
+          chmod +x apps/bootstrap/bootstrap-argocd.sh
           export DOPPLER_READ_TOKEN="$(doppler secrets get DOPPLER_READ_TOKEN --plain)"
-          apps/bootstrap-argocd.sh
+          apps/bootstrap/bootstrap-argocd.sh

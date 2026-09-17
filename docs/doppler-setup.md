@@ -12,7 +12,7 @@ Configs: `dev`, `prod`, and `argocd` (same names as git env folders and GitHub E
 | --- | --- |
 | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | Terraform S3/MinIO backend |
 | `PROXMOX_ENDPOINT`, `PROXMOX_USERNAME`, `PROXMOX_PASSWORD` | Mapped to `TF_VAR_proxmox_*` in CI |
-| `LONGHORN_AWS_ENDPOINTS`, `LONGHORN_AWS_ACCESS_KEY_ID`, `LONGHORN_AWS_SECRET_ACCESS_KEY` | `apps/bootstrap.sh` when any node has `role` `longhorn` (prod) |
+| `LONGHORN_AWS_ENDPOINTS`, `LONGHORN_AWS_ACCESS_KEY_ID`, `LONGHORN_AWS_SECRET_ACCESS_KEY` | `apps/bootstrap/bootstrap.sh` when any node has `role` `longhorn` (prod) |
 | `TS_OAUTH_CLIENT_ID`, `TS_OAUTH_SECRET` | GitHub Actions Tailscale |
 | `TALOSCONFIG`, `KUBECONFIG` | Laptop access (YAML); written after provision apply |
 | `DOPPLER_READ_TOKEN` | **argocd config only** — project read token used by `bootstrap-argocd.sh` to fetch dev/prod kubeconfigs for Argo CD cluster registration |

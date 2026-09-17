@@ -1,0 +1,12 @@
+{
+  "chart": "nvidia/gpu-operator",
+  "repository": {
+    "name": "nvidia",
+    "url": "https://helm.ngc.nvidia.com/nvidia"
+  },
+  "version": "v26.7.0",
+  "chartPath": "charts/gpu-operator-v26.7.0.tgz",
+  "namespace": "gpu-operator",
+  "releaseName": "gpu-operator",
+  "downloadURL": "https://helm.ngc.nvidia.com/nvidia/charts/gpu-operator-v26.7.0.tgz"
+}

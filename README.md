@@ -13,7 +13,7 @@ This project provisions a [Talos Linux](https://www.talos.dev/) Kubernetes clust
 | Path | Role |
 | --- | --- |
 | `terraform-provision/env/{env}/` | Node inventory (`k8s_nodes.json`) and `network.json` |
-| `apps/` | Helm bootstrap (`bootstrap.sh`); argocd adds `bootstrap-argocd.sh` (Argo CD) |
+| `apps/` | [Component configuration, bootstrap scripts, and manual Argo CD roots](apps/README.md) |
 
 Terraform provision state uses the MinIO key `talos-${ENV}.tfstate` so it does not collide with the RKE2 state until you destroy that cluster.
 

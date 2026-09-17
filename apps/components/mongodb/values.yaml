@@ -1,0 +1,13 @@
+# Watch MongoDBCommunity resources across all namespaces.
+mongodb-kubernetes:
+  operator:
+    watchNamespace: "*"
+    watchedResources:
+      - mongodbcommunity
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi

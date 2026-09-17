@@ -1,0 +1,38 @@
+repoURL: https://github.com/phuchoang2603/talos-proxmox.git
+targetRevision: main
+cluster: dev
+components:
+  external-secrets:
+    path: apps/components/external-secrets
+    namespace: operators
+    syncWave: "0"
+    releaseName: external-secrets
+  cnpg:
+    path: apps/components/cnpg
+    namespace: operators
+    syncWave: "0"
+    releaseName: cnpg
+  strimzi:
+    path: apps/components/strimzi
+    namespace: operators
+    syncWave: "0"
+    releaseName: strimzi-cluster-operator
+  mongodb-operator:
+    path: apps/components/mongodb
+    namespace: operators
+    syncWave: "0"
+    releaseName: mongodb-operator
+  observability:
+    path: apps/components/observability
+    releaseName: observability
+    namespace: monitoring
+    syncWave: "1"
+    valueFilesByCluster:
+      prod:
+        - environments/prod/values.yaml
+    ignoreDifferences: true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
+        pod-security.kubernetes.io/audit: privileged
+        pod-security.kubernetes.io/warn: privileged

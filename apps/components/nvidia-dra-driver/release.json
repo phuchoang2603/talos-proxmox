@@ -1,0 +1,12 @@
+{
+  "chart": "nvidia/nvidia-dra-driver-gpu",
+  "repository": {
+    "name": "nvidia",
+    "url": "https://helm.ngc.nvidia.com/nvidia"
+  },
+  "version": "25.12.0",
+  "chartPath": "charts/nvidia-dra-driver-gpu-25.12.0.tgz",
+  "namespace": "nvidia-dra-driver-gpu",
+  "releaseName": "nvidia-dra-driver-gpu",
+  "downloadURL": "https://helm.ngc.nvidia.com/nvidia/charts/nvidia-dra-driver-gpu-25.12.0.tgz"
+}

@@ -30,3 +30,12 @@ jobs:
 
       - name: Terraform Validate
         run: terraform validate
+
+  platform-lint:
+    name: Platform charts and bootstrap
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - name: Validate bootstrap and render platform charts
+        run: apps/bootstrap/validate.sh

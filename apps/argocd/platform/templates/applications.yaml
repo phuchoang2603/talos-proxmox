@@ -1,0 +1,71 @@
+{{- $cluster := .Values.cluster }}
+{{- range $name, $app := $.Values.components }}
+{{- /* sprig `default` treats false as empty — use hasKey for explicit disables */ -}}
+{{- if or (not (hasKey $app "enabled")) $app.enabled }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ printf "%s-%s" $cluster $name }}
+  namespace: {{ $.Release.Namespace }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io/foreground
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ $app.syncWave | quote }}
+spec:
+  project: default
+  source:
+    repoURL: {{ $.Values.repoURL | quote }}
+    targetRevision: {{ $.Values.targetRevision | quote }}
+    path: {{ $app.path }}
+    helm:
+      releaseName: {{ $app.releaseName }}
+{{- with index ($app.valueFilesByCluster | default dict) $cluster }}
+      valueFiles:
+{{- toYaml . | nindent 8 }}
+{{- end }}
+  destination:
+    name: {{ $cluster | quote }}
+    namespace: {{ $app.namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+{{- if $app.ignoreDifferences }}
+      - RespectIgnoreDifferences=true
+{{- end }}
+{{- with $app.managedNamespaceMetadata }}
+    managedNamespaceMetadata:
+{{- toYaml . | nindent 6 }}
+{{- end }}
+{{- if $app.ignoreDifferences }}
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: observability-grafana
+      namespace: monitoring
+      jsonPointers:
+        - /data/admin-password
+    - group: ""
+      kind: Secret
+      name: observability-victoria-metrics-operator-validation
+      namespace: monitoring
+      jsonPointers:
+        - /data
+    - group: admissionregistration.k8s.io
+      kind: ValidatingWebhookConfiguration
+      name: observability-victoria-metrics-operator-admission
+      jqPathExpressions:
+        - ".webhooks[]?.clientConfig.caBundle"
+    - group: apps
+      kind: Deployment
+      name: observability-grafana
+      namespace: monitoring
+      jsonPointers:
+        - /spec/template/metadata/annotations/checksum~1secret
+{{- end }}
+{{- end }}
+{{- end }}

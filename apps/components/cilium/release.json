@@ -1,0 +1,11 @@
+{
+  "chart": "cilium/cilium",
+  "repository": {
+    "name": "cilium",
+    "url": "https://helm.cilium.io/"
+  },
+  "version": "1.18.13",
+  "chartPath": "charts/cilium-1.18.13.tgz",
+  "namespace": "kube-system",
+  "releaseName": "cilium"
+}

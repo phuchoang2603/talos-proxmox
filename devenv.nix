@@ -12,6 +12,7 @@
     pkgs.talosctl
     pkgs.kubectl
     pkgs.kubernetes-helm
+    pkgs.jq
     pkgs.gettext
   ];
 
