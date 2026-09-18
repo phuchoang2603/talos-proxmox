@@ -55,7 +55,7 @@ cilium:
               runAsGroup: 1000
             initContainers:
               - name: fix-permissions
-                image: docker.io/library/busybox:1.37.0
+                image: docker.io/library/busybox:1.38.0
                 command: ["sh", "-c"]
                 args:
                   - chown -R 1000:1000 /run/spire/data /tmp/spire-server
