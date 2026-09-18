@@ -98,10 +98,12 @@ jobs:
         env:
           KUBECONFIG: ${{ github.workspace }}/kubeconfig
         run: |
-          if [ "$(jq '[.[] | select(.role == "longhorn")] | length' "terraform-provision/env/${ENV_NAME}/k8s_nodes.json")" -gt 0 ]; then
-            doppler run --only-secrets LONGHORN_AWS_ENDPOINTS,LONGHORN_AWS_ACCESS_KEY_ID,LONGHORN_AWS_SECRET_ACCESS_KEY -- apps/bootstrap/bootstrap.sh
-          else
+          if [ "${ENV_NAME}" = argocd ]; then
             apps/bootstrap/bootstrap.sh
+          elif [ "$(jq '[.[] | select(.role == "longhorn")] | length' "terraform-provision/env/${ENV_NAME}/k8s_nodes.json")" -gt 0 ]; then
+            doppler run --only-secrets CLOUDFLARE_TUNNEL_TOKEN,LONGHORN_AWS_ENDPOINTS,LONGHORN_AWS_ACCESS_KEY_ID,LONGHORN_AWS_SECRET_ACCESS_KEY -- apps/bootstrap/bootstrap.sh
+          else
+            doppler run --only-secrets CLOUDFLARE_TUNNEL_TOKEN -- apps/bootstrap/bootstrap.sh
           fi
 
       - name: Helm bootstrap Argo CD and apply platform roots
