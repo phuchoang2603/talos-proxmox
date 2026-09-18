@@ -4,8 +4,12 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 : "${KUBECONFIG:?KUBECONFIG is required}"
+: "${ENV_NAME:?ENV_NAME is required}"
+if [[ "${ENV_NAME}" == dev || "${ENV_NAME}" == prod ]]; then
+  : "${CLOUDFLARE_TUNNEL_TOKEN:?CLOUDFLARE_TUNNEL_TOKEN is required for dev/prod}"
+fi
 
-INV="${APPS_ROOT}/../terraform-provision/env/${ENV_NAME:?ENV_NAME is required}"
+INV="${APPS_ROOT}/../terraform-provision/env/${ENV_NAME}"
 LONGHORN_NODES="$(jq '[.[] | select(.role == "longhorn")] | length' "${INV}/k8s_nodes.json")"
 if [ "${LONGHORN_NODES}" -gt 0 ]; then
   : "${LONGHORN_AWS_ENDPOINTS:?LONGHORN_AWS_ENDPOINTS is required}"
@@ -68,6 +72,15 @@ helm_component cilium 15m --wait
 
 echo "Installing metrics-server"
 helm_component metrics-server 5m --wait
+
+if [[ "${ENV_NAME}" == dev || "${ENV_NAME}" == prod ]]; then
+  echo "Provisioning Cloudflare Tunnel token"
+  kubectl create namespace cloudflare-tunnel --dry-run=client -o yaml | kubectl apply -f -
+  kubectl create secret generic cloudflare-tunnel-token \
+    --namespace cloudflare-tunnel \
+    --from-literal=token="${CLOUDFLARE_TUNNEL_TOKEN}" \
+    --dry-run=client -o yaml | kubectl apply -f -
+fi
 
 has_gpu_nodes() {
   jq '[.[] | select((.pci // []) | length > 0)]' "${INV}/k8s_nodes.json"

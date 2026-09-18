@@ -36,3 +36,11 @@ components:
         pod-security.kubernetes.io/enforce: privileged
         pod-security.kubernetes.io/audit: privileged
         pod-security.kubernetes.io/warn: privileged
+  cloudflare-tunnel:
+    path: apps/components/cloudflare-tunnel
+    releaseName: cloudflare-tunnel
+    namespace: cloudflare-tunnel
+    syncWave: "2"
+    valueFilesByCluster:
+      prod:
+        - environments/prod/values.yaml

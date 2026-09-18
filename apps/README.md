@@ -48,6 +48,11 @@ Longhorn requires `LONGHORN_AWS_ENDPOINTS`, `LONGHORN_AWS_ACCESS_KEY_ID`, and
 the `local-path` StorageClass, and `WaitForFirstConsumer`. Its namespace receives
 privileged Pod Security labels for helper pods. Local-path is node-local storage.
 
+Cloudflare Tunnel requires `CLOUDFLARE_TUNNEL_TOKEN`. Bootstrap provisions it
+from the `talos-proxmox` Doppler project as
+`cloudflare-tunnel/cloudflare-tunnel-token`; the tunnel Deployment consumes that
+Secret directly and does not use External Secrets.
+
 `bootstrap/bootstrap-argocd.sh` runs only with `ENV_NAME=argocd`, after the main
 bootstrap. It installs Argo CD and registers dev and prod using their kubeconfigs
 from Doppler. Required: `KUBECONFIG` and `DOPPLER_READ_TOKEN`, a project read token
@@ -97,7 +102,7 @@ kubectl --kubeconfig "$HOME/.kube/talos-argocd.yaml" apply --server-side \
   -f apps/argocd/roots/prod.yaml
 ```
 
-Each root creates five Applications targeting only its named cluster:
+Each root creates six Applications targeting only its named cluster:
 
 | Component | Namespace |
 | --- | --- |
@@ -106,6 +111,7 @@ Each root creates five Applications targeting only its named cluster:
 | Strimzi | operators |
 | MongoDB operator | operators |
 | Observability (VictoriaMetrics Operator, Grafana, monitoring stack) | monitoring |
+| Cloudflare Tunnel | cloudflare-tunnel |
 
 The roots track this repository's `main` branch. Publish the chart files there
 before applying. Applying a root enables automatic sync, pruning, and self-healing
@@ -114,8 +120,8 @@ cluster; their workloads run on the destination cluster. Each root's `cluster`
 parameter selects the destination and component environment values.
 
 The External Secrets component installs only the ESO operator and its CRDs.
-Application repositories own the provider credentials and `ClusterSecretStore`
-resources, such as the Doppler token Secret in `operators`.
+The platform-owned Cloudflare Tunnel component consumes its bootstrap-provisioned
+Secret directly.
 Wait for operators and their CRDs to be healthy before deploying dependent
 workloads. Sync waves do not order separate roots.
 

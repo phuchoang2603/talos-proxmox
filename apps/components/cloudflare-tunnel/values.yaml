@@ -1,0 +1,19 @@
+# Chart defaults: in-cluster Cloudflare Tunnel to the Cilium Gateway origin.
+replicaCount: 1
+
+image:
+  repository: cloudflare/cloudflared
+  tag: "2026.5.0"
+  pullPolicy: IfNotPresent
+
+tunnel:
+  existingSecret: cloudflare-tunnel-token
+  existingSecretKey: token
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
