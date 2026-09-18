@@ -73,6 +73,7 @@ for remote in dev prod; do
 done
 
 echo "Applying platform app-of-apps roots"
+kubectl apply --server-side -f "${APPS_ROOT}/argocd/project.yaml"
 for root in dev prod; do
   kubectl apply --server-side -f "${APPS_ROOT}/argocd/roots/${root}.yaml"
 done

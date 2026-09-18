@@ -6,7 +6,7 @@ metadata:
   finalizers:
     - resources-finalizer.argocd.argoproj.io/foreground
 spec:
-  project: default
+  project: talos-proxmox
   source:
     repoURL: https://github.com/phuchoang2603/talos-proxmox.git
     targetRevision: main

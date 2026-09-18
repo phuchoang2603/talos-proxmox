@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: talos-proxmox
+  namespace: argo-cd
+spec:
+  description: Applications managed by the talos-proxmox repository
+  sourceRepos:
+    - https://github.com/phuchoang2603/talos-proxmox.git
+  destinations:
+    - namespace: argo-cd
+      server: https://kubernetes.default.svc
+    - name: dev
+      namespace: '*'
+    - name: prod
+      namespace: '*'
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'

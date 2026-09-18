@@ -13,7 +13,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: {{ $app.syncWave | quote }}
 spec:
-  project: default
+  project: talos-proxmox
   source:
     repoURL: {{ $.Values.repoURL | quote }}
     targetRevision: {{ $.Values.targetRevision | quote }}
