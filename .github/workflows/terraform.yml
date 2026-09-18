@@ -3,8 +3,6 @@ name: Provision and Bootstrap
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
     inputs:
       environment:
@@ -49,9 +47,9 @@ jobs:
           terraform_version: 1.6.6
           terraform_wrapper: false
       - uses: azure/setup-helm@v4
-        if: github.event_name != 'pull_request' && inputs.action != 'destroy'
+        if: inputs.action != 'destroy'
       - uses: azure/setup-kubectl@v4
-        if: github.event_name != 'pull_request' && inputs.action != 'destroy'
+        if: inputs.action != 'destroy'
 
       - name: Tailscale
         run: |
@@ -68,8 +66,6 @@ jobs:
 
       - name: Terraform
         working-directory: terraform-provision
-        env:
-          APPLY: ${{ github.event_name != 'pull_request' }}
         run: |
           tf() {
             doppler run --only-secrets AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,PROXMOX_ENDPOINT,PROXMOX_USERNAME,PROXMOX_PASSWORD -- \
@@ -79,12 +75,7 @@ jobs:
           tf init -backend-config="key=talos-${ENV_NAME}.tfstate"
           extra=()
           [ "$ACTION" = destroy ] && extra+=(-destroy)
-          if [ "$APPLY" = true ]; then
-            tf plan "${extra[@]}" -var-file="env/${ENV_NAME}/main.tfvars" -out .planfile
-          else
-            tf plan "${extra[@]}" -var-file="env/${ENV_NAME}/main.tfvars"
-            exit 0
-          fi
+          tf plan "${extra[@]}" -var-file="env/${ENV_NAME}/main.tfvars" -out .planfile
           tf apply -auto-approve .planfile
           [ "$ACTION" = destroy ] && exit 0
           tf output -raw kubeconfig | doppler secrets set --silent --type yaml KUBECONFIG
@@ -93,7 +84,7 @@ jobs:
           chmod 600 "$GITHUB_WORKSPACE/kubeconfig"
 
       - name: Helm bootstrap
-        if: github.event_name != 'pull_request' && inputs.action != 'destroy'
+        if: inputs.action != 'destroy'
         env:
           KUBECONFIG: ${{ github.workspace }}/kubeconfig
         run: |
@@ -106,7 +97,7 @@ jobs:
           fi
 
       - name: Helm bootstrap Argo CD and apply platform roots
-        if: github.event_name != 'pull_request' && inputs.action != 'destroy' && env.ENV_NAME == 'argocd'
+        if: inputs.action != 'destroy' && env.ENV_NAME == 'argocd'
         env:
           KUBECONFIG: ${{ github.workspace }}/kubeconfig
         run: |
