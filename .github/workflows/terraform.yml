@@ -22,11 +22,18 @@ jobs:
 
   provision:
     needs: lint
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && matrix.environment == inputs.environment) ||
+      (github.event_name == 'pull_request' && matrix.environment == 'argocd')
+    strategy:
+      matrix:
+        environment: [argocd, dev, prod]
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'argocd' }}
+    environment: ${{ matrix.environment }}
     concurrency:
-      group: provision-${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'argocd' }}
+      group: provision-${{ matrix.environment }}
       cancel-in-progress: false
     permissions:
       contents: read
@@ -35,9 +42,9 @@ jobs:
     env:
       DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
       DOPPLER_PROJECT: talos-proxmox
-      ENV_NAME: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'argocd' }}
-      DOPPLER_CONFIG: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'argocd' }}
-      TF_VAR_env: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'argocd' }}
+      ENV_NAME: ${{ matrix.environment }}
+      DOPPLER_CONFIG: ${{ matrix.environment }}
+      TF_VAR_env: ${{ matrix.environment }}
       ACTION: ${{ inputs.action }}
     steps:
       - uses: actions/checkout@v4
