@@ -1,4 +1,29 @@
 argo-cd:
+  # This installation uses local admin authentication and ordinary Argo
+  # Applications; no SSO, notifications, or ApplicationSets are configured.
+  dex:
+    enabled: false
+  notifications:
+    enabled: false
+  applicationSet:
+    replicas: 0
+
   configs:
     params:
       server.insecure: true
+
+  controller:
+    # The management node is intentionally small. Limit startup reconciliation
+    # fan-out so the controller does not get OOM-killed while loading all
+    # registered workload clusters and Applications.
+    extraArgs:
+      - --status-processors=5
+      - --operation-processors=2
+      - --kubectl-parallelism-limit=10
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 1536Mi
