@@ -19,6 +19,10 @@ victoria-metrics-k8s-stack:
 
   grafana:
     enabled: true
+    sidecar:
+      dashboards:
+        enabled: true
+        searchNamespace: ALL
     grafana.ini:
       server:
         domain: grafana-dev.phuchoang.sbs
