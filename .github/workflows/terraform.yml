@@ -9,8 +9,8 @@ on:
     inputs:
       environment:
         type: choice
-        options: [dev, prod, argocd]
-        default: dev
+        options: [argocd, dev, prod]
+        default: argocd
       action:
         type: choice
         options: [apply, destroy]
@@ -24,9 +24,9 @@ jobs:
     needs: lint
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'dev' }}
+    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'argocd' }}
     concurrency:
-      group: provision-${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'dev' }}
+      group: provision-${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'argocd' }}
       cancel-in-progress: false
     permissions:
       contents: read
@@ -35,9 +35,9 @@ jobs:
     env:
       DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
       DOPPLER_PROJECT: talos-proxmox
-      ENV_NAME: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'dev' }}
-      DOPPLER_CONFIG: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'dev' }}
-      TF_VAR_env: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'dev' }}
+      ENV_NAME: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'argocd' }}
+      DOPPLER_CONFIG: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'argocd' }}
+      TF_VAR_env: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'argocd' }}
       ACTION: ${{ inputs.action }}
     steps:
       - uses: actions/checkout@v4
@@ -104,7 +104,7 @@ jobs:
             apps/bootstrap/bootstrap.sh
           fi
 
-      - name: Helm bootstrap Argo CD
+      - name: Helm bootstrap Argo CD and apply platform roots
         if: github.event_name != 'pull_request' && inputs.action != 'destroy' && env.ENV_NAME == 'argocd'
         env:
           KUBECONFIG: ${{ github.workspace }}/kubeconfig

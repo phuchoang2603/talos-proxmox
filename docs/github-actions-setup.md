@@ -36,13 +36,13 @@ Edit `terraform-provision/env/{dev,prod,argocd}/k8s_nodes.json`. Shape:
 
 Edit `terraform-provision/env/{env}/network.json` for the Talos API VIP and Cilium LoadBalancer pool (`lb_range`). Longhorn Gateway LAN IP: `longhorn-ingress.yaml` on prod. Argo ingress is argocd-only (`env/argocd/argo-ingress.yaml`). **dev** and **argocd** have no `longhorn` nodes (local-path storage).
 
-After **argocd** provision, CI runs `apps/bootstrap/bootstrap-argocd.sh` (Argo CD + remote cluster registration). Provision **dev** and **prod** first so their `KUBECONFIG` values exist in Doppler when argocd registers remote clusters.
+After **argocd** provision, CI runs `apps/bootstrap/bootstrap-argocd.sh` (Argo CD + remote cluster registration + platform app-of-apps roots). Provision **dev** and **prod** first so their `KUBECONFIG` values exist in Doppler when argocd registers remote clusters.
 
 ## Step 2: GitHub Environments
 
 Settings → Environments. Create **`dev`**, **`prod`**, and **`argocd`** (same names as `terraform-provision/env/`). You can add required reviewers on `prod`.
 
-Pushes and pull requests against `main` always use **`dev`**. **`prod`** and **`argocd`** are only selected via **Run workflow**.
+Pushes and pull requests against `main` use **`argocd`** by default. **`dev`** and **`prod`** can be selected via **Run workflow**.
 
 Optional: store `DOPPLER_TOKEN` as an environment secret (per env) instead of a repository secret. The job reads `secrets.DOPPLER_TOKEN` from the Environment first.
 
@@ -56,8 +56,8 @@ If not using environment secrets, repository secret:
 
 ## Step 4: Deploy
 
-1. **Pull request:** Plans `dev`, comments on the PR. No apply or Helm.
-2. **Push to `main`:** Applies `dev`, writes `TALOSCONFIG` / `KUBECONFIG` to Doppler, then `apps/bootstrap/bootstrap.sh`.
+1. **Pull request:** Plans `argocd`, comments on the PR. No apply or Helm.
+2. **Push to `main`:** Applies `argocd`, writes `TALOSCONFIG` / `KUBECONFIG` to Doppler, then runs bootstrap and Argo CD platform roots.
 3. **Run workflow:** Pick Environment `dev`, `prod`, or `argocd` and action **apply** or **destroy**.
 
 State key: `talos-${environment}.tfstate` (does not overwrite the RKE2 `dev.tfstate` / `prod.tfstate` keys). Doppler config names match (`dev`, `prod`, `argocd`).

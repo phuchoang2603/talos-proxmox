@@ -81,17 +81,18 @@ archives unmodified so dependency updates are reproducible. Put customizations
 in wrapper values and templates. Observability uses the upstream dashboard-sync
 Helm hook, which Argo CD maps to PostSync, with no patched chart archive.
 
-## Manual Argo CD deployment
+## Argo CD platform deployment
 
-Once Argo CD is installed and the desired remote cluster is registered, apply
-its root to the management cluster:
+`bootstrap/bootstrap-argocd.sh` installs Argo CD, registers `dev` and `prod`, and
+applies the platform app-of-apps roots for both environments to the management
+cluster. To re-apply or inspect individual roots manually:
 
 ```bash
-# Dev only
+# Dev
 kubectl --kubeconfig "$HOME/.kube/talos-argocd.yaml" apply --server-side \
   -f apps/argocd/roots/dev.yaml
 
-# Prod only, when ready
+# Prod
 kubectl --kubeconfig "$HOME/.kube/talos-argocd.yaml" apply --server-side \
   -f apps/argocd/roots/prod.yaml
 ```
@@ -122,6 +123,6 @@ Run `devenv shell -- apps/bootstrap/validate.sh` from the repository root.
 It checks shell syntax and release metadata and lints/renders both platform
 configurations, all packaged charts, and component environment overlays.
 
-GitHub Actions runs the same validation. Provisioning CI still bootstraps cluster
-infrastructure, installs Argo CD on the management cluster, and registers remote
-clusters. It **does not apply either platform root**.
+GitHub Actions runs the same validation. Provisioning CI bootstraps cluster
+infrastructure, installs Argo CD on the management cluster, registers remote
+clusters, and applies both platform app-of-apps roots.

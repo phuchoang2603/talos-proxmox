@@ -72,4 +72,9 @@ for remote in dev prod; do
   register_argo_cluster "${remote}" "${server}" "${kc}"
 done
 
+echo "Applying platform app-of-apps roots"
+for root in dev prod; do
+  kubectl apply --server-side -f "${APPS_ROOT}/argocd/roots/${root}.yaml"
+done
+
 echo "Argo CD bootstrap complete."
