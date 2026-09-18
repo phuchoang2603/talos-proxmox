@@ -22,13 +22,9 @@ jobs:
 
   provision:
     needs: lint
-    if: >-
-      github.event_name == 'push' ||
-      (github.event_name == 'workflow_dispatch' && matrix.environment == inputs.environment) ||
-      (github.event_name == 'pull_request' && matrix.environment == 'argocd')
     strategy:
       matrix:
-        environment: [argocd, dev, prod]
+        environment: ${{ github.event_name == 'push' && fromJSON('["argocd","dev","prod"]') || fromJSON(format('["{0}"]', inputs.environment || 'argocd')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
     environment: ${{ matrix.environment }}
