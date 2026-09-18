@@ -33,7 +33,6 @@ jobs:
       cancel-in-progress: false
     permissions:
       contents: read
-      pull-requests: write
       deployments: write
     env:
       DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
@@ -80,21 +79,18 @@ jobs:
           tf init -backend-config="key=talos-${ENV_NAME}.tfstate"
           extra=()
           [ "$ACTION" = destroy ] && extra+=(-destroy)
-          tf plan "${extra[@]}" -var-file="env/${ENV_NAME}/main.tfvars" -out .planfile
-          [ "$APPLY" = true ] || exit 0
+          if [ "$APPLY" = true ]; then
+            tf plan "${extra[@]}" -var-file="env/${ENV_NAME}/main.tfvars" -out .planfile
+          else
+            tf plan "${extra[@]}" -var-file="env/${ENV_NAME}/main.tfvars"
+            exit 0
+          fi
           tf apply -auto-approve .planfile
           [ "$ACTION" = destroy ] && exit 0
           tf output -raw kubeconfig | doppler secrets set --silent --type yaml KUBECONFIG
           tf output -raw talosconfig | doppler secrets set --silent --type yaml TALOSCONFIG
           tf output -raw kubeconfig > "$GITHUB_WORKSPACE/kubeconfig"
           chmod 600 "$GITHUB_WORKSPACE/kubeconfig"
-
-      - uses: borchero/terraform-plan-comment@v2
-        if: github.event_name == 'pull_request'
-        with:
-          token: ${{ github.token }}
-          working-directory: terraform-provision
-          planfile: .planfile
 
       - name: Helm bootstrap
         if: github.event_name != 'pull_request' && inputs.action != 'destroy'
