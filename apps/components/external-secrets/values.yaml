@@ -22,11 +22,3 @@ external-secrets:
       limits:
         cpu: 200m
         memory: 128Mi
-
-clusterSecretStore:
-  enabled: true
-  name: doppler
-  dopplerToken:
-    secretName: doppler-token
-    secretKey: dopplerToken
-    namespace: operators

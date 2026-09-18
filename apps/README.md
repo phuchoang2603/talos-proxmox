@@ -113,7 +113,9 @@ for that environment. Application resources live in `argo-cd` on the management
 cluster; their workloads run on the destination cluster. Each root's `cluster`
 parameter selects the destination and component environment values.
 
-Provision the Doppler token as `operators/doppler-token` on each workload cluster.
+The External Secrets component installs only the ESO operator and its CRDs.
+Application repositories own the provider credentials and `ClusterSecretStore`
+resources, such as the Doppler token Secret in `operators`.
 Wait for operators and their CRDs to be healthy before deploying dependent
 workloads. Sync waves do not order separate roots.
 
