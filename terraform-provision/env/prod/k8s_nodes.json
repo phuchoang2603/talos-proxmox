@@ -8,7 +8,11 @@
     "cpu_type": "host",
     "memory_mb": 10240,
     "disk_size_gb": 64,
-    "datastore_id": "local-lvm"
+    "datastore_id": "local-lvm",
+    "pci": [
+      "0000:b3:00.0",
+      "0000:b3:00.1"
+    ]
   },
   "prod-server2": {
     "vm_id": 1212,
@@ -64,20 +68,5 @@
     "memory_mb": 4096,
     "disk_size_gb": 300,
     "datastore_id": "local-lvm"
-  },
-  "prod-worker1": {
-    "vm_id": 1231,
-    "node": "pve",
-    "role": "worker",
-    "address": "10.69.12.31/16",
-    "cpu_cores": 4,
-    "cpu_type": "host",
-    "memory_mb": 8192,
-    "disk_size_gb": 64,
-    "datastore_id": "local-lvm",
-    "pci": [
-      "0000:b3:00.0",
-      "0000:b3:00.1"
-    ]
   }
 }
