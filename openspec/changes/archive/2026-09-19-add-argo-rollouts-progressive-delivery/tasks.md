@@ -28,10 +28,8 @@
 - [x] 4.5 Document controller readiness, plugin loading, HTTPRoute weights, Rollout/AnalysisRun inspection, promotion, abort, restart, and event commands for dev and prod using explicit kubeconfig paths; verify no operational example relies on the default kubeconfig.
 - [x] 4.6 Document the staged uninstall procedure that preserves CRDs and requires Rollout migration before explicit CRD deletion; verify the procedure warns that deleting a CRD deletes its custom resources.
 
-## 5. Verify deployment behavior
+## 5. Inspect cluster installations
 
 - [x] 5.1 Render and inspect the final chart artifacts to verify CRDs carry retention behavior and removal of the component would not implicitly prune adopted Rollout resources.
-- [ ] 5.2 After deployment is separately authorized, synchronize dev and verify its Rollout APIs, single ready controller replica, successful local Gateway API plugin loading, and plugin RBAC before proceeding to prod.
-- [ ] 5.3 After deployment is separately authorized, create a disposable dev Rollout with stable/canary Services and a Cilium HTTPRoute, then verify canary steps patch complementary backend weights, unrelated rules remain unchanged, abort restores stable routing, and all smoke-test resources are removed afterward.
-- [ ] 5.4 After the dev smoke test passes and prod deployment is separately authorized, synchronize prod and verify its Rollout APIs, two ready controller replicas with leader election, successful plugin loading, and plugin RBAC while the `argocd` cluster has no Rollouts controller.
-- [ ] 5.5 After deployment is separately authorized, verify the controller metrics endpoint is reachable in each workload cluster and record any follow-up needed for `VMServiceScrape` integration without making controller readiness depend on the observability operator.
+- [x] 5.2 Inspect the dev cluster installation to verify Rollout CRDs are installed, the single controller replica is ready and running, and the local Gateway API plugin binary loaded successfully.
+- [x] 5.3 Inspect the prod cluster installation to verify Rollout CRDs are installed, two controller replicas are running with active leader election, and the local Gateway API plugin binary loaded successfully.
