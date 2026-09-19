@@ -102,10 +102,11 @@ kubectl --kubeconfig "$HOME/.kube/talos-argocd.yaml" apply --server-side \
   -f apps/argocd/roots/prod.yaml
 ```
 
-Each root creates six Applications targeting only its named cluster:
+Each root creates seven Applications targeting only its named cluster:
 
 | Component | Namespace |
 | --- | --- |
+| Argo Rollouts | argo-rollouts |
 | External Secrets | operators |
 | CloudNativePG | operators |
 | Strimzi | operators |
@@ -124,6 +125,12 @@ The platform-owned Cloudflare Tunnel component consumes its bootstrap-provisione
 Secret directly.
 Wait for operators and their CRDs to be healthy before deploying dependent
 workloads. Sync waves do not order separate roots.
+
+Argo Rollouts is installed in each workload cluster, not in the Argo CD
+management cluster. It uses Cilium Gateway API for weighted canary routing and
+VictoriaMetrics for optional analysis. See
+[Argo Rollouts progressive delivery](../docs/argo-rollouts.md) for the workload
+contract, GitOps difference handling, examples, operations, and safe removal.
 
 ## Validation and CI
 

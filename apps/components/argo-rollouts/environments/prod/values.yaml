@@ -1,0 +1,10 @@
+argo-rollouts:
+  controller:
+    replicas: 2
+    pdb:
+      enabled: true
+      minAvailable: 1
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: ScheduleAnyway

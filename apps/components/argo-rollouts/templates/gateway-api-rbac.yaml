@@ -1,0 +1,39 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: argo-rollouts-gateway-api-plugin
+  labels:
+    app.kubernetes.io/name: argo-rollouts
+    app.kubernetes.io/component: gateway-api-plugin
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - services
+    verbs:
+      - get
+  - apiGroups:
+      - gateway.networking.k8s.io
+    resources:
+      - httproutes
+    verbs:
+      - get
+      - list
+      - update
+      - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: argo-rollouts-gateway-api-plugin
+  labels:
+    app.kubernetes.io/name: argo-rollouts
+    app.kubernetes.io/component: gateway-api-plugin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: argo-rollouts-gateway-api-plugin
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.gatewayPlugin.serviceAccountName | quote }}
+    namespace: {{ .Release.Namespace | quote }}

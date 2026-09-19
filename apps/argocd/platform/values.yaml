@@ -2,6 +2,16 @@ repoURL: https://github.com/phuchoang2603/talos-proxmox.git
 targetRevision: main
 cluster: dev
 components:
+  argo-rollouts:
+    path: apps/components/argo-rollouts
+    namespace: argo-rollouts
+    syncWave: "-1"
+    releaseName: argo-rollouts
+    valueFilesByCluster:
+      dev:
+        - environments/dev/values.yaml
+      prod:
+        - environments/prod/values.yaml
   external-secrets:
     path: apps/components/external-secrets
     namespace: operators

@@ -8,6 +8,8 @@ This project provisions a [Talos Linux](https://www.talos.dev/) Kubernetes clust
 2. **GitHub Actions:** Follow [Automated Deployment](docs/github-actions-setup.md). Store a read/write Doppler service token as `DOPPLER_TOKEN`.
 3. **Access:** Follow [Cluster Access](docs/cluster-access.md) (`talosctl` + kubeconfig).
 
+Progressive delivery is documented in [Argo Rollouts](docs/argo-rollouts.md).
+
 ## Layout
 
 | Path | Role |
