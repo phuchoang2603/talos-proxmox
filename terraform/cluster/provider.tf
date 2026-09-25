@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.6.6"
+  required_version = ">= 1.12.6, < 1.13.0"
   required_providers {
     proxmox = {
       source  = "bpg/proxmox"
@@ -8,6 +8,10 @@ terraform {
     talos = {
       source  = "siderolabs/talos"
       version = "0.9.0"
+    }
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 6.0"
     }
   }
   backend "s3" {
@@ -33,3 +37,13 @@ provider "proxmox" {
 }
 
 provider "talos" {}
+
+
+provider "aws" {
+  region                      = var.aws_region
+  access_key                  = var.env == "argocd" ? "unused" : var.aws_provider_access_key_id
+  secret_key                  = var.env == "argocd" ? "unused" : var.aws_provider_secret_access_key
+  skip_credentials_validation = var.env == "argocd"
+  skip_requesting_account_id  = var.env == "argocd"
+  skip_metadata_api_check     = true
+}

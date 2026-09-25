@@ -50,6 +50,31 @@ locals {
     }
   }
 
+  kubespan_machine_patches = var.env == "argocd" ? [] : [
+    yamlencode({
+      machine = {
+        network = {
+          kubespan = { enabled = true }
+        }
+        features = {
+          kubePrism = {
+            enabled = true
+            port    = 7445
+          }
+        }
+      }
+      cluster = {
+        discovery = {
+          enabled = true
+          registries = {
+            kubernetes = { disabled = true }
+            service    = {}
+          }
+        }
+      }
+    }),
+  ]
+
   node_machine_patches = {
     for name, node in var.nodes : name => yamlencode({
       machine = {

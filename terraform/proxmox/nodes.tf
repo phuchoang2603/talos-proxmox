@@ -6,10 +6,10 @@ resource "talos_machine_configuration_apply" "controlplane" {
   node                        = each.value.ip
   endpoint                    = each.value.ip
 
-  config_patches = [
+  config_patches = concat([
     yamlencode(local.common_machine_patch),
     local.node_machine_patches[each.key],
-  ]
+  ], local.kubespan_machine_patches)
 
   depends_on = [
     module.nodes,
@@ -24,10 +24,10 @@ resource "talos_machine_configuration_apply" "worker" {
   node                        = each.value.ip
   endpoint                    = each.value.ip
 
-  config_patches = [
+  config_patches = concat([
     yamlencode(local.common_machine_patch),
     local.node_machine_patches[each.key],
-  ]
+  ], local.kubespan_machine_patches)
 
   depends_on = [
     module.nodes,

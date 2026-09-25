@@ -3,6 +3,40 @@ variable "env" {
   type        = string
 }
 
+variable "aws_region" {
+  type    = string
+  default = "us-east-1"
+}
+
+variable "aws_ami_id" {
+  type    = string
+  default = null
+}
+
+variable "aws_provider_access_key_id" {
+  type      = string
+  sensitive = true
+  ephemeral = true
+  default   = null
+
+  validation {
+    condition     = var.env == "argocd" || try(length(trimspace(var.aws_provider_access_key_id)) > 0, false)
+    error_message = "A separate AWS IAM aws_provider_access_key_id is required for dev/prod."
+  }
+}
+
+variable "aws_provider_secret_access_key" {
+  type      = string
+  sensitive = true
+  ephemeral = true
+  default   = null
+
+  validation {
+    condition     = var.env == "argocd" || try(length(trimspace(var.aws_provider_secret_access_key)) > 0, false)
+    error_message = "A separate AWS IAM aws_provider_secret_access_key is required for dev/prod."
+  }
+}
+
 variable "proxmox_endpoint" {
   type        = string
   description = "Proxmox API endpoint (e.g., https://your-proxmox-ip:8006)"

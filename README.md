@@ -14,7 +14,7 @@ Progressive delivery is documented in [Argo Rollouts](docs/argo-rollouts.md).
 
 | Path | Role |
 | --- | --- |
-| `terraform-provision/env/{env}/` | Node inventory (`k8s_nodes.json`) and `network.json` |
+| `terraform/cluster/env/{env}/` | Node inventory (`k8s_nodes.json`) and `network.json` |
 | `apps/` | [Component configuration, bootstrap scripts, and manual Argo CD roots](apps/README.md) |
 
 Terraform provision state uses the MinIO key `talos-${ENV}.tfstate` so it does not collide with the RKE2 state until you destroy that cluster.

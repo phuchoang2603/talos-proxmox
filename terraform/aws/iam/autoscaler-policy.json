@@ -1,0 +1,26 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadWorkerGroups",
+      "Effect": "Allow",
+      "Action": [
+        "autoscaling:DescribeAutoScalingGroups", "autoscaling:DescribeAutoScalingInstances",
+        "autoscaling:DescribeScalingActivities", "autoscaling:DescribeLaunchConfigurations",
+        "ec2:DescribeImages", "ec2:DescribeInstanceTypes",
+        "ec2:DescribeLaunchTemplateVersions", "ec2:GetInstanceTypesFromInstanceRequirements"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ScaleOwnedWorkerGroupsOnly",
+      "Effect": "Allow",
+      "Action": ["autoscaling:SetDesiredCapacity", "autoscaling:TerminateInstanceInAutoScalingGroup"],
+      "Resource": [
+        "arn:aws:autoscaling:us-east-1:ACCOUNT_ID:autoScalingGroup:*:autoScalingGroupName/dev-talos-burst",
+        "arn:aws:autoscaling:us-east-1:ACCOUNT_ID:autoScalingGroup:*:autoScalingGroupName/prod-talos-burst"
+      ],
+      "Condition": { "StringEquals": { "aws:ResourceTag/managed-by": "talos-proxmox" } }
+    }
+  ]
+}

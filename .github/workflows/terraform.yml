@@ -1,6 +1,8 @@
 name: Provision and Bootstrap
 
 on:
+  pull_request:
+    branches: [main]
   push:
     branches: [main]
   workflow_dispatch:
@@ -18,7 +20,84 @@ jobs:
   lint:
     uses: ./.github/workflows/lint.yml
 
+  plan:
+    name: Plan (${{ matrix.environment }})
+    if: github.event_name == 'pull_request'
+    needs: lint
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [argocd, dev, prod]
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    environment: ${{ matrix.environment }}
+    concurrency:
+      group: provision-${{ matrix.environment }}
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+      DOPPLER_PROJECT: talos-proxmox
+      DOPPLER_CONFIG: ${{ matrix.environment }}
+      ENV_NAME: ${{ matrix.environment }}
+      TF_VAR_env: ${{ matrix.environment }}
+      TF_IN_AUTOMATION: true
+    steps:
+      - name: Verify trusted PR
+        env:
+          PR_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          if [ "$PR_HEAD_REPOSITORY" != "$GITHUB_REPOSITORY" ]; then
+            echo 'Plans with state access require a trusted same-repository PR.' >&2
+            exit 1
+          fi
+          if [ -z "$DOPPLER_TOKEN" ]; then
+            echo 'Configure DOPPLER_TOKEN for this environment.' >&2
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: dopplerhq/cli-action@v3
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: 1.12.6
+          tofu_wrapper: false
+      - name: Tailscale
+        run: |
+          for k in TS_OAUTH_CLIENT_ID TS_OAUTH_SECRET; do
+            v=$(doppler secrets get "$k" --plain)
+            echo "::add-mask::${v}"
+            echo "${k}=${v}" >> "$GITHUB_ENV"
+          done
+      - uses: tailscale/github-action@v2
+        with:
+          oauth-client-id: ${{ env.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ env.TS_OAUTH_SECRET }}
+          tags: tag:ci
+      - name: OpenTofu plan
+        working-directory: terraform/cluster
+        run: |
+          tf() {
+            secrets=AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,PROXMOX_ENDPOINT,PROXMOX_USERNAME,PROXMOX_PASSWORD
+            if [ "$ENV_NAME" != argocd ]; then
+              secrets="$secrets,AWS_PROVIDER_ACCESS_KEY_ID,AWS_PROVIDER_SECRET_ACCESS_KEY"
+            fi
+            doppler run --only-secrets "$secrets" -- \
+              bash "$GITHUB_WORKSPACE/.github/scripts/opentofu-with-doppler.sh" "$@"
+          }
+          tf init -input=false -backend-config="key=talos-${ENV_NAME}.tfstate"
+          tf plan -input=false -no-color -var-file="env/${ENV_NAME}/main.tfvars" -out .planfile
+      - uses: borchero/terraform-plan-comment@v2
+        with:
+          token: ${{ github.token }}
+          working-directory: terraform/cluster
+          planfile: .planfile
+          terraform-cmd: tofu
+          header: "📝 OpenTofu Plan (${{ matrix.environment }})"
+
   provision:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     needs: lint
     strategy:
       matrix:
@@ -42,10 +121,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dopplerhq/cli-action@v3
-      - uses: hashicorp/setup-terraform@v3
+      - uses: opentofu/setup-opentofu@v1
         with:
-          terraform_version: 1.6.6
-          terraform_wrapper: false
+          tofu_version: 1.12.6
+          tofu_wrapper: false
       - uses: azure/setup-helm@v4
         if: inputs.action != 'destroy'
       - uses: azure/setup-kubectl@v4
@@ -64,13 +143,16 @@ jobs:
           oauth-secret: ${{ env.TS_OAUTH_SECRET }}
           tags: tag:ci
 
-      - name: Terraform
-        working-directory: terraform-provision
+      - name: OpenTofu
+        working-directory: terraform/cluster
         run: |
           tf() {
-            doppler run --only-secrets AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,PROXMOX_ENDPOINT,PROXMOX_USERNAME,PROXMOX_PASSWORD -- \
-              bash -c 'export TF_VAR_proxmox_endpoint="$PROXMOX_ENDPOINT" TF_VAR_proxmox_username="$PROXMOX_USERNAME" TF_VAR_proxmox_password="$PROXMOX_PASSWORD"
-                exec terraform "$@"' bash "$@"
+            secrets=AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,PROXMOX_ENDPOINT,PROXMOX_USERNAME,PROXMOX_PASSWORD
+            if [ "$ENV_NAME" != argocd ]; then
+              secrets="$secrets,AWS_PROVIDER_ACCESS_KEY_ID,AWS_PROVIDER_SECRET_ACCESS_KEY"
+            fi
+            doppler run --only-secrets "$secrets" -- \
+              bash "$GITHUB_WORKSPACE/.github/scripts/opentofu-with-doppler.sh" "$@"
           }
           tf init -backend-config="key=talos-${ENV_NAME}.tfstate"
           extra=()
@@ -90,11 +172,15 @@ jobs:
         run: |
           if [ "${ENV_NAME}" = argocd ]; then
             apps/bootstrap/bootstrap.sh
-          elif [ "$(jq '[.[] | select(.role == "longhorn")] | length' "terraform-provision/env/${ENV_NAME}/k8s_nodes.json")" -gt 0 ]; then
+          elif [ "$(jq '[.[] | select(.role == "longhorn")] | length' "terraform/cluster/env/${ENV_NAME}/k8s_nodes.json")" -gt 0 ]; then
             doppler run --only-secrets CLOUDFLARE_TUNNEL_TOKEN,LONGHORN_AWS_ENDPOINTS,LONGHORN_AWS_ACCESS_KEY_ID,LONGHORN_AWS_SECRET_ACCESS_KEY -- apps/bootstrap/bootstrap.sh
           else
             doppler run --only-secrets CLOUDFLARE_TUNNEL_TOKEN -- apps/bootstrap/bootstrap.sh
           fi
+
+      - name: Record successful cluster bootstrap
+        if: github.event_name == 'push' && inputs.action != 'destroy' && env.ENV_NAME != 'argocd'
+        run: doppler secrets set --silent CLUSTER_APPLY_RUN_ID "$GITHUB_RUN_ID"
 
       - name: Helm bootstrap Argo CD and apply platform roots
         if: inputs.action != 'destroy' && env.ENV_NAME == 'argocd'
@@ -102,5 +188,24 @@ jobs:
           KUBECONFIG: ${{ github.workspace }}/kubeconfig
         run: |
           chmod +x apps/bootstrap/bootstrap-argocd.sh
-          export DOPPLER_READ_TOKEN="$(doppler secrets get DOPPLER_READ_TOKEN --plain)"
+          DOPPLER_READ_TOKEN="$(doppler secrets get DOPPLER_READ_TOKEN --plain)"
+          export DOPPLER_READ_TOKEN
+          if [ "$GITHUB_EVENT_NAME" = push ]; then
+            for remote in dev prod; do
+              ready=false
+              for attempt in {1..120}; do
+                applied_run="$(DOPPLER_TOKEN="$DOPPLER_READ_TOKEN" doppler secrets get CLUSTER_APPLY_RUN_ID \
+                  --project "$DOPPLER_PROJECT" --config "$remote" --plain 2>/dev/null || true)"
+                if [ "$applied_run" = "$GITHUB_RUN_ID" ]; then
+                  ready=true
+                  break
+                fi
+                sleep 15
+              done
+              if [ "$ready" != true ]; then
+                echo "Timed out waiting for $remote bootstrap in this workflow run." >&2
+                exit 1
+              fi
+            done
+          fi
           apps/bootstrap/bootstrap-argocd.sh

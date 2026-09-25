@@ -1,0 +1,129 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadInfrastructure",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DescribeVpcs",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeSecurityGroupRules",
+        "ec2:DescribeLaunchTemplates",
+        "ec2:DescribeLaunchTemplateVersions",
+        "ec2:DescribeImages",
+        "ec2:DescribeInstanceTypes",
+        "autoscaling:DescribeAutoScalingGroups",
+        "autoscaling:DescribeScalingActivities",
+        "autoscaling:DescribeAutoScalingInstances",
+        "autoscaling:DescribeTags"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ReadDefaultVpcAttributes",
+      "Effect": "Allow",
+      "Action": "ec2:DescribeVpcAttribute",
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:vpc/DEFAULT_VPC_ID"
+    },
+    {
+      "Sid": "CreateTaggedSecurityGroupsAndTemplates",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateSecurityGroup",
+        "ec2:CreateLaunchTemplate"
+      ],
+      "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:launch-template/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/managed-by": "talos-proxmox"
+        }
+      }
+    },
+    {
+      "Sid": "CreateSecurityGroupInDefaultVpc",
+      "Effect": "Allow",
+      "Action": "ec2:CreateSecurityGroup",
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:vpc/DEFAULT_VPC_ID"
+    },
+    {
+      "Sid": "TagOnlyAtCreation",
+      "Effect": "Allow",
+      "Action": "ec2:CreateTags",
+      "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group-rule/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:launch-template/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "ec2:CreateAction": [
+            "CreateSecurityGroup",
+            "CreateLaunchTemplate",
+            "AuthorizeSecurityGroupIngress",
+            "AuthorizeSecurityGroupEgress"
+          ],
+          "aws:RequestTag/managed-by": "talos-proxmox"
+        }
+      }
+    },
+    {
+      "Sid": "ManageOwnedSecurityGroupsAndTemplates",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DeleteSecurityGroup",
+        "ec2:DeleteSecurityGroupRule",
+        "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:AuthorizeSecurityGroupEgress",
+        "ec2:RevokeSecurityGroupIngress",
+        "ec2:RevokeSecurityGroupEgress",
+        "ec2:CreateLaunchTemplateVersion",
+        "ec2:DeleteLaunchTemplateVersions",
+        "ec2:ModifyLaunchTemplate",
+        "ec2:DeleteLaunchTemplate"
+      ],
+      "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group-rule/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:launch-template/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/managed-by": "talos-proxmox"
+        }
+      }
+    },
+    {
+      "Sid": "CreateTaggedSecurityGroupRules",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:AuthorizeSecurityGroupEgress"
+      ],
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group-rule/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/managed-by": "talos-proxmox"
+        }
+      }
+    },
+    {
+      "Sid": "ManageNamedWorkerGroupsOnly",
+      "Effect": "Allow",
+      "Action": [
+        "autoscaling:CreateAutoScalingGroup",
+        "autoscaling:UpdateAutoScalingGroup",
+        "autoscaling:DeleteAutoScalingGroup",
+        "autoscaling:CreateOrUpdateTags",
+        "autoscaling:DeleteTags"
+      ],
+      "Resource": [
+        "arn:aws:autoscaling:us-east-1:ACCOUNT_ID:autoScalingGroup:*:autoScalingGroupName/dev-talos-burst",
+        "arn:aws:autoscaling:us-east-1:ACCOUNT_ID:autoScalingGroup:*:autoScalingGroupName/prod-talos-burst"
+      ]
+    }
+  ]
+}

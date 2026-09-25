@@ -1,5 +1,5 @@
 module "nodes" {
-  source = "../vm"
+  source = "./vm"
 
   for_each = var.nodes
 

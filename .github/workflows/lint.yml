@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        stack: [terraform-provision]
+        stack: [terraform/cluster]
     defaults:
       run:
         working-directory: ./${{ matrix.stack }}
@@ -17,19 +17,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
         with:
-          terraform_version: 1.6.6
+          tofu_version: 1.12.6
 
-      - name: Terraform Init
-        run: terraform init -backend=false
+      - name: OpenTofu Init
+        run: tofu init -backend=false
 
-      - name: Terraform Format Check
-        run: terraform fmt -check -recursive
+      - name: OpenTofu Format Check
+        run: tofu fmt -check -recursive
 
-      - name: Terraform Validate
-        run: terraform validate
+      - name: OpenTofu Validate
+        run: tofu validate
 
   platform-lint:
     name: Platform charts and bootstrap
