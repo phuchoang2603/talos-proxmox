@@ -21,6 +21,7 @@ talosconfig
 .DS_Store
 
 # direnv / devenv
+.pre-commit-config.yaml
 .direnv/
 .devenv*
 devenv.local.nix

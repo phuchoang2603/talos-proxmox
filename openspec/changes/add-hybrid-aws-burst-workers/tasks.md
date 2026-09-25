@@ -1,26 +1,24 @@
-## 1. Destroy and Git-managed PR Plans
-
-- [x] 1.0 Dispatch and verify destroy for argocd, dev and prod through the existing GitHub Actions workflow on `main`; old PVC data and Talos identities are not retained.
-- [ ] 1.1 Verify trusted PRs produce argocd, dev and prod plans with three separately headed comments from the existing action; verify PRs cannot apply and main-only pushes/manual dispatch can apply.
-- [ ] 1.2 Configure branch rules to require lint and the three plan checks; verify a failing plan blocks merge and fork PRs cannot use existing environment credentials.
+## 1. Git-managed PR Lint
+- [ ] 1.1 Verify PRs lint both OpenTofu roots and platform charts without state or secrets; verify only main pushes/manual dispatch can provision.
+- [ ] 1.2 Require only lint checks on main and restrict dev/prod GitHub Environments to main; verify fork PRs cannot access deployment credentials.
 
 ## 2. Clean OpenTofu Root
 
-- [x] 2.1 Pin stable OpenTofu in devenv and CI and verify provider/MinIO compatibility and that the PR comment action supports saved OpenTofu plans. Do not keep Terraform 1.6 as a migration checkpoint.
-- [x] 2.2 Replace the destroyed old root with `terraform/cluster/` and `terraform/proxmox` and `terraform/aws` modules; reuse the emptied per-environment MinIO backend keys without state migration/import or old Talos identity preservation. Update CI/bootstrap/docs paths and verify fresh plans for all three environments before enabling main apply.
+- [x] 2.1 Pin OpenTofu 1.12.5 in devenv and CI and verify provider/MinIO compatibility.
+- [x] 2.2 Use `terraform/cluster/` with `terraform/proxmox/` and `terraform/aws/` modules and per-environment MinIO backend keys. Update CI/bootstrap/docs paths and verify plans for all three environments.
 
-## 3. Static AWS Authentication Without MinIO Key Reuse
+## 3. GitHub OIDC Without MinIO Key Reuse
 
-- [x] 3.1 Create a dedicated IAM user for CI provisioning, scope its mutation policy to the planned AWS burst infrastructure, and store its key as distinct `AWS_PROVIDER_*` values in the existing dev/prod Doppler configs; verify it cannot mutate unrelated AWS resources (account-wide Describe reads are required by AWS APIs).
-- [ ] 3.2 Pass the CI key only to explicit AWS provider arguments via sensitive ephemeral OpenTofu variables while MinIO retains its existing backend credentials; verify the state, saved PR plan and PR comment do not contain the CI key.
-- [ ] 3.3 Create a separate, ASG-scoped Cluster Autoscaler IAM user; bootstrap its Doppler-sourced key into a Kubernetes Secret on fixed capacity, and verify it can scale only the intended tagged worker groups without obtaining the CI key.
+- [x] 3.1 Manage the GitHub OIDC provider and scoped CI role/policy in `terraform/identity/` local state, independent of the cluster root (account-wide Describe reads remain).
+- [ ] 3.2 Pass the temporary OIDC session only to explicit AWS provider arguments via sensitive ephemeral variables while MinIO retains its existing backend credentials; verify a main-only CI run and state do not expose the session.
+- [ ] 3.3 Provision a separate, ASG-scoped Cluster Autoscaler identity and bootstrap it onto fixed capacity; verify it can scale only intended worker groups without accessing the CI role.
 
 ## 4. Hybrid Stateless AWS Workers
 
 - [ ] 4.1 Add the AWS module for dev/prod only with capped small ASGs and AWS-specific Talos config using each newly generated cluster identity; verify argocd has no AWS resources and no keys or machine config leak into Git/logs.
 - [ ] 4.2 Enable KubeSpan and discovery on fixed dev/prod nodes and AWS workers; retain private LAN VIPs for Argo CD and on-premises clients. Verify AWS-worker KubePrism API connectivity with the VIP blocked, worker readiness, and UDP 51820 peer connectivity in both environments without a public API endpoint.
 - [ ] 4.3 Test Cilium pod/Service connectivity, DNS, MTU, WireGuard behavior and no AWS L2 service announcement in both dev and prod; do not require a dev-first rollout.
-- [ ] 4.4 Argo-manage Cluster Autoscaler on fixed Proxmox capacity with accurate ASG zero-size templates and scoped static credentials; verify opted-in stateless dev workload scales 0→1→0 and Proxmox nodes are untouched.
+- [ ] 4.4 Argo-manage Cluster Autoscaler on fixed Proxmox capacity with accurate ASG zero-size templates and a separate scoped identity; verify opted-in stateless dev workload scales 0→1→0 and Proxmox nodes are untouched.
 
 ## 5. Proxmox Storage and Production Rollout
 

@@ -1,22 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Argo CD bootstrap: multi-cluster UI and remote cluster registration.
-# Run after apps/bootstrap/bootstrap.sh with ENV_NAME=argocd.
-
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 TF_ENV="${APPS_ROOT}/../terraform/cluster/env"
 
 : "${ENV_NAME:?ENV_NAME is required}"
 : "${KUBECONFIG:?KUBECONFIG is required}"
-: "${DOPPLER_READ_TOKEN:?DOPPLER_READ_TOKEN is required}"
-
 if [ "${ENV_NAME}" != argocd ]; then
   echo "bootstrap-argocd.sh is only for ENV_NAME=argocd (got ${ENV_NAME})" >&2
   exit 1
 fi
 
 DOPPLER_PROJECT="${DOPPLER_PROJECT:-talos-proxmox}"
+DOPPLER_READ_TOKEN="${DOPPLER_READ_TOKEN:-$(doppler secrets get DOPPLER_READ_TOKEN --plain)}"
+: "${DOPPLER_READ_TOKEN:?DOPPLER_READ_TOKEN is required}"
+
+remote_secret() {
+  local config="$1" key="$2"
+  DOPPLER_TOKEN="${DOPPLER_READ_TOKEN}" doppler secrets get "${key}" \
+    --project "${DOPPLER_PROJECT}" --config "${config}" --plain
+}
 
 argo_cluster_config() {
   local kubeconfig="$1"
@@ -52,12 +55,6 @@ register_argo_cluster() {
   echo "Registered Argo CD cluster ${name} -> ${server}"
 }
 
-fetch_kubeconfig() {
-  local config="$1" dest="$2"
-  DOPPLER_TOKEN="${DOPPLER_READ_TOKEN}" doppler secrets get KUBECONFIG \
-    --project "${DOPPLER_PROJECT}" --config "${config}" --plain > "${dest}"
-}
-
 echo "Installing Argo CD"
 helm_component argo-cd 20m --wait --create-namespace
 kubectl apply -f "${COMPONENTS}/argo-cd/environments/argocd/ingress.yaml"
@@ -66,10 +63,10 @@ tmpdir="$(mktemp -d)"
 trap 'rm -rf "${tmpdir}"' EXIT
 
 for remote in dev prod; do
-  kc="${tmpdir}/${remote}-kubeconfig"
+  kubeconfig="${tmpdir}/${remote}-kubeconfig"
   server="https://$(jq -r .vip "${TF_ENV}/${remote}/network.json"):6443"
-  fetch_kubeconfig "${remote}" "${kc}"
-  register_argo_cluster "${remote}" "${server}" "${kc}"
+  remote_secret "${remote}" KUBECONFIG > "${kubeconfig}"
+  register_argo_cluster "${remote}" "${server}" "${kubeconfig}"
 done
 
 echo "Applying platform app-of-apps roots"

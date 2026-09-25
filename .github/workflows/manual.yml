@@ -1,0 +1,30 @@
+name: Manual Provision
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        options: [argocd, dev, prod]
+        default: argocd
+      action:
+        type: choice
+        options: [apply, destroy]
+        default: apply
+
+jobs:
+  lint:
+    uses: ./.github/workflows/lint.yml
+
+  provision:
+    name: Provision (${{ inputs.environment }})
+    if: github.ref == 'refs/heads/main'
+    needs: lint
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/provision.yml
+    with:
+      environment: ${{ inputs.environment }}
+      action: ${{ inputs.action }}
+    secrets: inherit

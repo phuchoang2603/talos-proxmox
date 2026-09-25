@@ -1,22 +1,22 @@
 ## Purpose
 
-Provide optional stateless AWS compute capacity to freshly rebuilt Talos clusters, keeping persistent Kubernetes workloads on fixed on-premises nodes.
+Provide optional stateless AWS compute capacity to Talos clusters, keeping persistent Kubernetes workloads on fixed on-premises nodes.
 
 ## ADDED Requirements
 
-### Requirement: Fixed Proxmox capacity after rebuild
-The platform SHALL recreate Talos control planes and on-premises storage and GPU nodes as fixed Proxmox VMs. Cluster identity and credentials SHALL be generated afresh for each environment, then shared by its fixed nodes and AWS workers. Scaling AWS workers MUST NOT change the fixed Proxmox inventory.
+### Requirement: Fixed Proxmox capacity
+The platform SHALL maintain Talos control planes and on-premises storage and GPU nodes as fixed Proxmox VMs. Cluster identity and credentials SHALL be shared by each environment’s fixed nodes and AWS workers. Scaling AWS workers MUST NOT change the fixed Proxmox inventory.
 
 #### Scenario: Add AWS worker capacity
-- **WHEN** AWS burst infrastructure is deployed to a freshly rebuilt environment
-- **THEN** it joins the new cluster without changing fixed Proxmox capacity or requiring old persistent volumes
+- **WHEN** AWS burst infrastructure is deployed to an environment
+- **THEN** it joins the cluster without changing fixed Proxmox capacity or requiring persistent volumes
 
 ### Requirement: Bounded, independently autoscaled AWS workers
-The platform SHALL add Talos worker nodes to the rebuilt dev and prod clusters from AWS within environment-specific minimum and maximum bounds, including a zero-worker idle state. AWS scaling MUST NOT change the fixed Proxmox inventory, and in-cluster scaling control MUST remain available when the AWS worker count is zero.
+The platform SHALL add Talos worker nodes to the dev and prod clusters from AWS within environment-specific minimum and maximum bounds, including a zero-worker idle state. AWS scaling MUST NOT change the fixed Proxmox inventory, and in-cluster scaling control MUST remain available when the AWS worker count is zero.
 
 #### Scenario: Burst from zero
 - **WHEN** an eligible pending workload requires AWS capacity and the AWS worker count is zero
-- **THEN** an AWS worker joins the rebuilt cluster and can run that workload within the configured maximum
+- **THEN** an AWS worker joins the cluster and can run that workload within the configured maximum
 
 #### Scenario: Return to zero
 - **WHEN** AWS workers host no non-evictable workloads and the scale-down delay has elapsed
@@ -72,7 +72,7 @@ The platform SHALL allow AWS workers to run only explicitly opted-in workloads w
 - **THEN** its disposable scratch contents may be lost without deleting any persistent cluster data
 
 ### Requirement: Secure, Git-managed reconciliation
-The platform SHALL manage Proxmox and AWS infrastructure in one root with a separate MinIO state key per cluster environment, and reconcile in-cluster autoscaling, storage drivers, and storage policies from Git. It MUST generate fresh Talos identities after destruction, protect Talos bootstrap material and cloud credentials from repository disclosure, use different credentials for MinIO state, AWS provisioning, and on-premises autoscaling, and prevent infrastructure reconciliation from overwriting the autoscaler's desired worker count.
+The platform SHALL manage Proxmox and AWS infrastructure in one root with a separate MinIO state key per cluster environment, and reconcile in-cluster autoscaling, storage drivers, and storage policies from Git. It MUST protect Talos identities and bootstrap material and cloud credentials from repository disclosure, use different credentials for MinIO state, AWS provisioning, and on-premises autoscaling, and prevent infrastructure reconciliation from overwriting the autoscaler's desired worker count.
 
 #### Scenario: Reconcile the AWS infrastructure
 - **WHEN** Git-managed infrastructure changes are applied while the autoscaler owns worker capacity
@@ -86,16 +86,12 @@ The platform SHALL manage Proxmox and AWS infrastructure in one root with a sepa
 - **WHEN** CI plans/provisions AWS infrastructure and the on-premises autoscaler adjusts its AWS worker group
 - **THEN** neither process authenticates to AWS with the MinIO backend key, and the autoscaler cannot use the broader CI provisioning credential
 
-### Requirement: Review plans before main-only applies
-The platform SHALL run a plan for argocd, dev, and prod on each trusted pull request targeting `main` and MUST NOT apply infrastructure or bootstrap workloads from pull requests. Only a push or explicitly dispatched workflow on `main` SHALL apply changes, with a fresh plan per environment. Plans MUST use the existing per-environment CI credentials, comment their results on the pull request, and fail visibly when required credentials are unavailable rather than silently report success. AWS access in CI MUST use dedicated, restricted IAM access keys instead of MinIO backend keys; the on-premises autoscaler SHALL have separate scaling-only IAM credentials.
+### Requirement: Lint PRs and provision from main only
+The platform SHALL lint both OpenTofu roots and platform charts on pull requests targeting `main` without exposing state, AWS credentials, or Doppler environment secrets. Only a push or explicitly dispatched workflow on `main` SHALL plan and apply changes. AWS access in CI MUST use a scoped GitHub OIDC role, separate from MinIO backend keys; the on-premises autoscaler SHALL have separate scaling-only credentials before it is enabled.
 
-#### Scenario: Trusted pull request
-- **WHEN** a trusted same-repository pull request targets `main`
-- **THEN** all three environment plans run as individually visible status checks and post separately identifiable comments without applying or uploading secret-bearing plan artifacts
-
-#### Scenario: Plan credentials are unavailable
-- **WHEN** a pull request is from an untrusted fork or required per-environment credentials are missing
-- **THEN** a required plan status fails with a clear reason instead of being skipped or reported as passing
+#### Scenario: Pull request
+- **WHEN** a pull request targets `main`
+- **THEN** the OpenTofu roots and platform charts are linted without accessing remote state or deployment secrets
 
 #### Scenario: Push to main
 - **WHEN** reviewed changes are pushed to `main`

@@ -2,11 +2,11 @@
 
 Secrets live in Doppler project `talos-proxmox`. Cluster access is `TALOSCONFIG` / `KUBECONFIG`. GitHub Actions writes the Longhorn MinIO secret at bootstrap on prod.
 
-Laptop CLI is `pkgs.doppler` via devenv. After `direnv allow`, run `doppler login` once.
+Start `devenv shell` from the repository root to use the local CLI tools, including Doppler and OpenTofu. Run `doppler login` once inside that shell.
 
 ## Layout
 
-Configs: `dev`, `prod`, and `argocd` (same names as GitHub Environments). PR plans and main applies use the same per-environment Doppler config and `DOPPLER_TOKEN`; no separate `plan-*` configs are required. Plans can read Talos secrets from MinIO state, so restrict PR plan execution to reviewed, trusted branches.
+Configs: `dev`, `prod`, and `argocd` (same names as GitHub Environments). Only main applies use per-environment Doppler configs and `DOPPLER_TOKEN`; PRs run lint without state or secrets.
 
 | Secret | Use |
 | --- | --- |
@@ -20,12 +20,14 @@ Configs: `dev`, `prod`, and `argocd` (same names as GitHub Environments). PR pla
 
 `.doppler.yaml` pins the project and default config `dev`. Override with `DOPPLER_CONFIG=prod` / `DOPPLER_CONFIG=argocd` or `devenv.local.nix`.
 
-CI needs a read/write service token as GitHub `DOPPLER_TOKEN` secret per Environment (OpenTofu apply and cluster credential writes). Never put an AWS IAM user access key into these MinIO backend variables. The `talos-proxmox-ci` IAM user key is stored in dev/prod as `AWS_PROVIDER_ACCESS_KEY_ID` / `AWS_PROVIDER_SECRET_ACCESS_KEY`; the separate `talos-proxmox-autoscaler` user key is stored there as `AWS_AUTOSCALER_ACCESS_KEY_ID` / `AWS_AUTOSCALER_SECRET_ACCESS_KEY`. Both users have project-scoped write policies recorded in `terraform/aws/iam/` (replace `ACCOUNT_ID`, `DEFAULT_VPC_ID`, and `WORKER_SUBNET_ID` before policy updates; the AMI ID is pinned to the Talos v1.13.9 us-east-1 image). AWS Describe reads necessarily have account-wide scope; these keys must not be treated as fully isolated read credentials. Argocd needs neither key. The controller key must be delivered to Kubernetes as a Secret without committing it. Never reuse MinIO access keys for AWS resources.
+CI needs a read/write service token as GitHub `DOPPLER_TOKEN` secret per Environment (OpenTofu apply and cluster credential writes). `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` in Doppler are **MinIO** S3 backend credentials, and `LONGHORN_AWS_*` also accesses MinIO; neither is an AWS IAM credential. Dev/prod CI gets short-lived AWS credentials from the GitHub OIDC role in `terraform/identity/`, not Doppler. Argocd does not need AWS access. The on-premises autoscaler needs a separate ASG-scoped identity before it can be enabled. Never reuse MinIO credentials for AWS resources.
 
 ## Local OpenTofu
 
 ```bash
 export TF_VAR_env=dev
-doppler run --only-secrets AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,PROXMOX_ENDPOINT,PROXMOX_USERNAME,PROXMOX_PASSWORD,AWS_PROVIDER_ACCESS_KEY_ID,AWS_PROVIDER_SECRET_ACCESS_KEY -- \
+# Export TF_VAR_aws_provider_access_key_id and TF_VAR_aws_provider_secret_access_key
+# from a separate local AWS session; set TF_VAR_aws_provider_session_token if temporary.
+doppler run --only-secrets AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,PROXMOX_ENDPOINT,PROXMOX_USERNAME,PROXMOX_PASSWORD -- \
   bash -c 'cd terraform/cluster && bash ../../.github/scripts/opentofu-with-doppler.sh init -backend-config="key=talos-dev.tfstate" && bash ../../.github/scripts/opentofu-with-doppler.sh plan -var-file=env/dev/main.tfvars'
 ```

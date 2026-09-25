@@ -1,6 +1,6 @@
-# Talos Kubernetes on Proxmox with Terraform
+# Talos Kubernetes on Proxmox with OpenTofu
 
-This project provisions a [Talos Linux](https://www.talos.dev/) Kubernetes cluster on Proxmox using Terraform, GitHub Actions, and Doppler. Cluster access is via `talosctl` / kubeconfig stored in Doppler (`TALOSCONFIG`, `KUBECONFIG`). The **argocd** cluster runs Argo CD for multi-cluster management.
+This project provisions [Talos Linux](https://www.talos.dev/) Kubernetes clusters on Proxmox with OpenTofu, GitHub Actions, and Doppler. Dev and prod can add stateless AWS worker capacity. Cluster access is via `talosctl` / kubeconfig stored in Doppler (`TALOSCONFIG`, `KUBECONFIG`). The **argocd** cluster runs Argo CD for multi-cluster management.
 
 ## Quick Start
 
@@ -10,9 +10,12 @@ This project provisions a [Talos Linux](https://www.talos.dev/) Kubernetes clust
 
 ## Layout
 
-| Path                           | Role                                                                 |
-| ------------------------------ | -------------------------------------------------------------------- |
-| `terraform/cluster/env/{env}/` | Node inventory (`k8s_nodes.json`) and `network.json`                 |
-| `apps/`                        | Component configuration, bootstrap scripts, and manual Argo CD roots |
+| Path                           | Role                                                  |
+| ------------------------------ | ----------------------------------------------------- |
+| `terraform/identity/`          | GitHub OIDC CI role (separate local state)            |
+| `terraform/cluster/`           | Cluster root; calls the Proxmox and AWS modules       |
+| `terraform/aws/`               | Stateless worker module used by dev and prod          |
+| `terraform/cluster/env/{env}/` | Node inventory and network settings                   |
+| `apps/`                        | Components, bootstrap scripts, and Argo CD roots      |
 
-Terraform provision state uses the MinIO key `talos-${ENV}.tfstate` so it does not collide with the RKE2 state until you destroy that cluster.
+Each cluster environment stores state in MinIO as `talos-${ENV}.tfstate`. See [Automated Deployment](docs/github-actions-setup.md) for the OIDC credential flow.
