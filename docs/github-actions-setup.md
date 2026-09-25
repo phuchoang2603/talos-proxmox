@@ -52,7 +52,7 @@ Allow outbound access to the Talos discovery service and inbound UDP 51820 on at
 
 ## Step 2: GitHub Environments and Secrets
 
-Settings → Environments: keep **`argocd`**, **`dev`**, and **`prod`**. `dev` and `prod` allow deployments from `main` only: GitHub's environment-scoped OIDC subject contains the environment name, not the branch. Each environment keeps its existing `DOPPLER_TOKEN` for MinIO, Proxmox, and bootstrap. PRs receive no environment secrets.
+Settings → Environments: keep **`argocd`**, **`dev`**, and **`prod`**. `dev` and `prod` allow deployments from `main` only: GitHub's environment-scoped OIDC subject contains the environment name and immutable owner/repository IDs, not the branch. The IDs in `terraform/identity/main.tf` must match the repository's GitHub OIDC subject. Each environment keeps its existing `DOPPLER_TOKEN` for MinIO, Proxmox, and bootstrap. PRs receive no environment secrets.
 
 Manage the GitHub OIDC provider and `talos-proxmox-ci` role/policy locally with `cd terraform/identity && tofu init && tofu plan && tofu apply`. This root uses gitignored local state; keep that state and a secure backup. It does not provision worker resources. In the dev/prod jobs, `id-token: write` lets `aws-actions/configure-aws-credentials` exchange a GitHub OIDC token for a short-lived AWS role session. The workflow passes the session key, secret, and token through sensitive ephemeral OpenTofu variables to the cluster AWS provider. Doppler supplies separate `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` values only for the MinIO S3 backend; the wrapper clears the AWS session token before calling OpenTofu so it cannot reach MinIO. Argocd does not assume the AWS role. Saved plans stay on ephemeral runners and are not uploaded.
 

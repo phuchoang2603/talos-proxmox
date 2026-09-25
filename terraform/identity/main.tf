@@ -55,8 +55,8 @@ data "aws_iam_policy_document" "github_actions" {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
       values = [
-        "repo:phuchoang2603/talos-proxmox:environment:dev",
-        "repo:phuchoang2603/talos-proxmox:environment:prod",
+        "repo:phuchoang2603@91061595/talos-proxmox@1351657631:environment:dev",
+        "repo:phuchoang2603@91061595/talos-proxmox@1351657631:environment:prod",
       ]
     }
   }
