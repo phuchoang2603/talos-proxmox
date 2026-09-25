@@ -3,32 +3,43 @@
   ...
 }:
 
-let
-  tofu = pkgs.stdenvNoCC.mkDerivation {
-    pname = "opentofu";
-    version = "1.12.6";
-    src = pkgs.fetchurl {
-      url = "https://github.com/opentofu/opentofu/releases/download/v1.12.6/tofu_1.12.6_linux_amd64.zip";
-      hash = "sha256-XcQ9pPdQ8zhz3CXpRYcShwnoGeVEt76QFrJVMWFTw6g=";
-    };
-    nativeBuildInputs = [ pkgs.unzip ];
-    unpackPhase = "unzip $src";
-    installPhase = "install -Dm755 tofu $out/bin/tofu";
-  };
-in
-
 {
   env.DOPPLER_PROJECT = "talos-proxmox";
 
-  packages = [
-    pkgs.doppler
-    pkgs.tflint
-    pkgs.talosctl
-    pkgs.kubectl
-    pkgs.kubernetes-helm
-    pkgs.jq
-    pkgs.gettext
-    tofu
+  packages = with pkgs; [
+    doppler
+
+    jq
+    gettext
+
+    talosctl
+    kubectl
   ];
 
+  languages = {
+    opentofu = {
+      enable = true;
+      lsp = {
+        enable = true;
+      };
+    };
+    helm = {
+      enable = true;
+      lsp.enable = true;
+    };
+  };
+
+  treefmt.enable = true;
+  treefmt.config.programs.actionlint.enable = true;
+  treefmt.config.programs.shellcheck = {
+    enable = true;
+    external-sources = true;
+    source-path = "SCRIPTDIR";
+  };
+  git-hooks.hooks.treefmt.enable = true;
+  git-hooks.hooks.chart-testing = {
+    enable = true;
+    files = "^apps/(components|argocd)/";
+    args = [ "--chart-dirs" "apps/components,apps/argocd" "--validate-maintainers=false" ];
+  };
 }

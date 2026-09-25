@@ -3,16 +3,6 @@
 APPS_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 COMPONENTS="${APPS_ROOT}/components"
 
-component_version() {
-  local config="${COMPONENTS}/$1/release.json" version override
-  version="$(jq -er .version "${config}")"
-  override="$(jq -r '.versionEnv // empty' "${config}")"
-  if [ -n "${override}" ]; then
-    version="${!override:-${version}}"
-  fi
-  printf '%s\n' "${version}"
-}
-
 # component, timeout, additional Helm flags.
 # Callers pass --wait where appropriate; Cilium's first pass must not wait for SPIRE.
 helm_component() {

@@ -21,7 +21,7 @@ variable "aws_provider_access_key_id" {
 
   validation {
     condition     = var.env == "argocd" || try(length(trimspace(var.aws_provider_access_key_id)) > 0, false)
-    error_message = "A separate AWS IAM aws_provider_access_key_id is required for dev/prod."
+    error_message = "AWS provider credentials are required for dev/prod."
   }
 }
 
@@ -33,8 +33,15 @@ variable "aws_provider_secret_access_key" {
 
   validation {
     condition     = var.env == "argocd" || try(length(trimspace(var.aws_provider_secret_access_key)) > 0, false)
-    error_message = "A separate AWS IAM aws_provider_secret_access_key is required for dev/prod."
+    error_message = "AWS provider credentials are required for dev/prod."
   }
+}
+
+variable "aws_provider_session_token" {
+  type      = string
+  sensitive = true
+  ephemeral = true
+  default   = null
 }
 
 variable "proxmox_endpoint" {

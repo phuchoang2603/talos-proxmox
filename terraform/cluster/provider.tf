@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.12.6, < 1.13.0"
+  required_version = ">= 1.12.5, < 1.13.0"
   required_providers {
     proxmox = {
       source  = "bpg/proxmox"
@@ -43,6 +43,7 @@ provider "aws" {
   region                      = var.aws_region
   access_key                  = var.env == "argocd" ? "unused" : var.aws_provider_access_key_id
   secret_key                  = var.env == "argocd" ? "unused" : var.aws_provider_secret_access_key
+  token                       = var.env == "argocd" ? null : var.aws_provider_session_token
   skip_credentials_validation = var.env == "argocd"
   skip_requesting_account_id  = var.env == "argocd"
   skip_metadata_api_check     = true

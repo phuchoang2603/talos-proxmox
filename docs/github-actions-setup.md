@@ -1,6 +1,6 @@
 # GitHub Actions Automated Deployment
 
-CI uses GitHub Actions Environments and Doppler for Talos on Proxmox. CI uses OpenTofu 1.12.6 for a clean rebuild described in `openspec/changes/add-hybrid-aws-burst-workers/`.
+CI uses GitHub Actions Environments, OpenTofu 1.12.5, and Doppler to provision Talos on Proxmox and stateless AWS workers in dev/prod.
 
 ## Prerequisites
 
@@ -10,7 +10,7 @@ CI uses GitHub Actions Environments and Doppler for Talos on Proxmox. CI uses Op
 - Proxmox API access
 - MinIO (or S3) for OpenTofu state
 
-**Merging this branch triggers apply for all three environments** and rebuilds their fixed Proxmox clusters from empty state. The old Talos clusters have already been destroyed; no automatic rebuild has run.
+A push to `main` plans and applies all three cluster environments. Review infrastructure changes before merging.
 
 ## Step 1: Update VM Inventory
 
@@ -36,13 +36,13 @@ Edit `terraform/cluster/env/{dev,prod,argocd}/k8s_nodes.json`. Shape:
 
 Edit `terraform/cluster/env/{env}/network.json` for the Talos API VIP and Cilium LoadBalancer pool (`lb_range`). Longhorn Gateway LAN IP: `longhorn-ingress.yaml` on prod. Argo ingress is argocd-only (`env/argocd/argo-ingress.yaml`). **dev** and **argocd** have no `longhorn` nodes (local-path storage).
 
-After **argocd** provision, CI runs `apps/bootstrap/bootstrap-argocd.sh` (Argo CD + remote cluster registration + platform app-of-apps roots). On a main push, dev and prod write `CLUSTER_APPLY_RUN_ID` to their Doppler configs after a successful bootstrap, and argocd waits for markers from the same workflow run before registering the newly rebuilt clusters. For manual dispatch, provision **dev** and **prod** before **argocd** so their new `KUBECONFIG` values exist in Doppler.
+On a push to `main`, dev and prod provision and bootstrap in parallel. The argocd job runs only after both succeed; it bootstraps Argo CD, registers the two clusters using their kubeconfigs from Doppler, and applies the platform roots. Manual dispatch provisions only the selected environment; when selecting argocd, provision dev and prod first if their kubeconfigs are not available in Doppler.
 
 ## AWS Burst Prerequisites
 
 Dev/prod use the AWS **us-east-1** default VPC and one default public subnet, with an official Talos v1.13.9 amd64 AMI pinned in their `main.tfvars`. Each ASG has desired capacity zero and maximum two `t3.large` workers. Check subnet, AMI, EC2/boot-disk cost, and UDP 51820 ingress before an apply. The gp3 boot disk is disposable node storage, not an EBS CSI PV. Launch-template user data contains Talos machine configuration and is retained in restricted MinIO state; never upload saved plan files.
 
-The separate `talos-proxmox-ci` and `talos-proxmox-autoscaler` IAM users and keys are configured in dev/prod Doppler; their write policies are recorded in `terraform/aws/iam/`. AWS Describe permissions are account-wide even though mutating permissions are project-scoped. Local read-only plans pass for argocd, dev, and prod. The autoscaler, PVC exclusion admission policy, and live KubeSpan/Cilium checks are not yet complete. This foundation keeps AWS worker ASGs at zero; do not manually scale them or opt workloads into AWS until the remaining safety checks and autoscaler work are complete.
+The CI identity is a GitHub OIDC role managed by `terraform/identity/`; its scoped policy is `terraform/identity/ci-policy.json`. The independent `terraform/aws/` module defines worker groups, launch templates, and security groups. The identity root grants CI access to these resources, but neither OpenTofu root consumes the other root’s state or outputs. AWS Describe permissions are account-wide even though mutating permissions are project-scoped. The autoscaler IAM identity, PVC exclusion admission policy, and live KubeSpan/Cilium checks are not yet complete. Worker groups start at desired capacity zero; do not scale them or opt workloads into AWS until the safety checks and autoscaler are complete.
 
 ## Hybrid Network
 
@@ -52,23 +52,23 @@ Allow outbound access to the Talos discovery service and inbound UDP 51820 on at
 
 ## Step 2: GitHub Environments and Secrets
 
-Settings → Environments: keep **`argocd`**, **`dev`**, and **`prod`** (same names as `terraform/cluster/env/`). PR plans and main applies use the existing per-environment `DOPPLER_TOKEN` and Doppler config. No `plan-*` environments or extra MinIO credentials are required. If `prod` has required reviewers, its PR plan waits for approval before posting a comment.
+Settings → Environments: keep **`argocd`**, **`dev`**, and **`prod`**. `dev` and `prod` allow deployments from `main` only: GitHub's environment-scoped OIDC subject contains the environment name, not the branch. Each environment keeps its existing `DOPPLER_TOKEN` for MinIO, Proxmox, and bootstrap. PRs receive no environment secrets.
 
-PR plans read OpenTofu state containing Talos cluster secrets and run PR code with the environment's credentials. Only approve plans for trusted, reviewed same-repository branches; fork PRs intentionally fail. The plan comment uses the existing `borchero/terraform-plan-comment@v2` action, with a separate header for each environment. Review what the plan reveals before using this on a public repository. Saved plan files stay on the ephemeral runner and are not uploaded as artifacts.
+Manage the GitHub OIDC provider and `talos-proxmox-ci` role/policy locally with `cd terraform/identity && tofu init && tofu plan && tofu apply`. This root uses gitignored local state; keep that state and a secure backup. It does not provision worker resources. In the dev/prod jobs, `id-token: write` lets `aws-actions/configure-aws-credentials` exchange a GitHub OIDC token for a short-lived AWS role session. The workflow passes the session key, secret, and token through sensitive ephemeral OpenTofu variables to the cluster AWS provider. Doppler supplies separate `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` values only for the MinIO S3 backend; the wrapper clears the AWS session token before calling OpenTofu so it cannot reach MinIO. Argocd does not assume the AWS role. Saved plans stay on ephemeral runners and are not uploaded.
 
-Settings → Rules → branch protection/ruleset for `main`: require `OpenTofu Lint`, `Platform charts and bootstrap`, `Plan (argocd)`, `Plan (dev)`, and `Plan (prod)` before merge. GitHub's required checks are repository settings, not something workflow YAML can enforce. Run a trusted PR to discover the exact check names in the GitHub UI and select those.
+Settings → Rules → branch protection/ruleset for `main`: require `lint / Terraform Lint (terraform/cluster)`, `lint / Terraform Lint (terraform/identity)`, and `lint / Platform charts and bootstrap` before merge.
 
 ## Step 3: Deploy
 
-1. **PR targeting `main`:** After lint and any existing environment approval, plans `argocd`, `dev`, and `prod` against their individual MinIO state keys and posts one plan comment per environment. No apply, Helm bootstrap, or uploaded plan artifact.
-2. **Push to `main`:** Re-plans and applies all three environments using their apply environments, writes `TALOSCONFIG` / `KUBECONFIG` to Doppler, then runs bootstrap and Argo CD platform roots.
-3. **Run workflow from `main` only:** Select `dev`, `prod`, or `argocd` and action **apply** or **destroy**. The job cannot run from a non-main ref.
+1. **PR targeting `main`:** Lints the OpenTofu roots and platform charts without state access or deployment secrets.
+2. **Push to `main`:** Plans and applies all three environments, assumes the OIDC role for dev/prod, writes `TALOSCONFIG` / `KUBECONFIG` to Doppler, then runs bootstrap and Argo CD platform roots.
+3. **Run Manual Provision from `main` only:** Select `dev`, `prod`, or `argocd` and action **apply** or **destroy**. The job cannot run from a non-main ref.
 
-State key: `talos-${environment}.tfstate` (does not overwrite RKE2 `dev.tfstate` / `prod.tfstate`). Backend credentials are MinIO credentials, **not** AWS IAM credentials. The AWS provider must use a separately named, scoped static AWS IAM access key from the existing dev/prod Doppler configs. Cluster Autoscaler on Proxmox will use a different ASG-scoped IAM key delivered as an in-cluster Secret. AWS workers are stateless: no EBS CSI or AWS PVCs. See the OpenSpec design.
+Cluster state key: `talos-${environment}.tfstate`. The on-premises Cluster Autoscaler needs its own ASG-scoped identity before it is enabled; it must not use the CI role or MinIO credentials. AWS workers are stateless: no EBS CSI or AWS PVCs.
 
 ## Destroy
 
-Actions → Provision and Bootstrap → Run workflow on the `main` branch → environment + **destroy**. Helm is skipped; destroying nodes removes the cluster. Require approval on production environments before enabling destroy.
+Actions → Manual Provision → Run workflow on the `main` branch → environment + **destroy**. Helm is skipped; destroying nodes removes the cluster. Require approval on production environments before enabling destroy.
 
 ## Next
 

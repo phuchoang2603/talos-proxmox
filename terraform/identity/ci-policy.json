@@ -11,6 +11,7 @@
         "ec2:DescribeSecurityGroupRules",
         "ec2:DescribeLaunchTemplates",
         "ec2:DescribeLaunchTemplateVersions",
+        "ec2:DescribeNetworkInterfaces",
         "ec2:DescribeImages",
         "ec2:DescribeInstanceTypes",
         "autoscaling:DescribeAutoScalingGroups",
