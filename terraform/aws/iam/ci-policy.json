@@ -124,6 +124,63 @@
         "arn:aws:autoscaling:us-east-1:ACCOUNT_ID:autoScalingGroup:*:autoScalingGroupName/dev-talos-burst",
         "arn:aws:autoscaling:us-east-1:ACCOUNT_ID:autoScalingGroup:*:autoScalingGroupName/prod-talos-burst"
       ]
+    },
+    {
+      "Sid": "LaunchOnlyProjectWorkerInstances",
+      "Effect": "Allow",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:instance/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/managed-by": "talos-proxmox",
+          "ec2:InstanceType": "t3.large"
+        }
+      }
+    },
+    {
+      "Sid": "UseOwnedWorkerTemplate",
+      "Effect": "Allow",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:launch-template/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/managed-by": "talos-proxmox"
+        }
+      }
+    },
+    {
+      "Sid": "UseOwnedWorkerSecurityGroup",
+      "Effect": "Allow",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/managed-by": "talos-proxmox"
+        }
+      }
+    },
+    {
+      "Sid": "WorkerImageSubnetAndEphemeralResources",
+      "Effect": "Allow",
+      "Action": "ec2:RunInstances",
+      "Resource": [
+        "arn:aws:ec2:us-east-1::image/ami-09b2293881e8b9139",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:subnet/WORKER_SUBNET_ID",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:network-interface/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:volume/*"
+      ]
+    },
+    {
+      "Sid": "TagCreatedWorkerInstances",
+      "Effect": "Allow",
+      "Action": "ec2:CreateTags",
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:instance/*",
+      "Condition": {
+        "StringEquals": {
+          "ec2:CreateAction": "RunInstances",
+          "aws:RequestTag/managed-by": "talos-proxmox"
+        }
+      }
     }
   ]
 }
