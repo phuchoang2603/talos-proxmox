@@ -2,6 +2,11 @@ output "cluster_name" {
   value = local.cluster_name
 }
 
+output "machine_secrets" {
+  value     = talos_machine_secrets.this.machine_secrets
+  sensitive = true
+}
+
 output "cluster_vip" {
   value = local.cluster_vip
 }

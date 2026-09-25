@@ -5,7 +5,7 @@ set -euo pipefail
 # Run after apps/bootstrap/bootstrap.sh with ENV_NAME=argocd.
 
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
-TF_ENV="${APPS_ROOT}/../terraform-provision/env"
+TF_ENV="${APPS_ROOT}/../terraform/cluster/env"
 
 : "${ENV_NAME:?ENV_NAME is required}"
 : "${KUBECONFIG:?KUBECONFIG is required}"

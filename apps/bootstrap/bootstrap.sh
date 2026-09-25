@@ -9,7 +9,7 @@ if [[ "${ENV_NAME}" == dev || "${ENV_NAME}" == prod ]]; then
   : "${CLOUDFLARE_TUNNEL_TOKEN:?CLOUDFLARE_TUNNEL_TOKEN is required for dev/prod}"
 fi
 
-INV="${APPS_ROOT}/../terraform-provision/env/${ENV_NAME}"
+INV="${APPS_ROOT}/../terraform/cluster/env/${ENV_NAME}"
 LONGHORN_NODES="$(jq '[.[] | select(.role == "longhorn")] | length' "${INV}/k8s_nodes.json")"
 if [ "${LONGHORN_NODES}" -gt 0 ]; then
   : "${LONGHORN_AWS_ENDPOINTS:?LONGHORN_AWS_ENDPOINTS is required}"
