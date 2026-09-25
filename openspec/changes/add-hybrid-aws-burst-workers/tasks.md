@@ -1,11 +1,13 @@
 ## 1. Git-managed PR Lint
-- [ ] 1.1 Verify PRs lint both OpenTofu roots and platform charts without state or secrets; verify only main pushes/manual dispatch can provision.
-- [ ] 1.2 Require only lint checks on main and restrict dev/prod GitHub Environments to main; verify fork PRs cannot access deployment credentials.
+
+- [x] 1.1 Verify PRs lint both OpenTofu roots and platform charts without state or secrets; verify only main pushes/manual dispatch can provision.
+- [x] 1.2 Restrict dev/prod GitHub Environments to main and keep PR lint independent of deployment credentials, including fork PRs. No merge protection or required status checks are part of this change.
 
 ## 2. Clean OpenTofu Root
 
-- [x] 2.1 Pin OpenTofu 1.12.5 in devenv and CI and verify provider/MinIO compatibility.
+- [x] 2.1 Use compatible OpenTofu 1.12.x in devenv (currently 1.12.6) and pin CI to 1.12.5; verify provider/MinIO compatibility.
 - [x] 2.2 Use `terraform/cluster/` with `terraform/proxmox/` and `terraform/aws/` modules and per-environment MinIO backend keys. Update CI/bootstrap/docs paths and verify plans for all three environments.
+- [x] 2.3 Manage separate dev/prod VPCs, public subnets and routing in `terraform/aws/`; move each autoscaler IAM identity into its environment's cluster state without replacing users or keys. Verify the default VPC is unused and argocd has no AWS resources.
 
 ## 3. GitHub OIDC Without MinIO Key Reuse
 
@@ -23,5 +25,5 @@
 ## 5. Proxmox Storage and Production Rollout
 
 - [ ] 5.1 Keep `local-path` as dev's only default and Longhorn as prod's only default, and add no EBS CSI/gp3; verify rendered environments and that PVC workloads/Longhorn components run only on Proxmox nodes.
-- [ ] 5.2 Enforce AWS burst taints, explicit app opt-in and prevention of PVC/volumeClaimTemplate-bearing pods reaching AWS (including wildcard tolerations); verify such pods stay on Proxmox or Pending while `emptyDir` scratch remains disposable.
+- [ ] 5.2 Verify AWS nodes register with a burst taint, label and AWS provider ID before scheduling; enforce explicit app opt-in and prevention of PVC/volumeClaimTemplate-bearing pods reaching AWS (including wildcard tolerations); verify such pods stay on Proxmox or Pending while `emptyDir` scratch remains disposable.
 - [ ] 5.3 Validate prod API failover, cross-site networking and 0→1→0 stateless scaling with newly created Longhorn PVCs, then document safe drain/rollback of AWS workers and key rotation; verify instructions use the new root and per-env MinIO state keys.

@@ -12,6 +12,11 @@ kind: CiliumL2AnnouncementPolicy
 metadata:
   name: default
 spec:
+  nodeSelector:
+    matchExpressions:
+      - key: kubernetes.io/hostname
+        operator: In
+        values: [dev-server1]
   loadBalancerIPs: true
   interfaces:
     - eth0

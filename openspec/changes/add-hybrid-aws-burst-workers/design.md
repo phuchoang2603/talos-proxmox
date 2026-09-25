@@ -19,19 +19,19 @@ See `proposal.md` for motivation and `specs/hybrid-aws-burst-workers/spec.md` fo
 
 ### Cluster and identity roots
 
-`terraform/cluster/` is the cluster root, selecting an environment and calling `terraform/proxmox/` for fixed VMs and `terraform/aws/` for stateless workers. It uses a separate MinIO backend key `talos-${env}.tfstate` per environment. AWS workers are created only for dev/prod; argocd is Proxmox-only. Worker ASGs have bounded capacity and leave desired capacity to Cluster Autoscaler. A small single-AZ pool keeps the compute configuration simple.
+`terraform/cluster/` is the cluster root, selecting an environment and calling `terraform/proxmox/` for fixed VMs and `terraform/aws/` for stateless workers. It uses a separate MinIO backend key `talos-${env}.tfstate` per environment. AWS workers are created only for dev/prod; argocd is Proxmox-only. Each AWS module instance owns its environment's VPC, public subnet, internet gateway, route table, bounded ASG, and autoscaler IAM user and policy. Dev uses `10.80.0.0/16` and prod uses `10.81.0.0/16`; neither uses the default VPC. An internet gateway and public instance address allow KubeSpan discovery and UDP 51820 without a public Kubernetes API. Desired capacity belongs to Cluster Autoscaler. A single AZ per environment keeps the compute configuration simple.
 
-`terraform/identity/` is a separate local-state root for the GitHub OIDC provider and CI role. Its IAM policy is defined alongside the role in `terraform/identity/ci-policy.json`; the cluster root and AWS worker module do not use identity state or outputs. CI references the role ARN in the workflow. The role authorizes provisioning the worker resources but does not own their state.
+`terraform/identity/` is a separate local-state root for the GitHub OIDC provider, CI role, and its scoped infrastructure and IAM delegation policies (`ci-policy.json` and `ci-iam-policy.json`). The cluster root does not consume identity state or outputs. CI references the role ARN in the workflow. It can manage only the named autoscaler IAM resources and project-tagged network resources needed by the dev/prod AWS modules; it does not own their state.
 
 ### GitHub OIDC, distinct from MinIO
 
 Use Doppler `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` exclusively for the MinIO S3 backend. Provision a GitHub OIDC provider and scoped CI role from a separate local OpenTofu identity root, independently of cluster deployment. Restrict the AWS trust policy to the repository's dev/prod environment subjects and restrict those GitHub Environments to `main`. CI assumes the role only during main provisioning; pass its short-lived access key, secret, and session token into ephemeral AWS provider variables while Doppler injects only MinIO keys for the S3 backend. EC2 and Auto Scaling Describe operations remain account-wide. Do not commit or print credentials, and do not upload saved plans. Argocd requires no AWS session.
 
-Cluster Autoscaler stays on fixed Proxmox nodes so AWS workers can scale to zero. Provision a separate ASG-scoped identity before enabling the on-premises autoscaler; it must not use the broader CI role or MinIO credentials.
+Cluster Autoscaler stays on fixed Proxmox nodes so AWS workers can scale to zero. Each `terraform/aws/` instance provisions its environment's IAM user and ASG-scoped policy. Access keys are created outside Terraform, stored in the matching Doppler config as `AUTOSCALER_AWS_ACCESS_KEY_ID` and `AUTOSCALER_AWS_SECRET_ACCESS_KEY`, and copied into the cluster's `cluster-autoscaler-aws` Secret during bootstrap. Keys do not enter Git or Terraform state. The Argo-managed chart remains disabled until AWS nodes reliably register with a burst taint, label, and AWS provider ID and the PVC admission checks pass. The autoscaler must not use the broader CI role or MinIO credentials.
 
 ### PR lint and main apply
 
-Lint both OpenTofu roots and platform charts on PRs without Doppler secrets, state access, or AWS credentials. Only `main` pushes plan and apply all three cluster environments; manual apply/destroy is gated to `main`. Branch rules require lint checks only. Never use `pull_request_target` to run PR code. Main plans are saved only on ephemeral runners and are not uploaded.
+Lint both OpenTofu roots and platform charts on PRs without Doppler secrets, state access, or AWS credentials. Only `main` pushes plan and apply all three cluster environments; manual apply/destroy is gated to `main`. No merge protection or required status checks are assumed. Never use `pull_request_target` to run PR code. Main plans are saved only on ephemeral runners and are not uploaded.
 
 ### KubeSpan and stateless capacity
 
@@ -46,7 +46,7 @@ Dev keeps local-path as its sole default, prod keeps Longhorn as its sole defaul
 - [Environment-scoped OIDC subjects omit the branch] → Restrict dev/prod GitHub Environments to `main` and lint PRs without deployment secrets.
 - [One cluster root spans two providers] → Keep separate per-environment MinIO state keys; pass short-lived AWS provider credentials separately from MinIO backend credentials.
 - [KubeSpan discovery or UDP reachability, KubePrism fallback to unreachable VIP, double encapsulation, Cilium device detection] → Require AWS-worker readiness and KubePrism upstream tests with VIP blocked, plus cross-site node/pod/API connectivity and MTU checks in dev and prod.
-- [Unexpected PVC pod on AWS] → Opt-in taint, positive on-prem affinity, and validation/admission of PVC-bearing and wildcard-tolerating workloads before scaling.
+- [Unexpected PVC pod on AWS] → A dev worker joined Ready without its Talos-configured label, taint, or provider ID in the initial September 25, 2026 test. Keep the autoscaler disabled while validating kubelet registration taints, provider ID assignment, positive on-prem affinity, and admission of PVC-bearing and wildcard-tolerating workloads.
 
 ## Rollout
 

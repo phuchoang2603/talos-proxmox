@@ -12,6 +12,11 @@ kind: CiliumL2AnnouncementPolicy
 metadata:
   name: default
 spec:
+  nodeSelector:
+    matchExpressions:
+      - key: kubernetes.io/hostname
+        operator: In
+        values: [prod-server1, prod-server2, prod-server3, prod-longhorn1, prod-longhorn2, prod-longhorn3]
   loadBalancerIPs: true
   interfaces:
     - eth0

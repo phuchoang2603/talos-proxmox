@@ -1,27 +1,13 @@
-data "aws_vpc" "default" {
-  default = true
-}
-
-data "aws_subnets" "default" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
-  }
-  filter {
-    name   = "default-for-az"
-    values = ["true"]
-  }
-}
-
-data "aws_subnet" "worker" {
-  id = sort(data.aws_subnets.default.ids)[0]
-}
 
 locals {
   name       = "${var.cluster_name}-burst"
   burst_key  = "burst.talos.dev/stateless"
   burst_tag  = "k8s.io/cluster-autoscaler/${var.cluster_name}"
   node_label = "burst.talos.dev/compute"
+  tags = {
+    managed-by  = "talos-proxmox"
+    environment = var.env
+  }
 }
 
 data "talos_machine_configuration" "worker" {
@@ -37,6 +23,12 @@ data "talos_machine_configuration" "worker" {
   config_patches = [
     yamlencode({
       machine = {
+        kubelet = {
+          extraArgs = {
+            "node-labels"          = "${local.node_label}=aws"
+            "register-with-taints" = "${local.burst_key}=true:NoSchedule"
+          }
+        }
         network = {
           kubespan = { enabled = true }
         }
@@ -46,8 +38,6 @@ data "talos_machine_configuration" "worker" {
             port    = 7445
           }
         }
-        nodeLabels = { (local.node_label) = "aws" }
-        nodeTaints = { (local.burst_key) = "true:NoSchedule" }
       }
       cluster = {
         discovery = {
@@ -69,12 +59,9 @@ data "talos_machine_configuration" "worker" {
 resource "aws_security_group" "worker" {
   name_prefix = "${local.name}-"
   description = "Talos KubeSpan burst workers (no public Kubernetes API)"
-  vpc_id      = data.aws_vpc.default.id
+  vpc_id      = aws_vpc.worker.id
 
-  tags = {
-    Name       = local.name
-    managed-by = "talos-proxmox"
-  }
+  tags = merge(local.tags, { Name = local.name })
 }
 
 resource "aws_vpc_security_group_ingress_rule" "kubespan" {
@@ -97,7 +84,7 @@ resource "aws_vpc_security_group_egress_rule" "all" {
 resource "aws_launch_template" "worker" {
   name_prefix   = "${local.name}-"
   image_id      = var.ami_id
-  instance_type = "t3.large"
+  instance_type = "m7i-flex.large"
   user_data     = base64encode(data.talos_machine_configuration.worker.machine_configuration)
 
   metadata_options {
@@ -136,7 +123,7 @@ resource "aws_launch_template" "worker" {
 
 resource "aws_autoscaling_group" "worker" {
   name                = local.name
-  vpc_zone_identifier = [data.aws_subnet.worker.id]
+  vpc_zone_identifier = [aws_subnet.worker.id]
   min_size            = 0
   max_size            = 2
   desired_capacity    = 0
@@ -149,11 +136,11 @@ resource "aws_autoscaling_group" "worker" {
 
   dynamic "tag" {
     for_each = {
-      "managed-by"                             = "talos-proxmox"
-      "k8s.io/cluster-autoscaler/enabled"                                     = "true"
-      (local.burst_tag)                                                      = "owned"
-      "k8s.io/cluster-autoscaler/node-template/label/${local.node_label}"   = "aws"
-      "k8s.io/cluster-autoscaler/node-template/taint/${local.burst_key}"    = "true:NoSchedule"
+      "managed-by"                                                        = "talos-proxmox"
+      "k8s.io/cluster-autoscaler/enabled"                                 = "true"
+      (local.burst_tag)                                                   = "owned"
+      "k8s.io/cluster-autoscaler/node-template/label/${local.node_label}" = "aws"
+      "k8s.io/cluster-autoscaler/node-template/taint/${local.burst_key}"  = "true:NoSchedule"
     }
     content {
       key                 = tag.key

@@ -11,6 +11,8 @@ LONGHORN_NODES="$(jq '[.[] | select(.role == "longhorn")] | length' "${INVENTORY
 require_secrets() {
   if [[ "${ENV_NAME}" == dev || "${ENV_NAME}" == prod ]]; then
     : "${CLOUDFLARE_TUNNEL_TOKEN:?CLOUDFLARE_TUNNEL_TOKEN is required for dev/prod}"
+    : "${AUTOSCALER_AWS_ACCESS_KEY_ID:?AUTOSCALER_AWS_ACCESS_KEY_ID is required for dev/prod}"
+    : "${AUTOSCALER_AWS_SECRET_ACCESS_KEY:?AUTOSCALER_AWS_SECRET_ACCESS_KEY is required for dev/prod}"
   fi
   if (( LONGHORN_NODES > 0 )); then
     : "${LONGHORN_AWS_ENDPOINTS:?LONGHORN_AWS_ENDPOINTS is required}"
@@ -90,6 +92,18 @@ install_cloudflare_tunnel() {
     --dry-run=client -o yaml | kubectl apply -f -
 }
 
+install_autoscaler_credentials() {
+  if [[ "${ENV_NAME}" != dev && "${ENV_NAME}" != prod ]]; then
+    return
+  fi
+  kubectl create namespace cluster-autoscaler --dry-run=client -o yaml | kubectl apply -f -
+  kubectl create secret generic cluster-autoscaler-aws \
+    --namespace cluster-autoscaler \
+    --from-literal=AWS_ACCESS_KEY_ID="${AUTOSCALER_AWS_ACCESS_KEY_ID}" \
+    --from-literal=AWS_SECRET_ACCESS_KEY="${AUTOSCALER_AWS_SECRET_ACCESS_KEY}" \
+    --dry-run=client -o yaml | kubectl apply -f -
+}
+
 install_gpu_support() {
   if ! jq -e 'any(.[]; (.pci // []) | length > 0)' "${INVENTORY}" >/dev/null; then
     return
@@ -114,6 +128,7 @@ echo "Installing metrics-server"
 helm_component metrics-server 5m --wait
 
 install_cloudflare_tunnel
+install_autoscaler_credentials
 install_gpu_support
 
 echo "Bootstrap complete."

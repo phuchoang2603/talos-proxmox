@@ -21,6 +21,8 @@ module "aws" {
 
   env                = var.env
   region             = var.aws_region
+  vpc_cidr           = var.aws_vpc_cidr
+  availability_zone  = var.aws_availability_zone
   ami_id             = var.aws_ami_id
   talos_version      = var.talos_version
   kubernetes_version = var.kubernetes_version

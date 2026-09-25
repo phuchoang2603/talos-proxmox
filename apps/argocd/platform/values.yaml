@@ -2,6 +2,15 @@ repoURL: https://github.com/phuchoang2603/talos-proxmox.git
 targetRevision: main
 cluster: dev
 components:
+  cluster-autoscaler:
+    enabled: false
+    path: apps/components/cluster-autoscaler
+    namespace: cluster-autoscaler
+    syncWave: "0"
+    releaseName: cluster-autoscaler
+    valueFilesByCluster:
+      prod:
+        - environments/prod/values.yaml
   argo-rollouts:
     path: apps/components/argo-rollouts
     namespace: argo-rollouts

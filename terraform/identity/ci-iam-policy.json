@@ -1,0 +1,41 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CreateNamedAutoscalerUsersAndPolicies",
+      "Effect": "Allow",
+      "Action": ["iam:CreateUser", "iam:CreatePolicy"],
+      "Resource": [
+        "arn:aws:iam::ACCOUNT_ID:user/talos-proxmox-autoscaler-*",
+        "arn:aws:iam::ACCOUNT_ID:policy/talos-proxmox-autoscaler-*"
+      ],
+      "Condition": {
+        "StringEquals": { "aws:RequestTag/managed-by": "talos-proxmox" }
+      }
+    },
+    {
+      "Sid": "ManageNamedAutoscalerUsersAndPolicies",
+      "Effect": "Allow",
+      "Action": [
+        "iam:GetUser", "iam:DeleteUser", "iam:TagUser", "iam:UntagUser", "iam:ListUserTags",
+        "iam:ListAccessKeys", "iam:ListUserPolicies", "iam:ListAttachedUserPolicies",
+        "iam:GetPolicy", "iam:GetPolicyVersion", "iam:ListPolicyVersions", "iam:ListPolicyTags",
+        "iam:CreatePolicyVersion", "iam:DeletePolicyVersion", "iam:SetDefaultPolicyVersion",
+        "iam:DeletePolicy", "iam:TagPolicy", "iam:UntagPolicy"
+      ],
+      "Resource": [
+        "arn:aws:iam::ACCOUNT_ID:user/talos-proxmox-autoscaler-*",
+        "arn:aws:iam::ACCOUNT_ID:policy/talos-proxmox-autoscaler-*"
+      ]
+    },
+    {
+      "Sid": "AttachOnlyNamedAutoscalerPolicies",
+      "Effect": "Allow",
+      "Action": ["iam:AttachUserPolicy", "iam:DetachUserPolicy"],
+      "Resource": "arn:aws:iam::ACCOUNT_ID:user/talos-proxmox-autoscaler-*",
+      "Condition": {
+        "ArnLike": { "iam:PolicyARN": "arn:aws:iam::ACCOUNT_ID:policy/talos-proxmox-autoscaler-*" }
+      }
+    }
+  ]
+}

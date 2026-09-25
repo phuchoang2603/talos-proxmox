@@ -14,5 +14,8 @@ longhorn_nodes="$(jq '[.[] | select(.role == "longhorn")] | length' "${APPS_ROOT
 if (( longhorn_nodes > 0 )); then
   secrets+=(LONGHORN_AWS_ENDPOINTS LONGHORN_AWS_ACCESS_KEY_ID LONGHORN_AWS_SECRET_ACCESS_KEY)
 fi
+if [[ "${ENV_NAME}" == dev || "${ENV_NAME}" == prod ]]; then
+  secrets+=(AUTOSCALER_AWS_ACCESS_KEY_ID AUTOSCALER_AWS_SECRET_ACCESS_KEY)
+fi
 
 doppler run --only-secrets "$(IFS=,; echo "${secrets[*]}")" -- "${APPS_ROOT}/bootstrap/bootstrap.sh"

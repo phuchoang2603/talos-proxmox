@@ -17,6 +17,14 @@ variable "region" {
   type = string
 }
 
+variable "vpc_cidr" {
+  type = string
+}
+
+variable "availability_zone" {
+  type = string
+}
+
 variable "ami_id" {
   type = string
 }

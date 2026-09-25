@@ -17,8 +17,7 @@
       "Effect": "Allow",
       "Action": ["autoscaling:SetDesiredCapacity", "autoscaling:TerminateInstanceInAutoScalingGroup"],
       "Resource": [
-        "arn:aws:autoscaling:us-east-1:ACCOUNT_ID:autoScalingGroup:*:autoScalingGroupName/dev-talos-burst",
-        "arn:aws:autoscaling:us-east-1:ACCOUNT_ID:autoScalingGroup:*:autoScalingGroupName/prod-talos-burst"
+        "arn:aws:autoscaling:us-east-1:ACCOUNT_ID:autoScalingGroup:*:autoScalingGroupName/ENV-talos-burst"
       ],
       "Condition": { "StringEquals": { "aws:ResourceTag/managed-by": "talos-proxmox" } }
     }

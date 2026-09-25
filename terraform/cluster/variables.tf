@@ -8,6 +8,16 @@ variable "aws_region" {
   default = "us-east-1"
 }
 
+variable "aws_vpc_cidr" {
+  type    = string
+  default = null
+}
+
+variable "aws_availability_zone" {
+  type    = string
+  default = "us-east-1d"
+}
+
 variable "aws_ami_id" {
   type    = string
   default = null

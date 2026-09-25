@@ -15,22 +15,6 @@ provider "aws" {
 
 data "aws_caller_identity" "current" {}
 
-data "aws_vpc" "default" {
-  default = true
-}
-
-data "aws_subnets" "default" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
-  }
-
-  filter {
-    name   = "default-for-az"
-    values = ["true"]
-  }
-}
-
 resource "aws_iam_openid_connect_provider" "github" {
   url            = "https://token.actions.githubusercontent.com"
   client_id_list = ["sts.amazonaws.com"]
@@ -64,11 +48,18 @@ data "aws_iam_policy_document" "github_actions" {
 
 resource "aws_iam_policy" "ci" {
   name = "talos-proxmox-ci"
-  policy = replace(replace(replace(
+  policy = replace(
     file("${path.module}/ci-policy.json"),
     "ACCOUNT_ID", data.aws_caller_identity.current.account_id
-    ), "DEFAULT_VPC_ID", data.aws_vpc.default.id
-  ), "WORKER_SUBNET_ID", sort(data.aws_subnets.default.ids)[0])
+  )
+}
+
+resource "aws_iam_policy" "ci_iam" {
+  name = "talos-proxmox-ci-iam"
+  policy = replace(
+    file("${path.module}/ci-iam-policy.json"),
+    "ACCOUNT_ID", data.aws_caller_identity.current.account_id
+  )
 }
 
 resource "aws_iam_role" "ci" {
@@ -80,6 +71,11 @@ resource "aws_iam_role" "ci" {
 resource "aws_iam_role_policy_attachment" "ci" {
   role       = aws_iam_role.ci.name
   policy_arn = aws_iam_policy.ci.arn
+}
+
+resource "aws_iam_role_policy_attachment" "ci_iam" {
+  role       = aws_iam_role.ci.name
+  policy_arn = aws_iam_policy.ci_iam.arn
 }
 
 output "ci_role_arn" {

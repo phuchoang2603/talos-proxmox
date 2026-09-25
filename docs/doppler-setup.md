@@ -20,7 +20,7 @@ Configs: `dev`, `prod`, and `argocd` (same names as GitHub Environments). Only m
 
 `.doppler.yaml` pins the project and default config `dev`. Override with `DOPPLER_CONFIG=prod` / `DOPPLER_CONFIG=argocd` or `devenv.local.nix`.
 
-CI needs a read/write service token as GitHub `DOPPLER_TOKEN` secret per Environment (OpenTofu apply and cluster credential writes). `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` in Doppler are **MinIO** S3 backend credentials, and `LONGHORN_AWS_*` also accesses MinIO; neither is an AWS IAM credential. Dev/prod CI gets short-lived AWS credentials from the GitHub OIDC role in `terraform/identity/`, not Doppler. Argocd does not need AWS access. The on-premises autoscaler needs a separate ASG-scoped identity before it can be enabled. Never reuse MinIO credentials for AWS resources.
+CI needs a read/write service token as GitHub `DOPPLER_TOKEN` secret per Environment (OpenTofu apply and cluster credential writes). `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` in Doppler are **MinIO** S3 backend credentials, and `LONGHORN_AWS_*` also accesses MinIO; neither is an AWS IAM credential. Dev/prod CI gets short-lived AWS credentials from the GitHub OIDC role in `terraform/identity/`, not Doppler. Argocd does not need AWS access. Each environment's on-premises autoscaler uses its own ASG-scoped IAM identity in `terraform/aws/`; its access keys are stored separately as `AUTOSCALER_AWS_ACCESS_KEY_ID` / `AUTOSCALER_AWS_SECRET_ACCESS_KEY`. Never reuse MinIO credentials for AWS resources.
 
 ## Local OpenTofu
 

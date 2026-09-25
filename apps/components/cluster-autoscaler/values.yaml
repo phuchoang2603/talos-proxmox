@@ -1,0 +1,31 @@
+cluster-autoscaler:
+  cloudProvider: aws
+  awsRegion: us-east-1
+  image:
+    tag: v1.36.1
+  autoDiscovery:
+    clusterName: dev-talos
+  nodeSelector:
+    kubernetes.io/hostname: dev-server1
+  extraEnvSecrets:
+    AWS_ACCESS_KEY_ID:
+      name: cluster-autoscaler-aws
+      key: AWS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY:
+      name: cluster-autoscaler-aws
+      key: AWS_SECRET_ACCESS_KEY
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+  containerSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 65534
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: [ALL]
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault

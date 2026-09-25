@@ -6,7 +6,10 @@
       "Effect": "Allow",
       "Action": [
         "ec2:DescribeVpcs",
+        "ec2:DescribeVpcAttribute",
         "ec2:DescribeSubnets",
+        "ec2:DescribeInternetGateways",
+        "ec2:DescribeRouteTables",
         "ec2:DescribeSecurityGroups",
         "ec2:DescribeSecurityGroupRules",
         "ec2:DescribeLaunchTemplates",
@@ -22,19 +25,21 @@
       "Resource": "*"
     },
     {
-      "Sid": "ReadDefaultVpcAttributes",
-      "Effect": "Allow",
-      "Action": "ec2:DescribeVpcAttribute",
-      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:vpc/DEFAULT_VPC_ID"
-    },
-    {
-      "Sid": "CreateTaggedSecurityGroupsAndTemplates",
+      "Sid": "CreateTaggedNetworkAndWorkerResources",
       "Effect": "Allow",
       "Action": [
+        "ec2:CreateVpc",
+        "ec2:CreateSubnet",
+        "ec2:CreateInternetGateway",
+        "ec2:CreateRouteTable",
         "ec2:CreateSecurityGroup",
         "ec2:CreateLaunchTemplate"
       ],
       "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:vpc/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:subnet/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:internet-gateway/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:route-table/*",
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/*",
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:launch-template/*"
       ],
@@ -45,16 +50,23 @@
       }
     },
     {
-      "Sid": "CreateSecurityGroupInDefaultVpc",
+      "Sid": "CreateResourcesInOwnedVpc",
       "Effect": "Allow",
-      "Action": "ec2:CreateSecurityGroup",
-      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:vpc/DEFAULT_VPC_ID"
+      "Action": ["ec2:CreateSecurityGroup", "ec2:CreateSubnet", "ec2:CreateRouteTable"],
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:vpc/*",
+      "Condition": {
+        "StringEquals": { "aws:ResourceTag/managed-by": "talos-proxmox" }
+      }
     },
     {
       "Sid": "TagOnlyAtCreation",
       "Effect": "Allow",
       "Action": "ec2:CreateTags",
       "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:vpc/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:subnet/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:internet-gateway/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:route-table/*",
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/*",
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group-rule/*",
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:launch-template/*"
@@ -62,6 +74,10 @@
       "Condition": {
         "StringEquals": {
           "ec2:CreateAction": [
+            "CreateVpc",
+            "CreateSubnet",
+            "CreateInternetGateway",
+            "CreateRouteTable",
             "CreateSecurityGroup",
             "CreateLaunchTemplate",
             "AuthorizeSecurityGroupIngress",
@@ -72,9 +88,21 @@
       }
     },
     {
-      "Sid": "ManageOwnedSecurityGroupsAndTemplates",
+      "Sid": "ManageOwnedNetworkAndWorkerResources",
       "Effect": "Allow",
       "Action": [
+        "ec2:DeleteVpc",
+        "ec2:ModifyVpcAttribute",
+        "ec2:DeleteSubnet",
+        "ec2:ModifySubnetAttribute",
+        "ec2:DeleteInternetGateway",
+        "ec2:AttachInternetGateway",
+        "ec2:DetachInternetGateway",
+        "ec2:DeleteRouteTable",
+        "ec2:CreateRoute",
+        "ec2:DeleteRoute",
+        "ec2:AssociateRouteTable",
+        "ec2:DisassociateRouteTable",
         "ec2:DeleteSecurityGroup",
         "ec2:DeleteSecurityGroupRule",
         "ec2:AuthorizeSecurityGroupIngress",
@@ -87,6 +115,10 @@
         "ec2:DeleteLaunchTemplate"
       ],
       "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:vpc/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:subnet/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:internet-gateway/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:route-table/*",
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/*",
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group-rule/*",
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:launch-template/*"
@@ -134,7 +166,7 @@
       "Condition": {
         "StringEquals": {
           "aws:RequestTag/managed-by": "talos-proxmox",
-          "ec2:InstanceType": "t3.large"
+          "ec2:InstanceType": "m7i-flex.large"
         }
       }
     },
@@ -166,10 +198,18 @@
       "Action": "ec2:RunInstances",
       "Resource": [
         "arn:aws:ec2:us-east-1::image/ami-09b2293881e8b9139",
-        "arn:aws:ec2:us-east-1:ACCOUNT_ID:subnet/WORKER_SUBNET_ID",
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:network-interface/*",
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:volume/*"
       ]
+    },
+    {
+      "Sid": "UseOwnedWorkerSubnet",
+      "Effect": "Allow",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:subnet/*",
+      "Condition": {
+        "StringEquals": { "aws:ResourceTag/managed-by": "talos-proxmox" }
+      }
     },
     {
       "Sid": "TagCreatedWorkerInstances",
