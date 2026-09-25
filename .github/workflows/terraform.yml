@@ -178,6 +178,10 @@ jobs:
             doppler run --only-secrets CLOUDFLARE_TUNNEL_TOKEN -- apps/bootstrap/bootstrap.sh
           fi
 
+      - name: Record successful cluster bootstrap
+        if: github.event_name == 'push' && inputs.action != 'destroy' && env.ENV_NAME != 'argocd'
+        run: doppler secrets set --silent CLUSTER_APPLY_RUN_ID "$GITHUB_RUN_ID"
+
       - name: Helm bootstrap Argo CD and apply platform roots
         if: inputs.action != 'destroy' && env.ENV_NAME == 'argocd'
         env:
@@ -186,4 +190,22 @@ jobs:
           chmod +x apps/bootstrap/bootstrap-argocd.sh
           DOPPLER_READ_TOKEN="$(doppler secrets get DOPPLER_READ_TOKEN --plain)"
           export DOPPLER_READ_TOKEN
+          if [ "$GITHUB_EVENT_NAME" = push ]; then
+            for remote in dev prod; do
+              ready=false
+              for attempt in {1..120}; do
+                applied_run="$(DOPPLER_TOKEN="$DOPPLER_READ_TOKEN" doppler secrets get CLUSTER_APPLY_RUN_ID \
+                  --project "$DOPPLER_PROJECT" --config "$remote" --plain 2>/dev/null || true)"
+                if [ "$applied_run" = "$GITHUB_RUN_ID" ]; then
+                  ready=true
+                  break
+                fi
+                sleep 15
+              done
+              if [ "$ready" != true ]; then
+                echo "Timed out waiting for $remote bootstrap in this workflow run." >&2
+                exit 1
+              fi
+            done
+          fi
           apps/bootstrap/bootstrap-argocd.sh

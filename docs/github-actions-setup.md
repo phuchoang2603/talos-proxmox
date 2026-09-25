@@ -36,7 +36,7 @@ Edit `terraform/cluster/env/{dev,prod,argocd}/k8s_nodes.json`. Shape:
 
 Edit `terraform/cluster/env/{env}/network.json` for the Talos API VIP and Cilium LoadBalancer pool (`lb_range`). Longhorn Gateway LAN IP: `longhorn-ingress.yaml` on prod. Argo ingress is argocd-only (`env/argocd/argo-ingress.yaml`). **dev** and **argocd** have no `longhorn` nodes (local-path storage).
 
-After **argocd** provision, CI runs `apps/bootstrap/bootstrap-argocd.sh` (Argo CD + remote cluster registration + platform app-of-apps roots). Provision **dev** and **prod** first so their `KUBECONFIG` values exist in Doppler when argocd registers remote clusters.
+After **argocd** provision, CI runs `apps/bootstrap/bootstrap-argocd.sh` (Argo CD + remote cluster registration + platform app-of-apps roots). On a main push, dev and prod write `CLUSTER_APPLY_RUN_ID` to their Doppler configs after a successful bootstrap, and argocd waits for markers from the same workflow run before registering the newly rebuilt clusters. For manual dispatch, provision **dev** and **prod** before **argocd** so their new `KUBECONFIG` values exist in Doppler.
 
 ## AWS Burst Prerequisites
 
