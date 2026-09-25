@@ -100,6 +100,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     needs: lint
     strategy:
+      fail-fast: false
       matrix:
         environment: ${{ github.event_name == 'push' && fromJSON('["argocd","dev","prod"]') || fromJSON(format('["{0}"]', inputs.environment || 'argocd')) }}
     runs-on: ubuntu-latest
