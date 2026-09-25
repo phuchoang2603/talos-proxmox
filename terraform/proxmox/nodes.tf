@@ -47,7 +47,7 @@ resource "talos_machine_bootstrap" "this" {
 resource "talos_cluster_kubeconfig" "this" {
   client_configuration = talos_machine_secrets.this.client_configuration
   node                 = local.bootstrap_ip
-  endpoint             = local.cluster_vip
+  endpoint             = local.bootstrap_ip
 
   depends_on = [
     talos_machine_bootstrap.this,
