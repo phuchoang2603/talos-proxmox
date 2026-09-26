@@ -50,14 +50,16 @@ install_cilium() {
   echo "Installing Cilium (CNI first; SPIRE waits for a StorageClass)"
   privileged_ns cilium-spire
   helm_component cilium 15m
-  kubectl -n kube-system rollout status ds/cilium --timeout=10m
+  # Terminated AWS burst nodes stay NotReady until burst-node-gc removes them,
+  # so readiness checks cover only the operator and fixed Proxmox nodes.
+  kubectl -n kube-system rollout status deploy/cilium-operator --timeout=10m
   kubectl wait --for=condition=Established --timeout=5m \
     crd/ciliumloadbalancerippools.cilium.io \
     crd/ciliuml2announcementpolicies.cilium.io
   kubectl apply -f "${COMPONENTS}/cilium/environments/${ENV_NAME}/network.yaml"
 
-  echo "Waiting for nodes to become Ready..."
-  kubectl wait --for=condition=Ready nodes --all --timeout=15m
+  echo "Waiting for fixed nodes to become Ready..."
+  kubectl wait --for=condition=Ready nodes -l '!burst.talos.dev/compute' --timeout=15m
 }
 
 install_storage() {
