@@ -112,3 +112,4 @@ AWS resources share each environment's cluster state; there is no separate AWS r
 
 - Cross-site pod traffic carries packets up to 1370 bytes; Cilium's MTU is pinned to 1500 so AWS pods match. IP-fragmented pod traffic is dropped between any two nodes, on-premises pairs included.
 - Traffic from on-premises to AWS is limited by the site's upload bandwidth.
+- Rebooting one control plane leaves AWS workers Ready because KubePrism switches to the remaining control planes. The LAN VIP moves to another control plane, but `/readyz` can report the etcd check as failed for a few seconds while the rebooted member rejoins.

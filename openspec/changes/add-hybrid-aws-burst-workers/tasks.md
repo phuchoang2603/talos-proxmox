@@ -26,4 +26,4 @@
 
 - [x] 5.1 Keep `local-path` as dev's only default and Longhorn as prod's only default, and add no EBS CSI/gp3; verify rendered environments and that PVC workloads/Longhorn components run only on Proxmox nodes.
 - [x] 5.2 Verify AWS nodes register with a burst taint, label and AWS provider ID before scheduling; enforce explicit app opt-in and prevention of PVC/volumeClaimTemplate-bearing pods reaching AWS (including wildcard tolerations); verify such pods stay on Proxmox or Pending while `emptyDir` scratch remains disposable.
-- [ ] 5.3 Validate prod API failover, cross-site networking and 0→1→0 stateless scaling with newly created Longhorn PVCs, then document safe drain/rollback of AWS workers and key rotation; verify instructions use the new root and per-env MinIO state keys.
+- [x] 5.3 Validate prod API failover, cross-site networking and 0→1→0 stateless scaling with newly created Longhorn PVCs, then document safe drain/rollback of AWS workers and key rotation; verify instructions use the new root and per-env MinIO state keys.
