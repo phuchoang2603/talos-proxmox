@@ -1,0 +1,9 @@
+apiVersion: v2
+name: platform-talos-ccm
+description: Talos cloud controller manager for AWS burst node provider IDs
+type: application
+version: 0.1.0
+dependencies:
+  - name: talos-cloud-controller-manager
+    version: 0.5.8
+    repository: oci://ghcr.io/siderolabs/charts

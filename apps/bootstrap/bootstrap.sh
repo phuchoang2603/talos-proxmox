@@ -92,6 +92,15 @@ install_cloudflare_tunnel() {
     --dry-run=client -o yaml | kubectl apply -f -
 }
 
+install_talos_ccm() {
+  if [[ "${ENV_NAME}" != dev && "${ENV_NAME}" != prod ]]; then
+    return
+  fi
+  echo "Installing Talos cloud controller manager"
+  kubectl wait --for=condition=Established --timeout=5m crd/serviceaccounts.talos.dev
+  helm_component talos-ccm 5m --wait
+}
+
 install_autoscaler_credentials() {
   if [[ "${ENV_NAME}" != dev && "${ENV_NAME}" != prod ]]; then
     return
@@ -119,6 +128,7 @@ require_secrets
 wait_for_cluster
 install_gateway_api
 install_cilium
+install_talos_ccm
 install_storage
 
 echo "Waiting for Cilium (including SPIRE) to become ready..."

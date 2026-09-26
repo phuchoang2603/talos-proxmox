@@ -9,7 +9,7 @@ resource "talos_machine_configuration_apply" "controlplane" {
   config_patches = concat([
     yamlencode(local.common_machine_patch),
     local.node_machine_patches[each.key],
-  ], local.kubespan_machine_patches)
+  ], local.kubespan_machine_patches, local.controlplane_machine_patches)
 
   depends_on = [
     module.nodes,

@@ -12,12 +12,12 @@
 ## 3. GitHub OIDC Without MinIO Key Reuse
 
 - [x] 3.1 Manage the GitHub OIDC provider and scoped CI role/policy in `terraform/identity/` local state, independent of the cluster root (account-wide Describe reads remain).
-- [ ] 3.2 Pass the temporary OIDC session only to explicit AWS provider arguments via sensitive ephemeral variables while MinIO retains its existing backend credentials; verify a main-only CI run and state do not expose the session.
-- [ ] 3.3 Provision a separate, ASG-scoped Cluster Autoscaler identity and bootstrap it onto fixed capacity; verify it can scale only intended worker groups without accessing the CI role.
+- [x] 3.2 Pass the temporary OIDC session only to explicit AWS provider arguments via sensitive ephemeral variables while MinIO retains its existing backend credentials; verify a main-only CI run and state do not expose the session.
+- [x] 3.3 Provision separate, ASG-scoped Cluster Autoscaler identities and bootstrap their credentials to the dev/prod clusters; verify each key authenticates as its own user, can scale only its own group, and cannot assume the CI role. Controller deployment on fixed capacity remains in 4.4.
 
 ## 4. Hybrid Stateless AWS Workers
 
-- [ ] 4.1 Add the AWS module for dev/prod only with capped small ASGs and AWS-specific Talos config using each newly generated cluster identity; verify argocd has no AWS resources and no keys or machine config leak into Git/logs.
+- [x] 4.1 Add the AWS module for dev/prod only with capped small ASGs and AWS-specific Talos config using each newly generated cluster identity; verify argocd has no AWS resources and no keys or machine config leak into Git/logs.
 - [ ] 4.2 Enable KubeSpan and discovery on fixed dev/prod nodes and AWS workers; retain private LAN VIPs for Argo CD and on-premises clients. Verify AWS-worker KubePrism API connectivity with the VIP blocked, worker readiness, and UDP 51820 peer connectivity in both environments without a public API endpoint.
 - [ ] 4.3 Test Cilium pod/Service connectivity, DNS, MTU, WireGuard behavior and no AWS L2 service announcement in both dev and prod; do not require a dev-first rollout.
 - [ ] 4.4 Argo-manage Cluster Autoscaler on fixed Proxmox capacity with accurate ASG zero-size templates and a separate scoped identity; verify opted-in stateless dev workload scales 0→1→0 and Proxmox nodes are untouched.

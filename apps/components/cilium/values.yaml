@@ -28,6 +28,8 @@ cilium:
       enabled: false
     hostRoot: /sys/fs/cgroup
   devices: eth0
+  # AWS NICs report MTU 9001, but cross-site pod traffic over KubeSpan fits only a 1500-byte underlay.
+  MTU: 1500
   l2announcements:
     enabled: true
   k8sClientRateLimit:

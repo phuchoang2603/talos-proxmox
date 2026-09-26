@@ -1,0 +1,4 @@
+{
+  "namespace": "kube-system",
+  "releaseName": "talos-cloud-controller-manager"
+}

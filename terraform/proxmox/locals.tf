@@ -75,6 +75,20 @@ locals {
     }),
   ]
 
+  controlplane_machine_patches = var.env == "argocd" ? [] : [
+    yamlencode({
+      machine = {
+        features = {
+          kubernetesTalosAPIAccess = {
+            enabled                     = true
+            allowedRoles                = ["os:reader"]
+            allowedKubernetesNamespaces = ["kube-system"]
+          }
+        }
+      }
+    }),
+  ]
+
   node_machine_patches = {
     for name, node in var.nodes : name => yamlencode({
       machine = {

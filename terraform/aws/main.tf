@@ -25,6 +25,7 @@ data "talos_machine_configuration" "worker" {
       machine = {
         kubelet = {
           extraArgs = {
+            "cloud-provider"       = "external"
             "node-labels"          = "${local.node_label}=aws"
             "register-with-taints" = "${local.burst_key}=true:NoSchedule"
           }

@@ -1,0 +1,6 @@
+dependencies:
+- name: talos-cloud-controller-manager
+  repository: oci://ghcr.io/siderolabs/charts
+  version: 0.5.8
+digest: sha256:04dc65ab01ffd4caa6c4243036fa113a2489458c9deb50b8e8df5302e2ef5ee0
+generated: "2026-09-25T21:27:27.350003975-04:00"

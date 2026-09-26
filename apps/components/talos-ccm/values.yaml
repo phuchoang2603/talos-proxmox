@@ -1,0 +1,12 @@
+talos-cloud-controller-manager:
+  # Only AWS burst kubelets run with --cloud-provider=external; Proxmox nodes are skipped.
+  enabledControllers:
+    - cloud-node
+
+# Cluster Autoscaler terminates instances without deleting their Node objects,
+# and Talos CCM always reports instances as existing.
+burstNodeGC:
+  image: docker.io/alpine/k8s:1.36.4
+  schedule: "*/5 * * * *"
+  nodeSelector: burst.talos.dev/compute=aws
+  notReadySeconds: 900
