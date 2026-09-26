@@ -5,8 +5,19 @@ cluster-autoscaler:
     tag: v1.36.1
   autoDiscovery:
     clusterName: dev-talos
+  extraArgs:
+    # AWS burst pods may use disposable emptyDir scratch; PVC pods are rejected by burst-policy.
+    skip-nodes-with-local-storage: false
+    scale-down-unneeded-time: 5m
+    scale-down-delay-after-add: 5m
+    startup-taint_1: node.cloudprovider.kubernetes.io/uninitialized
+    startup-taint_2: node.cilium.io/agent-not-ready
   nodeSelector:
-    kubernetes.io/hostname: dev-server1
+    node-role.kubernetes.io/control-plane: ""
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
   extraEnvSecrets:
     AWS_ACCESS_KEY_ID:
       name: cluster-autoscaler-aws

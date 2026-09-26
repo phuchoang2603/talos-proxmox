@@ -1,0 +1,55 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: burst-stateless-only
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [CREATE, UPDATE]
+        resources: [pods]
+      - apiGroups: [apps]
+        apiVersions: [v1]
+        operations: [CREATE, UPDATE]
+        resources: [statefulsets]
+  variables:
+    - name: podSpec
+      expression: "object.kind == 'Pod' ? object.spec : object.spec.template.spec"
+    - name: persistent
+      expression: >-
+        (has(variables.podSpec.volumes) && variables.podSpec.volumes.exists(v,
+          has(v.persistentVolumeClaim) || has(v.ephemeral))) ||
+        (object.kind == 'StatefulSet' && has(object.spec.volumeClaimTemplates) &&
+          size(object.spec.volumeClaimTemplates) > 0)
+    - name: toleratesBurst
+      expression: >-
+        has(variables.podSpec.tolerations) && variables.podSpec.tolerations.exists(t,
+          (!has(t.effect) || t.effect == '' || t.effect == 'NoSchedule') &&
+          (((!has(t.key) || t.key == '') && has(t.operator) && t.operator == 'Exists') ||
+           (has(t.key) && t.key == '{{ .Values.burstTaintKey }}' &&
+            ((has(t.operator) && t.operator == 'Exists') ||
+             (has(t.value) && t.value == '{{ .Values.burstTaintValue }}')))))
+    - name: pinnedToAWS
+      expression: >-
+        object.kind == 'Pod' && has(object.spec.nodeName) &&
+        object.spec.nodeName.startsWith('{{ .Values.awsNodeNamePrefix }}')
+  validations:
+    - expression: "!(variables.persistent && variables.toleratesBurst)"
+      messageExpression: >-
+        object.kind + ' ' + object.metadata.name + ' uses persistent volumes and tolerates the
+        {{ .Values.burstTaintKey }} taint; AWS burst workers are stateless only'
+      reason: Forbidden
+    - expression: "!(variables.persistent && variables.pinnedToAWS)"
+      messageExpression: >-
+        'Pod ' + object.metadata.name + ' uses persistent volumes and is bound to an AWS burst node'
+      reason: Forbidden
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: burst-stateless-only
+spec:
+  policyName: burst-stateless-only
+  validationActions: [Deny]

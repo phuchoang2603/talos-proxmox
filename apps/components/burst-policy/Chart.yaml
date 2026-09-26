@@ -1,0 +1,5 @@
+apiVersion: v2
+name: platform-burst-policy
+description: Keeps PVC-backed workloads off stateless AWS burst workers
+type: application
+version: 0.1.0

@@ -1,5 +1,3 @@
 cluster-autoscaler:
   autoDiscovery:
     clusterName: prod-talos
-  nodeSelector:
-    kubernetes.io/hostname: prod-server1

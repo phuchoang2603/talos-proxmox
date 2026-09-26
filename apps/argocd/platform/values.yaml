@@ -2,8 +2,12 @@ repoURL: https://github.com/phuchoang2603/talos-proxmox.git
 targetRevision: main
 cluster: dev
 components:
+  burst-policy:
+    path: apps/components/burst-policy
+    namespace: kube-system
+    syncWave: "-1"
+    releaseName: burst-policy
   cluster-autoscaler:
-    enabled: false
     path: apps/components/cluster-autoscaler
     namespace: cluster-autoscaler
     syncWave: "0"
