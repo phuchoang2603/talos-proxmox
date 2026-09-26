@@ -135,13 +135,17 @@ resource "aws_autoscaling_group" "worker" {
     version = tostring(aws_launch_template.worker.latest_version)
   }
 
+  # Resource tags are the measured allocatable of a Talos m7i-flex.large worker with a 40 GB root disk.
   dynamic "tag" {
     for_each = {
-      "managed-by"                                                        = "talos-proxmox"
-      "k8s.io/cluster-autoscaler/enabled"                                 = "true"
-      (local.burst_tag)                                                   = "owned"
-      "k8s.io/cluster-autoscaler/node-template/label/${local.node_label}" = "aws"
-      "k8s.io/cluster-autoscaler/node-template/taint/${local.burst_key}"  = "true:NoSchedule"
+      "managed-by"                                                          = "talos-proxmox"
+      "k8s.io/cluster-autoscaler/enabled"                                   = "true"
+      (local.burst_tag)                                                     = "owned"
+      "k8s.io/cluster-autoscaler/node-template/label/${local.node_label}"   = "aws"
+      "k8s.io/cluster-autoscaler/node-template/taint/${local.burst_key}"    = "true:NoSchedule"
+      "k8s.io/cluster-autoscaler/node-template/resources/cpu"               = "1950m"
+      "k8s.io/cluster-autoscaler/node-template/resources/memory"            = "7274Mi"
+      "k8s.io/cluster-autoscaler/node-template/resources/ephemeral-storage" = "32Gi"
     }
     content {
       key                 = tag.key

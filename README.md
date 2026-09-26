@@ -7,6 +7,7 @@ This project provisions [Talos Linux](https://www.talos.dev/) Kubernetes cluster
 1. **Doppler:** Follow [Doppler Setup](docs/doppler-setup.md).
 2. **GitHub Actions:** Follow [Automated Deployment](docs/github-actions-setup.md). Store a read/write Doppler service token as `DOPPLER_TOKEN`.
 3. **Access:** Follow [Cluster Access](docs/cluster-access.md) (`talosctl` + kubeconfig).
+4. **Burst capacity:** Follow [AWS Burst Workers](docs/aws-burst-workers.md) to opt workloads in, roll back, and rotate keys.
 
 ## Layout
 
