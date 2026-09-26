@@ -18,8 +18,8 @@
 ## 4. Hybrid Stateless AWS Workers
 
 - [x] 4.1 Add the AWS module for dev/prod only with capped small ASGs and AWS-specific Talos config using each newly generated cluster identity; verify argocd has no AWS resources and no keys or machine config leak into Git/logs.
-- [ ] 4.2 Enable KubeSpan and discovery on fixed dev/prod nodes and AWS workers; retain private LAN VIPs for Argo CD and on-premises clients. Verify AWS-worker KubePrism API connectivity with the VIP blocked, worker readiness, and UDP 51820 peer connectivity in both environments without a public API endpoint.
-- [ ] 4.3 Test Cilium pod/Service connectivity, DNS, MTU, WireGuard behavior and no AWS L2 service announcement in both dev and prod; do not require a dev-first rollout.
+- [x] 4.2 Enable KubeSpan and discovery on fixed dev/prod nodes and AWS workers; retain private LAN VIPs for Argo CD and on-premises clients. Verify AWS-worker KubePrism API connectivity with the VIP blocked, worker readiness, and UDP 51820 peer connectivity in both environments without a public API endpoint.
+- [x] 4.3 Test Cilium pod/Service connectivity, DNS, MTU, WireGuard behavior and no AWS L2 service announcement in both dev and prod; do not require a dev-first rollout.
 - [ ] 4.4 Argo-manage Cluster Autoscaler on fixed Proxmox capacity with accurate ASG zero-size templates and a separate scoped identity; verify opted-in stateless dev workload scales 0→1→0 and Proxmox nodes are untouched.
 
 ## 5. Proxmox Storage and Production Rollout
