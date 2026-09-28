@@ -75,7 +75,7 @@ Expected results: the root and child Applications are Synced/Healthy; the Dopple
 | Symptom | Start here |
 | --- | --- |
 | CI cannot reach Proxmox or the API | Tailscale step, routes, and `tag:ci` access; [CI architecture](../architecture/terraform-ci.md) |
-| Platform apply fails its health gate | Fixed inventory node registration/readiness and the gate's [burst-node behavior](../architecture/terraform-ci.md#what-a-successful-apply-means) |
+| Platform apply fails API readiness or times out installing Argo CD | API `/readyz`, connectivity, and Argo CD pod events; see [apply behavior](../architecture/terraform-ci.md#what-a-successful-apply-means) |
 | Application OutOfSync or Degraded | Application sync result and resource events in the local Argo CD UI |
 | ExternalSecret not Ready | `kubectl describe externalsecret <name> -n <namespace>` and Doppler store status |
 | SPIRE Pending | Default StorageClass, PVC binding, and the storage Application |

@@ -6,7 +6,7 @@ resource "helm_release" "argo_cd" {
   values           = local.chart_values["argo-cd"]
   timeout          = 900
 
-  depends_on = [data.talos_cluster_health.fixed, data.kubernetes_nodes.fixed]
+  depends_on = [helm_release.cilium]
 }
 
 resource "helm_release" "argocd_bootstrap" {

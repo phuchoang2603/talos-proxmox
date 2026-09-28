@@ -1,14 +1,11 @@
 locals {
   apps       = "${path.root}/../../apps"
   components = "${local.apps}/components"
-  inventory  = jsondecode(file("${path.root}/../cluster/env/${var.env}/k8s_nodes.json"))
 
-  secrets       = data.doppler_secrets.this.map
-  kubeconfig    = yamldecode(local.secrets.KUBECONFIG)
-  kube_cluster  = local.kubeconfig.clusters[0].cluster
-  kube_user     = local.kubeconfig.users[0].user
-  talosconfig   = yamldecode(local.secrets.TALOSCONFIG)
-  talos_context = local.talosconfig.contexts[local.talosconfig.context]
+  secrets      = data.doppler_secrets.this.map
+  kubeconfig   = yamldecode(local.secrets.KUBECONFIG)
+  kube_cluster = local.kubeconfig.clusters[0].cluster
+  kube_user    = local.kubeconfig.users[0].user
 
   # Base values plus the environment overlay, when the chart has one.
   chart_values = {

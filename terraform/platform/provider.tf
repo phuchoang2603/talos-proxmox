@@ -17,10 +17,6 @@ terraform {
       source  = "hashicorp/kubernetes"
       version = "3.2.1"
     }
-    talos = {
-      source  = "siderolabs/talos"
-      version = "0.9.0"
-    }
   }
   # Select talos-platform-dev or talos-platform-prod with TF_WORKSPACE.
   cloud {
@@ -50,5 +46,3 @@ provider "helm" {
     client_key             = base64decode(local.kube_user["client-key-data"])
   }
 }
-
-provider "talos" {}

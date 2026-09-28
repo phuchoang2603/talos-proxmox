@@ -26,7 +26,7 @@ Set these directly in the matching Doppler config before deployment. They are no
 | --- | --- | --- |
 | `ESO_DOPPLER_TOKEN` | Foundation | Platform creates `external-secrets-auth/doppler-token` |
 | `KUBECONFIG` | Cluster root | Platform providers and operators |
-| `TALOSCONFIG` | Cluster root | Platform health checks and operators |
+| `TALOSCONFIG` | Cluster root | Operators using `talosctl` |
 | `AUTOSCALER_AWS_ACCESS_KEY_ID`, `AUTOSCALER_AWS_SECRET_ACCESS_KEY` | Cluster root's AWS module | Autoscaler ExternalSecret |
 
 Foundation also creates a read/write CI service token per config and publishes it as that GitHub Environment's `DOPPLER_TOKEN` secret. This differs from the read-only ESO token. A local foundation apply uses a workspace-level Doppler login token to manage these service tokens.

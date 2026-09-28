@@ -29,7 +29,7 @@ flowchart TD
     Platform --> Argo["Argo CD reconciles applications"]
 ```
 
-The separate platform root makes Kubernetes and Helm provider credentials available before its plan starts. It reads the kubeconfig and Talos config from Doppler and the fixed-node inventory from Git. No root reads another root's remote state.
+The separate platform root makes Kubernetes and Helm provider credentials available before its plan starts. It reads the kubeconfig from Doppler. No root reads another root's remote state.
 
 ## Workflow flow
 
@@ -66,7 +66,7 @@ Each job gets its environment's `DOPPLER_TOKEN` from GitHub. It uses GitHub OIDC
 | HCP state | `HCP_TERRAFORM_TOKEN`, exported as `TF_TOKEN_app_terraform_io` |
 | Doppler | Environment-scoped read/write CI service token |
 | Proxmox | `PROXMOX_*` read by the Doppler provider |
-| Kubernetes and Talos | Generated `KUBECONFIG` and `TALOSCONFIG` read from Doppler |
+| Platform Kubernetes access | Generated `KUBECONFIG` read from Doppler |
 | Private API routing | Tailscale runner identity `tag:ci` |
 
 GitHub Environment deployment policies allow `main`; AWS trust is limited to the dev/prod environment subjects. PR validation does not use deployment secrets or remote state. Saved plans remain on the runner. See the [secrets reference](../reference/secrets.md) for ownership and consumers.
@@ -79,13 +79,10 @@ The configured HCP operator token is shared across environments and can access t
 
 ## What a successful apply means
 
-The platform first probes the API's authenticated `/readyz` endpoint, installs Gateway API CRDs, and installs Cilium. Its health gate then behaves as follows:
+The platform first probes the API's authenticated `/readyz` endpoint, installs Gateway API CRDs, and installs Cilium. Argo CD depends directly on the Cilium release. The platform does not enumerate nodes or run Talos, etcd, or Kubernetes node health checks.
 
-| Registered AWS burst nodes | Gate |
-| --- | --- |
-| None | Talos, etcd, and Kubernetes health checks using fixed inventory addresses, with a 15-minute timeout |
-| Any, including a terminated NotReady node | Every fixed inventory node must be registered and Kubernetes Ready; Talos/etcd checks are skipped |
+Cilium does not wait for SPIRE because SPIRE needs storage installed later by Argo CD. Argo CD's Helm release still waits for its own resources and can fail if they cannot become ready. CI finishes after the root Application is installed, without waiting for all child Applications or SPIRE.
 
-Argo CD installation depends on this gate. Cilium does not wait for SPIRE because SPIRE needs storage installed later by Argo CD. CI finishes after the root Application is installed, without waiting for all child Applications or SPIRE. Use the [convergence checks](../operations/cluster-access.md#check-convergence) afterward.
+A successful apply confirms installation of platform resources, not the health of every node. Node health and application convergence are operational checks; use the [convergence checks](../operations/cluster-access.md#check-convergence) afterward. A stale NotReady burst node does not independently block a platform apply.
 
-Implementation: [`health.tf`](../../terraform/platform/health.tf), [`network.tf`](../../terraform/platform/network.tf), [`argocd.tf`](../../terraform/platform/argocd.tf).
+Implementation: [`readiness.tf`](../../terraform/platform/readiness.tf), [`network.tf`](../../terraform/platform/network.tf), [`argocd.tf`](../../terraform/platform/argocd.tf).

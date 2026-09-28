@@ -55,32 +55,24 @@ Gateway API CRDs SHALL be installed from a pinned Helm chart archive committed t
 - **WHEN** an Argo-owned component is changed in Git
 - **THEN** only Argo CD reconciles it, and the next OpenTofu plan shows no change for it
 
-### Requirement: Cluster health gate
-The platform root SHALL gate Argo CD installation on fixed-node health after the CNI is installed. When no Kubernetes node labeled `burst.talos.dev/compute=aws` is registered, it SHALL run `talos_cluster_health` using the fixed inventory's control-plane and worker addresses, with a 15-minute timeout for Talos, etcd, and Kubernetes health checks. When any node with that label is registered, it SHALL instead require every fixed inventory node name to be registered and Kubernetes Ready, and SHALL skip the Talos and etcd checks. A failed gate MUST fail the platform apply. Autoscaled AWS workers MUST NOT be required to exist or be Ready for the health gate to pass.
+### Requirement: Platform API readiness and installation ordering
+The platform root SHALL wait for the Kubernetes API's authenticated `/readyz` endpoint to return HTTP 200 before creating Kubernetes resources or installing Helm releases. It SHALL install Gateway API CRDs before Cilium, and Cilium before Argo CD. It MUST NOT gate provisioning on Talos, etcd, or Kubernetes node health checks or require a fixed-node inventory or Talos client configuration. Helm release readiness checks MAY still fail installation when the release's own resources cannot become ready. Successful provisioning SHALL confirm platform resource installation; node health and full GitOps convergence SHALL be checked separately during operations.
 
-#### Scenario: Initial provision without burst workers
-- **WHEN** a fresh environment has only its fixed inventory nodes and no AWS burst workers
-- **THEN** the gate runs the Talos, etcd, and Kubernetes checks against the fixed inventory without launching or waiting for any burst worker
+#### Scenario: API is starting
+- **WHEN** the Kubernetes API is not yet ready after cluster provisioning
+- **THEN** the platform retries the authenticated readiness request before installing resources, and fails if readiness is not reached within the configured retry budget
 
-#### Scenario: Healthy cluster
-- **WHEN** no burst node is registered and all fixed control-plane and worker nodes pass the Talos, etcd, and Kubernetes checks after CNI installation
-- **THEN** the health gate passes and permits Argo CD installation
+#### Scenario: Install Argo CD
+- **WHEN** the API is ready and the Gateway API and Cilium releases have been installed
+- **THEN** Argo CD installation proceeds without a separate node health check
 
-#### Scenario: Unhealthy fixed node
-- **WHEN** no burst node is registered and the fixed-node health checks do not pass within the 15-minute timeout
-- **THEN** the platform apply fails visibly, and CI reports the environment as not provisioned
+#### Scenario: Unready node
+- **WHEN** a fixed or burst node is NotReady but the API and the platform release resources can become ready
+- **THEN** that node's status does not independently fail the platform apply
 
-#### Scenario: Registered burst node
-- **WHEN** any AWS burst node is registered and every fixed inventory node is registered and Kubernetes Ready after CNI installation
-- **THEN** the health gate passes without checking burst-node readiness or running Talos and etcd checks
-
-#### Scenario: Missing or unready fixed node with burst workers
-- **WHEN** an AWS burst node is registered and a fixed inventory node is missing or is not Kubernetes Ready
-- **THEN** the fixed-node readiness postcondition fails the platform apply
-
-#### Scenario: Terminated burst node
-- **WHEN** a terminated AWS burst node is still registered as NotReady and every fixed inventory node is registered and Kubernetes Ready
-- **THEN** the gate passes using fixed-node Kubernetes readiness only, without running Talos and etcd checks
+#### Scenario: Argo CD cannot become ready
+- **WHEN** Argo CD's release resources cannot become ready within the Helm timeout
+- **THEN** the platform apply fails through the release readiness check
 
 ### Requirement: Per-cluster GitOps enablement
 Each environment's Argo CD SHALL reconcile its components from one shared Git platform definition. Each component MUST declare which environments it runs on and MAY vary values per environment. Storage, GPU, burst, and ingress components MUST be enabled only on environments that have the corresponding nodes or needs.

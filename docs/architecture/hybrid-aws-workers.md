@@ -109,4 +109,4 @@ The existing deployment notes report roughly three minutes to worker readiness; 
 
 Cilium's MTU is pinned to 1500 on both sites. Existing network observations report cross-site pod payloads up to 1370 bytes and dropped IP-fragmented pod traffic, including on-premises pairs. Site upload bandwidth also limits traffic to AWS. Validate the workload's traffic pattern before depending on burst capacity.
 
-KubePrism can switch between healthy control planes in a multi-control-plane environment. Dev's single control plane has no such redundancy. The [platform health gate](terraform-ci.md#what-a-successful-apply-means) deliberately uses only fixed-node Kubernetes readiness when a burst node is registered.
+KubePrism can switch between healthy control planes in a multi-control-plane environment. Dev's single control plane has no such redundancy. The [platform apply](terraform-ci.md#what-a-successful-apply-means) checks API readiness and release installation; it does not gate on fixed or burst node health.

@@ -9,8 +9,7 @@ Each environment runs its own Argo CD in namespace `argo-cd`. Both read the same
 ```mermaid
 flowchart TD
     TF["Platform OpenTofu root"] --> CNI["Gateway API CRDs + Cilium"]
-    CNI --> Gate["Fixed-node health gate"]
-    Gate --> Argo["Argo CD Helm release"]
+    CNI --> Argo["Argo CD Helm release"]
     TF --> Auth["ESO bootstrap authentication Secret"]
     Argo --> Bootstrap["Bootstrap chart: AppProject + root Application + UI Gateway"]
     Bootstrap --> Root["platform Application: cluster=dev or prod"]
