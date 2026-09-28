@@ -50,7 +50,7 @@ locals {
     }
   }
 
-  kubespan_machine_patches = var.env == "argocd" ? [] : [
+  kubespan_machine_patches = [
     yamlencode({
       machine = {
         network = {
@@ -75,7 +75,7 @@ locals {
     }),
   ]
 
-  controlplane_machine_patches = var.env == "argocd" ? [] : [
+  controlplane_machine_patches = [
     yamlencode({
       machine = {
         features = {

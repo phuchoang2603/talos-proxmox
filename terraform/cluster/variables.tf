@@ -1,6 +1,16 @@
 variable "env" {
-  description = "Environment name (e.g., dev, prod, argocd)"
+  description = "Environment name (dev or prod)"
   type        = string
+
+  validation {
+    condition     = contains(["dev", "prod"], var.env)
+    error_message = "env must be dev or prod."
+  }
+
+  validation {
+    condition     = trimprefix(terraform.workspace, "talos-cluster-") == var.env
+    error_message = "TF_WORKSPACE must be talos-cluster-<env> so one environment cannot plan against the other's state."
+  }
 }
 
 variable "aws_region" {
@@ -23,42 +33,6 @@ variable "aws_ami_id" {
   default = null
 }
 
-variable "aws_provider_access_key_id" {
-  type      = string
-  sensitive = true
-  ephemeral = true
-  default   = null
-
-  validation {
-    condition     = var.env == "argocd" || try(length(trimspace(var.aws_provider_access_key_id)) > 0, false)
-    error_message = "AWS provider credentials are required for dev/prod."
-  }
-}
-
-variable "aws_provider_secret_access_key" {
-  type      = string
-  sensitive = true
-  ephemeral = true
-  default   = null
-
-  validation {
-    condition     = var.env == "argocd" || try(length(trimspace(var.aws_provider_secret_access_key)) > 0, false)
-    error_message = "AWS provider credentials are required for dev/prod."
-  }
-}
-
-variable "aws_provider_session_token" {
-  type      = string
-  sensitive = true
-  ephemeral = true
-  default   = null
-}
-
-variable "proxmox_endpoint" {
-  type        = string
-  description = "Proxmox API endpoint (e.g., https://your-proxmox-ip:8006)"
-}
-
 variable "proxmox_insecure" {
   type        = bool
   description = "Skip TLS verification"
@@ -69,17 +43,6 @@ variable "proxmox_min_tls" {
   type        = string
   description = "Minimum TLS version"
   default     = "1.3"
-}
-
-variable "proxmox_username" {
-  description = "Proxmox username"
-  type        = string
-}
-
-variable "proxmox_password" {
-  description = "Proxmox password"
-  type        = string
-  sensitive   = true
 }
 
 variable "vm_node_name" {

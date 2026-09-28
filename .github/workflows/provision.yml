@@ -12,7 +12,7 @@ on:
 
 jobs:
   provision:
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     timeout-minutes: 90
     environment: ${{ inputs.environment }}
@@ -24,12 +24,9 @@ jobs:
       id-token: write
     env:
       DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
-      DOPPLER_PROJECT: talos-proxmox
-      DOPPLER_CONFIG: ${{ inputs.environment }}
-      ENV_NAME: ${{ inputs.environment }}
       TF_VAR_env: ${{ inputs.environment }}
       TF_IN_AUTOMATION: true
-      ACTION: ${{ inputs.action }}
+      PLAN_FLAGS: ${{ inputs.action == 'destroy' && '-destroy' || '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: dopplerhq/cli-action@v3
@@ -37,23 +34,20 @@ jobs:
         with:
           tofu_version: 1.12.5
           tofu_wrapper: false
+
       - uses: aws-actions/configure-aws-credentials@v4
-        if: inputs.environment != 'argocd'
         with:
           role-to-assume: arn:aws:iam::142737101504:role/talos-proxmox-ci
           aws-region: us-east-1
           role-duration-seconds: 7200
-      - uses: azure/setup-helm@v4
-        if: inputs.action != 'destroy'
-      - uses: azure/setup-kubectl@v4
-        if: inputs.action != 'destroy'
 
-      - name: Tailscale
+      - name: Doppler credentials
         run: |
-          for k in TS_OAUTH_CLIENT_ID TS_OAUTH_SECRET; do
-            v=$(doppler secrets get "$k" --plain)
+          for pair in TS_OAUTH_CLIENT_ID:TS_OAUTH_CLIENT_ID TS_OAUTH_SECRET:TS_OAUTH_SECRET \
+            HCP_TERRAFORM_TOKEN:TF_TOKEN_app_terraform_io; do
+            v="$(doppler secrets get "${pair%%:*}" --plain)"
             echo "::add-mask::${v}"
-            echo "${k}=${v}" >> "$GITHUB_ENV"
+            echo "${pair#*:}=${v}" >> "$GITHUB_ENV"
           done
       - uses: tailscale/github-action@v2
         with:
@@ -61,11 +55,32 @@ jobs:
           oauth-secret: ${{ env.TS_OAUTH_SECRET }}
           tags: tag:ci
 
-      - name: OpenTofu plan and provision
-        run: .github/scripts/opentofu-ci.sh
-
-      - name: Helm bootstrap
-        if: inputs.action != 'destroy'
+      - name: Destroy platform
+        if: inputs.action == 'destroy'
+        working-directory: terraform/platform
         env:
-          KUBECONFIG: ${{ github.workspace }}/kubeconfig
-        run: apps/bootstrap/run.sh
+          TF_WORKSPACE: talos-platform-${{ inputs.environment }}
+        run: |
+          tofu init -input=false
+          tofu plan -input=false -no-color -destroy -out=.planfile
+          tofu apply -input=false -auto-approve .planfile
+
+      - name: Cluster
+        working-directory: terraform/cluster
+        env:
+          TF_WORKSPACE: talos-cluster-${{ inputs.environment }}
+        run: |
+          tofu init -input=false
+          # shellcheck disable=SC2086
+          tofu plan -input=false -no-color ${PLAN_FLAGS} -var-file="env/${TF_VAR_env}/main.tfvars" -out=.planfile
+          tofu apply -input=false -auto-approve .planfile
+
+      - name: Platform
+        if: inputs.action != 'destroy'
+        working-directory: terraform/platform
+        env:
+          TF_WORKSPACE: talos-platform-${{ inputs.environment }}
+        run: |
+          tofu init -input=false
+          tofu plan -input=false -no-color -out=.planfile
+          tofu apply -input=false -auto-approve .planfile

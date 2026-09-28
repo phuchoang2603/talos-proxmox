@@ -1,3 +1,10 @@
+# Gateway address for the Longhorn UI, from the environment's Cilium pool.
+ingress:
+  address: ""
+
+backupCredentials:
+  refreshInterval: 1h
+
 longhorn:
   defaultSettings:
     createDefaultDiskLabeledNodes: "true"

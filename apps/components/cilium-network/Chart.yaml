@@ -1,0 +1,5 @@
+apiVersion: v2
+name: platform-cilium-network
+description: Cilium LoadBalancer IP pool and L2 announcement policy
+type: application
+version: 0.1.0

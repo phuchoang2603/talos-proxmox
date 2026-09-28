@@ -1,59 +1,151 @@
 repoURL: https://github.com/phuchoang2603/talos-proxmox.git
 targetRevision: main
-cluster: dev
+# Set by the root Application to the environment this Argo CD runs in.
+cluster: ""
+
+# Waves only order Application submission; retries absorb CRDs and
+# dependencies that another Application has not finished installing yet.
+syncRetry:
+  limit: -1
+  backoff:
+    duration: 10s
+    factor: 2
+    maxDuration: 5m
+
+privilegedNamespace: &privileged
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
+
 components:
+  external-secrets:
+    path: apps/components/external-secrets
+    namespace: operators
+    syncWave: "-3"
+    releaseName: external-secrets
+    clusters: [dev, prod]
+  secret-stores:
+    path: apps/components/secret-stores
+    namespace: operators
+    syncWave: "-2"
+    releaseName: secret-stores
+    clusters: [dev, prod]
   burst-policy:
     path: apps/components/burst-policy
     namespace: kube-system
     syncWave: "-1"
     releaseName: burst-policy
+    clusters: [dev, prod]
+  cilium-network:
+    path: apps/components/cilium-network
+    namespace: kube-system
+    syncWave: "-1"
+    releaseName: cilium-network
+    clusters: [dev, prod]
+    valueFilesByCluster:
+      dev:
+        - environments/dev/values.yaml
+      prod:
+        - environments/prod/values.yaml
+  metrics-server:
+    path: apps/components/metrics-server
+    namespace: kube-system
+    syncWave: "-1"
+    releaseName: metrics-server
+    clusters: [dev, prod]
+  local-path-provisioner:
+    path: apps/components/local-path-provisioner
+    namespace: local-path-storage
+    syncWave: "0"
+    releaseName: local-path-provisioner
+    clusters: [dev]
+    managedNamespaceMetadata: *privileged
+  longhorn:
+    path: apps/components/longhorn
+    namespace: longhorn-system
+    syncWave: "0"
+    releaseName: longhorn
+    clusters: [prod]
+    valueFilesByCluster:
+      prod:
+        - environments/prod/values.yaml
+    managedNamespaceMetadata: *privileged
+  talos-ccm:
+    path: apps/components/talos-ccm
+    namespace: kube-system
+    syncWave: "0"
+    releaseName: talos-cloud-controller-manager
+    clusters: [dev, prod]
   cluster-autoscaler:
     path: apps/components/cluster-autoscaler
     namespace: cluster-autoscaler
     syncWave: "0"
     releaseName: cluster-autoscaler
+    clusters: [dev, prod]
     valueFilesByCluster:
       prod:
         - environments/prod/values.yaml
-  external-secrets:
-    path: apps/components/external-secrets
-    namespace: operators
-    syncWave: "0"
-    releaseName: external-secrets
   cnpg:
     path: apps/components/cnpg
     namespace: operators
     syncWave: "0"
     releaseName: cnpg
+    clusters: [dev, prod]
   strimzi:
     path: apps/components/strimzi
     namespace: operators
     syncWave: "0"
     releaseName: strimzi-cluster-operator
+    clusters: [dev, prod]
   mongodb-operator:
     path: apps/components/mongodb
     namespace: operators
     syncWave: "0"
     releaseName: mongodb-operator
+    clusters: [dev, prod]
+  gpu-operator:
+    path: apps/components/gpu-operator
+    namespace: gpu-operator
+    syncWave: "1"
+    releaseName: gpu-operator
+    clusters: [dev, prod]
+    managedNamespaceMetadata: *privileged
+  nvidia-dra-driver:
+    path: apps/components/nvidia-dra-driver
+    namespace: nvidia-dra-driver-gpu
+    syncWave: "1"
+    releaseName: nvidia-dra-driver-gpu
+    clusters: [dev, prod]
+    managedNamespaceMetadata: *privileged
+  argo-cd-route:
+    path: apps/components/argo-cd-route
+    namespace: argo-cd
+    syncWave: "1"
+    releaseName: argo-cd-route
+    clusters: [dev, prod]
+    valueFilesByCluster:
+      dev:
+        - environments/dev/values.yaml
+      prod:
+        - environments/prod/values.yaml
   observability:
     path: apps/components/observability
     releaseName: observability
     namespace: monitoring
     syncWave: "1"
+    clusters: [dev, prod]
     valueFilesByCluster:
       prod:
         - environments/prod/values.yaml
     ignoreDifferences: true
-    managedNamespaceMetadata:
-      labels:
-        pod-security.kubernetes.io/enforce: privileged
-        pod-security.kubernetes.io/audit: privileged
-        pod-security.kubernetes.io/warn: privileged
+    managedNamespaceMetadata: *privileged
   cloudflare-tunnel:
     path: apps/components/cloudflare-tunnel
     releaseName: cloudflare-tunnel
     namespace: cloudflare-tunnel
     syncWave: "2"
+    clusters: [dev, prod]
     valueFilesByCluster:
       prod:
         - environments/prod/values.yaml

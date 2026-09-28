@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform
+  namespace: {{ .Release.Namespace }}
+spec:
+  project: talos-proxmox
+  source:
+    repoURL: {{ .Values.repoURL | quote }}
+    targetRevision: {{ .Values.targetRevision | quote }}
+    path: apps/argocd/platform
+    helm:
+      parameters:
+        - name: cluster
+          value: {{ .Values.cluster | quote }}
+        - name: repoURL
+          value: {{ .Values.repoURL | quote }}
+        - name: targetRevision
+          value: $ARGOCD_APP_SOURCE_TARGET_REVISION
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Release.Namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true

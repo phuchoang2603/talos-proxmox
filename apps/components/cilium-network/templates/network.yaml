@@ -1,0 +1,24 @@
+apiVersion: cilium.io/v2alpha1
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: default
+spec:
+  blocks:
+{{- required "loadBalancerIPPool.blocks is required" .Values.loadBalancerIPPool.blocks | toYaml | nindent 4 }}
+---
+apiVersion: cilium.io/v2alpha1
+kind: CiliumL2AnnouncementPolicy
+metadata:
+  name: default
+spec:
+{{- with .Values.l2Announcement.nodes }}
+  nodeSelector:
+    matchExpressions:
+      - key: kubernetes.io/hostname
+        operator: In
+        values:
+{{- toYaml . | nindent 10 }}
+{{- end }}
+  loadBalancerIPs: true
+  interfaces:
+{{- toYaml .Values.l2Announcement.interfaces | nindent 4 }}

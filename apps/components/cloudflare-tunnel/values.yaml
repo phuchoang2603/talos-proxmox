@@ -6,9 +6,12 @@ image:
   tag: "2026.5.0"
   pullPolicy: IfNotPresent
 
+# cloudflared reads the token only at startup; restart it from Argo CD after a rotation.
 tunnel:
   existingSecret: cloudflare-tunnel-token
   existingSecretKey: token
+  dopplerKey: CLOUDFLARE_TUNNEL_TOKEN
+  refreshInterval: 1h
 
 resources:
   requests:

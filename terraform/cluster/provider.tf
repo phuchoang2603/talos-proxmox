@@ -13,38 +13,36 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 6.0"
     }
-  }
-  backend "s3" {
-    bucket = "terraform"
-    region = "us-east-1"
-    endpoints = {
-      s3 = "http://10.69.1.102:9000"
+    doppler = {
+      source  = "DopplerHQ/doppler"
+      version = "1.21.5"
     }
-    skip_credentials_validation = true
-    skip_metadata_api_check     = true
-    skip_region_validation      = true
-    skip_requesting_account_id  = true
-    use_path_style              = true
+  }
+  # Select talos-cluster-dev or talos-cluster-prod with TF_WORKSPACE.
+  cloud {
+    hostname     = "app.terraform.io"
+    organization = "phuchoang2603"
+    workspaces {
+      tags = ["talos-cluster"]
+    }
   }
 }
 
+# Authenticates with the environment's config-scoped DOPPLER_TOKEN.
+provider "doppler" {}
+
 provider "proxmox" {
-  endpoint = var.proxmox_endpoint
+  endpoint = local.secrets.PROXMOX_ENDPOINT
   insecure = var.proxmox_insecure
   min_tls  = var.proxmox_min_tls
-  username = var.proxmox_username
-  password = var.proxmox_password
+  username = local.secrets.PROXMOX_USERNAME
+  password = local.secrets.PROXMOX_PASSWORD
 }
 
 provider "talos" {}
 
-
+# Uses the ambient AWS session: the GitHub OIDC role in CI, or the operator's session locally.
 provider "aws" {
-  region                      = var.aws_region
-  access_key                  = var.env == "argocd" ? "unused" : var.aws_provider_access_key_id
-  secret_key                  = var.env == "argocd" ? "unused" : var.aws_provider_secret_access_key
-  token                       = var.env == "argocd" ? null : var.aws_provider_session_token
-  skip_credentials_validation = var.env == "argocd"
-  skip_requesting_account_id  = var.env == "argocd"
-  skip_metadata_api_check     = true
+  region                  = var.aws_region
+  skip_metadata_api_check = true
 }

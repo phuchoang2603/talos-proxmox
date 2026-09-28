@@ -1,9 +1,27 @@
-name: Provision and Bootstrap
+name: Provision
 
 on:
   pull_request:
+    branches: [main]
+  push:
     branches: [main]
 
 jobs:
   lint:
     uses: ./.github/workflows/lint.yml
+
+  provision:
+    name: Provision (${{ matrix.environment }})
+    if: github.event_name == 'push'
+    needs: lint
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [dev, prod]
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/provision.yml
+    with:
+      environment: ${{ matrix.environment }}
+    secrets: inherit

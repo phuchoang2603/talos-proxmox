@@ -16,7 +16,6 @@ module "proxmox" {
 }
 
 module "aws" {
-  count  = var.env == "argocd" ? 0 : 1
   source = "../aws"
 
   env                = var.env

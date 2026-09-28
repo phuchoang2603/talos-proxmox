@@ -1,0 +1,5 @@
+# The read-only token Secret is created by the platform OpenTofu root, not Argo CD.
+dopplerToken:
+  namespace: external-secrets-auth
+  name: doppler-token
+  key: dopplerToken

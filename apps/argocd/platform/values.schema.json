@@ -2,15 +2,94 @@
   "$schema": "https://json-schema.org/draft-07/schema#",
   "type": "object",
   "required": [
-    "cluster"
+    "cluster",
+    "components",
+    "repoURL",
+    "syncRetry",
+    "targetRevision"
   ],
-  "properties": {
+  "definitions": {
     "cluster": {
       "type": "string",
       "enum": [
         "dev",
         "prod"
       ]
+    }
+  },
+  "properties": {
+    "cluster": {
+      "$ref": "#/definitions/cluster"
+    },
+    "repoURL": {
+      "type": "string",
+      "minLength": 1
+    },
+    "targetRevision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "syncRetry": {
+      "type": "object",
+      "required": [
+        "limit",
+        "backoff"
+      ]
+    },
+    "components": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "path",
+          "namespace",
+          "syncWave",
+          "releaseName",
+          "clusters"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "syncWave": {
+            "type": "string",
+            "pattern": "^-?[0-9]+$"
+          },
+          "releaseName": {
+            "type": "string"
+          },
+          "clusters": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/definitions/cluster"
+            }
+          },
+          "valueFilesByCluster": {
+            "type": "object",
+            "propertyNames": {
+              "$ref": "#/definitions/cluster"
+            },
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "managedNamespaceMetadata": {
+            "type": "object"
+          },
+          "ignoreDifferences": {
+            "type": "boolean"
+          }
+        }
+      }
     }
   }
 }

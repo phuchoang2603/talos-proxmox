@@ -5,8 +5,8 @@ on:
     inputs:
       environment:
         type: choice
-        options: [argocd, dev, prod]
-        default: argocd
+        options: [dev, prod]
+        default: dev
       action:
         type: choice
         options: [apply, destroy]

@@ -1,0 +1,13 @@
+apiVersion: external-secrets.io/v1
+kind: ClusterSecretStore
+metadata:
+  name: doppler
+spec:
+  provider:
+    doppler:
+      auth:
+        secretRef:
+          dopplerToken:
+            namespace: {{ .Values.dopplerToken.namespace }}
+            name: {{ .Values.dopplerToken.name }}
+            key: {{ .Values.dopplerToken.key }}

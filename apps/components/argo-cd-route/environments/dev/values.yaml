@@ -1,0 +1,2 @@
+# Top of the pool: Cilium LB IPAM hands out addresses from the bottom first.
+address: 10.69.11.254

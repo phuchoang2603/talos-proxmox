@@ -46,6 +46,7 @@ cilium:
         enabled: true
         install:
           enabled: true
+          namespace: kube-system
           existingNamespace: true
           server:
             podSecurityContext:

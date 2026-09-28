@@ -4,10 +4,10 @@ Dev and prod can add up to two stateless `m7i-flex.large` AWS workers each. Ever
 
 | Piece | Where |
 | --- | --- |
-| VPC, ASG (`dev-talos-burst` / `prod-talos-burst`), launch template, autoscaler IAM user | `terraform/aws/`, called from `terraform/cluster/`; state key `talos-${env}.tfstate` in MinIO |
-| Talos cloud controller manager (sets `aws:///<zone>/<instance-id>` provider IDs) and `burst-node-gc` CronJob | `apps/components/talos-ccm/`, installed by `apps/bootstrap/bootstrap.sh` |
+| VPC, ASG (`dev-talos-burst` / `prod-talos-burst`), launch template, autoscaler IAM user and access key | `terraform/aws/`, called from `terraform/cluster/`; HCP Terraform workspace `talos-cluster-${env}` |
+| Talos cloud controller manager (sets `aws:///<zone>/<instance-id>` provider IDs) and `burst-node-gc` CronJob | `apps/components/talos-ccm/`, Argo CD sync wave `0` |
 | `burst-stateless-only` admission policy | `apps/components/burst-policy/`, Argo CD sync wave `-1` |
-| Cluster Autoscaler | `apps/components/cluster-autoscaler/`, Argo CD, runs on Proxmox control planes |
+| Cluster Autoscaler and its `cluster-autoscaler-aws` ExternalSecret | `apps/components/cluster-autoscaler/`, Argo CD, runs on Proxmox control planes |
 
 AWS workers register with the `burst.talos.dev/stateless=true:NoSchedule` taint and the `burst.talos.dev/compute=aws` label. They reach the API through KubeSpan and local KubePrism; the private LAN VIP is never exposed.
 
@@ -62,7 +62,7 @@ Opted-in pods go back to Pending. The autoscaler scales the drained nodes to zer
 
 To turn bursting off:
 
-1. Set `enabled: false` on `cluster-autoscaler` in `apps/argocd/platform/values.yaml` and push to `main`. Argo CD prunes the autoscaler; scaling its Deployment by hand is reverted by self-heal.
+1. Remove the environment from `clusters` on `cluster-autoscaler` in `apps/argocd/platform/values.yaml` and push to `main`. That environment's Argo CD prunes the autoscaler; scaling its Deployment by hand is reverted by self-heal.
 2. Drain the AWS nodes as above, then scale the group to zero:
 
    ```bash
@@ -72,41 +72,27 @@ To turn bursting off:
 
 3. Wait for `burst-node-gc`, or delete the Node objects yourself: `kubectl delete node -l burst.talos.dev/compute=aws`.
 
-Removing the AWS module is a separately reviewed change: its autoscaler IAM user has `prevent_destroy`, and its access key lives outside Terraform.
+Removing the AWS module is a separately reviewed change: it also deletes the autoscaler user and the key the cluster uses.
 
 ## Rotate the autoscaler access key
 
-Each environment's key belongs to `talos-proxmox-autoscaler-${env}` and can scale only `${env}-talos-burst`. CI uses short-lived GitHub OIDC sessions and has no static AWS key.
+Each environment's key belongs to `talos-proxmox-autoscaler-${env}` and can scale only `${env}-talos-burst`. OpenTofu owns it as `module.aws.aws_iam_access_key.autoscaler` and writes it to Doppler; ESO copies it into `cluster-autoscaler/cluster-autoscaler-aws` every 5 minutes. CI uses short-lived GitHub OIDC sessions and has no static AWS key.
 
-1. Create a second key (IAM allows two per user):
-
-   ```bash
-   aws iam create-access-key --user-name talos-proxmox-autoscaler-dev
-   ```
-
-2. Store it in the matching Doppler config (`dev` or `prod`) as `AUTOSCALER_AWS_ACCESS_KEY_ID` and `AUTOSCALER_AWS_SECRET_ACCESS_KEY`.
-3. Update the cluster Secret and restart the autoscaler (a `main` push re-runs bootstrap and updates the Secret, but does not restart the pod):
+1. Replace the key with a local apply of the cluster root (see [Local OpenTofu](./doppler-setup.md#local-opentofu)):
 
    ```bash
-   doppler run --config dev --only-secrets AUTOSCALER_AWS_ACCESS_KEY_ID,AUTOSCALER_AWS_SECRET_ACCESS_KEY -- \
-     sh -c 'kubectl -n cluster-autoscaler create secret generic cluster-autoscaler-aws \
-       --from-literal=AWS_ACCESS_KEY_ID="$AUTOSCALER_AWS_ACCESS_KEY_ID" \
-       --from-literal=AWS_SECRET_ACCESS_KEY="$AUTOSCALER_AWS_SECRET_ACCESS_KEY" \
-       --dry-run=client -o yaml | kubectl apply -f -'
-   kubectl -n cluster-autoscaler rollout restart deploy/cluster-autoscaler-aws-cluster-autoscaler
+   tofu apply -var-file=env/dev/main.tfvars -replace=module.aws.aws_iam_access_key.autoscaler
    ```
 
+   `create_before_destroy` creates the new key and updates `AUTOSCALER_AWS_*` in Doppler before deleting the old key.
+
+2. Wait up to 5 minutes for the ExternalSecret to refresh (`kubectl -n cluster-autoscaler get externalsecret cluster-autoscaler-aws`).
+3. In the environment's Argo CD UI, open the `cluster-autoscaler` Application and use **Restart** on the Deployment.
 4. Confirm the logs show `Registering ASG dev-talos-burst` without `AccessDenied` or `InvalidClientTokenId`.
-5. Deactivate and then delete the old key:
-
-   ```bash
-   aws iam update-access-key --user-name talos-proxmox-autoscaler-dev --access-key-id OLD_KEY_ID --status Inactive
-   aws iam delete-access-key --user-name talos-proxmox-autoscaler-dev --access-key-id OLD_KEY_ID
-   ```
 
 ## Inspect infrastructure state
 
-AWS resources share each environment's cluster state; there is no separate AWS root. Follow [Local OpenTofu](./doppler-setup.md#local-opentofu) in `terraform/cluster/` with `-backend-config="key=talos-${env}.tfstate"` and `-var-file=env/${env}/main.tfvars`, then run `tofu state list module.aws`. Argocd has no `module.aws` instance.
+AWS resources share each environment's cluster state; there is no separate AWS root. Follow [Local OpenTofu](./doppler-setup.md#local-opentofu) in `terraform/cluster/` with `TF_WORKSPACE=talos-cluster-${env}` and `-var-file=env/${env}/main.tfvars`, then run `tofu state list module.aws`.
 
 ## Known limits
 

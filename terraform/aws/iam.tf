@@ -14,6 +14,14 @@ resource "aws_iam_policy" "autoscaler" {
   tags = local.tags
 }
 
+resource "aws_iam_access_key" "autoscaler" {
+  user = aws_iam_user.autoscaler.name
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 resource "aws_iam_user_policy_attachment" "autoscaler" {
   user       = aws_iam_user.autoscaler.name
   policy_arn = aws_iam_policy.autoscaler.arn

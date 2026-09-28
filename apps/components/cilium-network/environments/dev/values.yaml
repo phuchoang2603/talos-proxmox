@@ -1,0 +1,7 @@
+loadBalancerIPPool:
+  blocks:
+    - start: "10.69.11.128"
+      stop: "10.69.11.254"
+
+l2Announcement:
+  nodes: [dev-server1]

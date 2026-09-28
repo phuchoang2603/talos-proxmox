@@ -4,13 +4,13 @@ Use Talos client credentials for both the Talos API and kubectl.
 
 `talosctl` must target **control-plane node IPs**, not the Kubernetes VIP. The VIP is only for kube-apiserver and depends on etcd.
 
-GitHub Actions (and a laptop `tofu apply` plus `doppler secrets set`) write cluster-admin files to Doppler as `TALOSCONFIG` and `KUBECONFIG`. You do not need OpenTofu state or GitHub Actions artifacts on your machine.
+The cluster OpenTofu root writes cluster-admin files to each environment's Doppler config as `TALOSCONFIG` and `KUBECONFIG`. You do not need OpenTofu state or GitHub Actions artifacts on your machine.
 
 ## From Doppler (usual path)
 
 ```bash
 doppler login
-# default config is dev (.doppler.yaml); use --config prod or --config argocd for those clusters
+# default config is dev (.doppler.yaml); use --config prod for prod
 
 doppler secrets get TALOSCONFIG --plain > talosconfig
 doppler secrets get KUBECONFIG --plain > kubeconfig
@@ -31,9 +31,17 @@ talosctl --nodes 10.69.11.11 kubeconfig ./kubeconfig
 
 Treat `talosconfig` and `kubeconfig` as secrets. They are already gitignored.
 
+## Argo CD
+
+Each environment runs its own Argo CD in the `argo-cd` namespace. The UI is served over HTTP at the `argo-cd-route` Gateway address: `http://10.69.11.254` for dev and `http://10.69.12.254` for prod. Log in as `admin` with the initial password:
+
+```bash
+kubectl -n argo-cd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d
+```
+
 ## From OpenTofu (optional)
 
-If you just applied provision locally and still have the workspace initialized:
+If you just applied the cluster root locally and still have the workspace initialized:
 
 ```bash
 cd terraform/cluster

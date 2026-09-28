@@ -1,12 +1,11 @@
 {{- $cluster := .Values.cluster }}
 {{- range $name, $app := $.Values.components }}
-{{- /* sprig `default` treats false as empty — use hasKey for explicit disables */ -}}
-{{- if or (not (hasKey $app "enabled")) $app.enabled }}
+{{- if has $cluster $app.clusters }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: {{ printf "%s-%s" $cluster $name }}
+  name: {{ $name }}
   namespace: {{ $.Release.Namespace }}
   finalizers:
     - resources-finalizer.argocd.argoproj.io/foreground
@@ -25,15 +24,18 @@ spec:
 {{- toYaml . | nindent 8 }}
 {{- end }}
   destination:
-    name: {{ $cluster | quote }}
+    server: https://kubernetes.default.svc
     namespace: {{ $app.namespace }}
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+    retry:
+{{- toYaml $.Values.syncRetry | nindent 6 }}
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      - SkipDryRunOnMissingResource=true
 {{- if $app.ignoreDifferences }}
       - RespectIgnoreDifferences=true
 {{- end }}

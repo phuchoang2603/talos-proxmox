@@ -1,3 +1,9 @@
+# Written to Doppler by the cluster OpenTofu root. The autoscaler reads the keys
+# only at startup; restart it from Argo CD after the Secret refreshes.
+awsCredentials:
+  secretName: cluster-autoscaler-aws
+  refreshInterval: 5m
+
 cluster-autoscaler:
   cloudProvider: aws
   awsRegion: us-east-1

@@ -1,0 +1,15 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: talos-proxmox
+  namespace: {{ .Release.Namespace }}
+spec:
+  description: Applications managed by the talos-proxmox repository
+  sourceRepos:
+    - {{ .Values.repoURL | quote }}
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: "*"
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"

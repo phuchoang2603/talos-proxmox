@@ -10,7 +10,6 @@
     doppler
 
     jq
-    gettext
 
     talosctl
     kubectl
@@ -34,11 +33,6 @@
       programs = {
         actionlint = {
           enable = true;
-        };
-        shellcheck = {
-          enable = true;
-          external-sources = true;
-          source-path = "SCRIPTDIR";
         };
       };
     };

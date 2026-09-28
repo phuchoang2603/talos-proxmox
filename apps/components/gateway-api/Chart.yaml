@@ -1,0 +1,11 @@
+apiVersion: v2
+name: platform-gateway-api
+description: Gateway API CRDs from a vendored, pinned chart archive
+type: application
+version: 0.1.0
+annotations:
+  upstream-url: https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.3.0/standard-install.yaml
+  upstream-sha256: 78796d5c51450fc55d8dc8092ba8137f8c807982d7508d7875d5c537a24082b9
+dependencies:
+  - name: gateway-api-crds
+    version: 1.3.0

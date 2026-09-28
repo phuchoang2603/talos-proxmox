@@ -4,7 +4,7 @@ variable "name" {
 }
 
 variable "env" {
-  description = "Environment name used as a Proxmox tag (dev, prod, or argocd)."
+  description = "Environment name used as a Proxmox tag (dev or prod)."
   type        = string
 }
 

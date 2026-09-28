@@ -1,0 +1,9 @@
+# Per-environment pool blocks and announcing nodes live in environments/<env>/values.yaml.
+loadBalancerIPPool:
+  blocks: []
+
+l2Announcement:
+  interfaces:
+    - eth0
+  # Fixed nodes that announce LoadBalancer IPs; empty means every node.
+  nodes: []

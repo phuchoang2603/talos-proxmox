@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        stack: [terraform/cluster, terraform/identity]
+        stack: [terraform/foundation, terraform/cluster, terraform/platform]
     defaults:
       run:
         working-directory: ./${{ matrix.stack }}
@@ -31,11 +31,39 @@ jobs:
       - name: OpenTofu Validate
         run: tofu validate
 
-  platform-lint:
-    name: Platform charts and bootstrap
+  chart-lint:
+    name: Platform charts
     runs-on: ubuntu-latest
+    env:
+      KUBE_VERSION: 1.36.3
     steps:
       - uses: actions/checkout@v4
       - uses: azure/setup-helm@v4
-      - name: Lint platform charts
-        run: apps/bootstrap/validate.sh
+
+      - name: Verify vendored Gateway API CRDs
+        working-directory: apps/components/gateway-api
+        run: |
+          expected="$(grep -oP '^  upstream-sha256: \K\S+' Chart.yaml)"
+          actual="$(tar -xzOf charts/gateway-api-crds-*.tgz gateway-api-crds/templates/standard-install.yaml | sha256sum | cut -d' ' -f1)"
+          if [ "${actual}" != "${expected}" ]; then
+            echo "::error::gateway-api-crds archive checksum ${actual} does not match ${expected}"
+            exit 1
+          fi
+
+      - name: Lint component charts and overlays
+        run: |
+          for chart in apps/components/*/; do
+            helm lint "${chart}" --kube-version "${KUBE_VERSION}"
+            for overlay in "${chart}"environments/*/values.yaml; do
+              [ -f "${overlay}" ] || continue
+              helm lint "${chart}" --kube-version "${KUBE_VERSION}" --values "${overlay}"
+            done
+          done
+
+      - name: Lint Argo CD charts per environment
+        run: |
+          for chart in apps/argocd/*/; do
+            for cluster in dev prod; do
+              helm lint "${chart}" --kube-version "${KUBE_VERSION}" --set cluster="${cluster}"
+            done
+          done

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: platform-secret-stores
+description: ClusterSecretStore backed by this environment's Doppler config
+type: application
+version: 0.1.0
