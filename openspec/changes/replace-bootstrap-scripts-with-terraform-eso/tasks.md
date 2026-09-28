@@ -54,7 +54,7 @@
 
 Runtime checks described in earlier tasks are acceptance checks for this later validation phase, not additional provisioning CI gates. First wait for provisioning CI to be green; then validate full platform convergence separately.
 
-- [ ] 6.1 Create the HCP Terraform organization with Local default execution, store `HCP_TERRAFORM_TOKEN` in both Doppler configs, apply the foundation root locally, and push to `main`. Wait for successful cluster and platform applies for dev and prod independently. After CI is green, separately verify every Argo CD Application is Synced and Healthy and SPIRE is ready without manual provisioning steps.
+- [x] 6.1 Create the HCP Terraform organization with Local default execution, store `HCP_TERRAFORM_TOKEN` in both Doppler configs, apply the foundation root locally, and push to `main`. Wait for successful cluster and platform applies for dev and prod independently. After CI is green, separately verify every Argo CD Application is Synced and Healthy and SPIRE is ready without manual provisioning steps.
 - [ ] 6.2 Validate secret behavior:
   - rotate the autoscaler key with `tofu apply -replace` plus an Argo CD restart, and confirm the autoscaler registers the ASG;
   - change the Cloudflare token in Doppler, and confirm the Secret updates and the restarted tunnel connects;

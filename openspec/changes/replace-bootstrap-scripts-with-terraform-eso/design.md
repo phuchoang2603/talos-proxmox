@@ -111,6 +111,8 @@ The Doppler provider authenticates with CI's config-scoped `DOPPLER_TOKEN`. The 
    Both read after Cilium, and Argo CD depends on both. Neither waits for SPIRE.
 5. **Argo CD:** `helm_release` of `apps/components/argo-cd`, then `helm_release` of a small local chart `apps/argocd/bootstrap`. That chart contains the `talos-proxmox` AppProject and one root Application, `platform`, which passes `cluster=${env}` to `apps/argocd/platform`. Helm doesn't validate CRDs at plan time, which avoids the problem `kubernetes_manifest` has before the Argo CD CRDs exist.
 
+The cluster root finishes before kube-apiserver serves on a fresh cluster, and the Kubernetes and Helm providers do not retry. A `data "http"` probe of `/readyz`, authenticated with the Doppler kubeconfig and retried for several minutes, therefore precedes every Kubernetes read and write. This is a readiness check, not a download, so the no-HTTP-provider rule for the Gateway API CRDs is unaffected.
+
 Terraform permanently owns Cilium and Argo CD. Argo CD can't repair a broken CNI, and having a single owner avoids two tools fighting over the same release. The Argo CD values drop the hub-specific controller tuning for fan-out across many clusters.
 
 Alternatives considered:
@@ -131,6 +133,8 @@ In `apps/argocd/platform`, each component declares `clusters: [dev, prod]` or a 
 | 0 | `talos-ccm` (including `burst-node-gc`), `cluster-autoscaler` (with an `ExternalSecret`) | dev, prod |
 | 1 | `gpu-operator`, `nvidia-dra-driver`, `argo-cd-route` (Gateway and HTTPRoute for the Argo CD UI, with the address from per-environment values) | dev, prod |
 | 0–2 | existing `cnpg`, `strimzi`, `mongodb-operator`, `observability`, `cloudflare-tunnel` (with an `ExternalSecret` for its token) | dev, prod |
+
+Argo CD compares with server-side diff (`controller.diff.server.side`), so fields defaulted by the API server, such as those on ExternalSecrets and HTTPRoutes, are not reported as drift. Helm hooks that assume Helm's ordering are disabled where Argo CD runs them too early: Longhorn's pre-upgrade checker Job needs a ServiceAccount that Argo CD has not yet created.
 
 Argo-managed privileged namespaces use `managedNamespaceMetadata`; Cilium and SPIRE share the existing `kube-system` namespace. The `release.json` files and `apps/bootstrap/` are removed. Chart linting moves from `apps/bootstrap/validate.sh` directly into `.github/workflows/lint.yml`. Do not add a separate validation script or duplicate the chart checks in a devenv hook.
 
