@@ -11,3 +11,5 @@ argo-cd:
   configs:
     params:
       server.insecure: true
+      # Compare against a server-side dry run so API defaults (ExternalSecret, HTTPRoute) are not drift.
+      controller.diff.server.side: true
