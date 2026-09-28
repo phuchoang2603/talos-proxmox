@@ -1,24 +1,43 @@
-# Talos Kubernetes on Proxmox with OpenTofu
+# Talos on Proxmox, with AWS burst workers
 
-This project provisions two independent [Talos Linux](https://www.talos.dev/) Kubernetes environments, **dev** and **prod**, on Proxmox with OpenTofu, GitHub Actions, Doppler, and Argo CD. Both can add stateless AWS worker capacity. Each environment runs its own Argo CD, which manages only its own cluster. Cluster access is via `talosctl` / kubeconfig stored in Doppler (`TALOSCONFIG`, `KUBECONFIG`).
+Two independent Kubernetes environments, **dev** and **prod**, run Talos on fixed Proxmox VMs. Each can add stateless AWS workers when workloads need more capacity. OpenTofu provisions the infrastructure; each cluster's Argo CD manages its applications; Doppler supplies credentials.
 
-## Quick Start
+```mermaid
+flowchart LR
+    Git["Git repository"] --> CI["GitHub Actions / OpenTofu"]
+    CI --> Dev["dev: Proxmox + Talos + Argo CD"]
+    CI --> Prod["prod: Proxmox + Talos + Argo CD"]
+    Git --> Dev
+    Git --> Prod
+    Dev <-->|"KubeSpan"| AWSDev["dev AWS workers: 0–2"]
+    Prod <-->|"KubeSpan"| AWSProd["prod AWS workers: 0–2"]
+```
 
-1. **Doppler:** Follow [Doppler Setup](docs/doppler-setup.md) and enter the operator-issued secrets.
-2. **Foundation and GitHub Actions:** Follow [Automated Deployment](docs/github-actions-setup.md). Applying `terraform/foundation/` locally creates the CI role, Doppler service tokens, and the `dev`/`prod` GitHub Environments.
-3. **Access:** Follow [Cluster Access](docs/cluster-access.md) (`talosctl` + kubeconfig).
-4. **Burst capacity:** Follow [AWS Burst Workers](docs/aws-burst-workers.md) to opt workloads in, roll back, and rotate keys.
+Persistent workloads stay on Proxmox: dev uses local-path storage and prod uses Longhorn. Each environment has its own state workspaces, Doppler config, AWS worker group, and Argo CD. Neither cluster manages the other.
 
-## Layout
+## Start here
 
-| Path                           | Role                                                                                        |
-| ------------------------------ | ------------------------------------------------------------------------------------------- |
-| `terraform/foundation/`        | Operator-applied: HCP workspaces, CI role, Doppler project/tokens, GitHub Environments      |
-| `terraform/cluster/`           | CI, per environment: Proxmox, Talos, and AWS; writes generated credentials to Doppler       |
-| `terraform/platform/`          | CI, per environment: Gateway API CRDs, Cilium, ESO token Secret, Argo CD and its root app   |
-| `terraform/aws/`               | Stateless worker module used by the cluster root                                            |
-| `terraform/cluster/env/{env}/` | Node inventory and network settings, also read by the platform root                         |
-| `apps/components/`             | Helm wrappers for every in-cluster component                                                |
-| `apps/argocd/`                 | `bootstrap` (AppProject and root Application) and `platform` (one Application per component) |
+| I want to… | Read |
+| --- | --- |
+| Contribute, validate, or deploy | [Contributing and setup](CONTRIBUTING.md) |
+| Understand provisioning, state, and CI | [Terraform and CI architecture](docs/architecture/terraform-ci.md) |
+| Understand AWS networking and autoscaling | [Hybrid AWS worker architecture](docs/architecture/hybrid-aws-workers.md) |
+| Understand application ownership and reconciliation | [GitOps and Argo CD architecture](docs/architecture/gitops.md) |
+| Connect to a cluster or check its health | [Cluster access](docs/operations/cluster-access.md) |
+| Schedule burst workloads or rotate their AWS key | [AWS worker operations](docs/operations/aws-burst-workers.md) |
+| Find a credential's source and consumers | [Secrets reference](docs/reference/secrets.md) |
 
-Roots hand data to each other only through Doppler. All state lives in HCP Terraform (free tier, local execution) in the workspaces `talos-proxmox` (foundation), `talos-cluster-${env}`, and `talos-platform-${env}`. See [Automated Deployment](docs/github-actions-setup.md) for the credential flow.
+## Repository map
+
+| Path | Contents |
+| --- | --- |
+| [`terraform/foundation/`](terraform/foundation/) | Operator-applied identities, Doppler tokens, GitHub Environments, HCP workspaces |
+| [`terraform/cluster/`](terraform/cluster/) | Per-environment infrastructure root and node/network inventory |
+| [`terraform/platform/`](terraform/platform/) | Per-environment CNI, Gateway API CRDs, ESO authentication, Argo CD bootstrap |
+| [`terraform/proxmox/`](terraform/proxmox/) and [`terraform/aws/`](terraform/aws/) | Modules called by the cluster root |
+| [`apps/argocd/`](apps/argocd/) | Bootstrap and shared platform Application charts |
+| [`apps/components/`](apps/components/) | Component charts, vendored dependencies, environment overrides |
+| [`.github/workflows/`](.github/workflows/) | Validation and provisioning workflows |
+| [`openspec/`](openspec/) | Behavior specifications and archived change records |
+
+Use `devenv shell` for the project's OpenTofu, Helm, Doppler, Talos, and Kubernetes tools. The [deployment guide](CONTRIBUTING.md) explains the account access and external services required before applying anything.
