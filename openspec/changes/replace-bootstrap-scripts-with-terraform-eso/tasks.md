@@ -55,13 +55,18 @@
 Runtime checks described in earlier tasks are acceptance checks for this later validation phase, not additional provisioning CI gates. First wait for provisioning CI to be green; then validate full platform convergence separately.
 
 - [x] 6.1 Create the HCP Terraform organization with Local default execution, store `HCP_TERRAFORM_TOKEN` in both Doppler configs, apply the foundation root locally, and push to `main`. Wait for successful cluster and platform applies for dev and prod independently. After CI is green, separately verify every Argo CD Application is Synced and Healthy and SPIRE is ready without manual provisioning steps.
-- [ ] 6.2 Validate secret behavior:
+- [x] 6.4 Update `README.md`, `docs/doppler-setup.md`, `docs/github-actions-setup.md`, `docs/cluster-access.md`, and `docs/aws-burst-workers.md`: the two environments, three roots, per-cluster Argo CD, the Doppler key layout, ESO consumption, and Terraform-based key rotation. Verify the docs contain no references to the argocd environment, removed scripts, or `DOPPLER_READ_TOKEN`.
+
+### Waived validation
+
+The operator waived tasks 6.2 and 6.3 on 2026-09-28. They are not required for completion or archival of this change and are not recorded as executed or passed. The corresponding behavioral requirements remain in the specs.
+
+- 6.2 Secret behavior (waived):
   - rotate the autoscaler key with `tofu apply -replace` plus an Argo CD restart, and confirm the autoscaler registers the ASG;
   - change the Cloudflare token in Doppler, and confirm the Secret updates and the restarted tunnel connects;
   - block Doppler egress from a cluster, and confirm Secrets are retained and ExternalSecrets report not ready.
-- [ ] 6.3 Validate independence:
+- 6.3 Independence (waived):
   - destroy and rebuild dev while prod's Argo CD stays Synced;
   - confirm neither cluster holds the other's credentials;
   - confirm CI logs and plans show no secret values;
   - re-run dev AWS 0→1→0 burst scaling.
-- [x] 6.4 Update `README.md`, `docs/doppler-setup.md`, `docs/github-actions-setup.md`, `docs/cluster-access.md`, and `docs/aws-burst-workers.md`: the two environments, three roots, per-cluster Argo CD, the Doppler key layout, ESO consumption, and Terraform-based key rotation. Verify the docs contain no references to the argocd environment, removed scripts, or `DOPPLER_READ_TOKEN`.
