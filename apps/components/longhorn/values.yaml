@@ -6,6 +6,9 @@ backupCredentials:
   refreshInterval: 1h
 
 longhorn:
+  # Argo CD runs Helm pre-upgrade hooks before the chart's ServiceAccount exists.
+  preUpgradeChecker:
+    jobEnabled: false
   defaultSettings:
     createDefaultDiskLabeledNodes: "true"
     autoCleanupSystemGeneratedSnapshot: true
