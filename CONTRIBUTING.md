@@ -40,7 +40,7 @@ for cluster in dev prod; do
 done
 ```
 
-[The lint workflow](.github/workflows/lint.yml) defines the full CI checks, including all roots, charts, overlays, and the vendored Gateway API checksum.
+[The lint workflow](.github/workflows/lint.yml) defines the full CI checks for all roots, charts, and environment overlays.
 
 ## 1. Prepare local tools and account access
 

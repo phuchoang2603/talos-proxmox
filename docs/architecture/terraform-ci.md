@@ -50,7 +50,7 @@ flowchart TD
 | Workflow | Responsibility |
 | --- | --- |
 | [`terraform.yml`](../../.github/workflows/terraform.yml) | PR checks; on `main` pushes, deploy dev/prod in parallel with `fail-fast: false` |
-| [`lint.yml`](../../.github/workflows/lint.yml) | Backend-disabled init, format and validate all roots; lint charts/overlays and verify vendored Gateway CRD checksum |
+| [`lint.yml`](../../.github/workflows/lint.yml) | Backend-disabled init, format and validate all roots; lint charts and environment overlays |
 | [`provision.yml`](../../.github/workflows/provision.yml) | Reusable per-environment apply or destroy, restricted to `main` pushes/manual dispatches |
 | [`manual.yml`](../../.github/workflows/manual.yml) | Validate, then apply or destroy one selected environment on `main` |
 
