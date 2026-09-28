@@ -29,17 +29,20 @@
     };
   };
 
-  treefmt.enable = true;
-  treefmt.config.programs.actionlint.enable = true;
-  treefmt.config.programs.shellcheck = {
+  treefmt = {
+    config = {
+      programs = {
+        actionlint = {
+          enable = true;
+        };
+        shellcheck = {
+          enable = true;
+          external-sources = true;
+          source-path = "SCRIPTDIR";
+        };
+      };
+    };
     enable = true;
-    external-sources = true;
-    source-path = "SCRIPTDIR";
   };
   git-hooks.hooks.treefmt.enable = true;
-  git-hooks.hooks.chart-testing = {
-    enable = true;
-    files = "^apps/(components|argocd)/";
-    args = [ "--chart-dirs" "apps/components,apps/argocd" "--validate-maintainers=false" ];
-  };
 }

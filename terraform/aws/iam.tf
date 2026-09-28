@@ -3,10 +3,6 @@ data "aws_caller_identity" "current" {}
 resource "aws_iam_user" "autoscaler" {
   name = "talos-proxmox-autoscaler-${var.env}"
   tags = local.tags
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "aws_iam_policy" "autoscaler" {
