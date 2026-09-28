@@ -29,11 +29,35 @@ data "doppler_secrets" "this" {
   config  = var.env
 }
 
+# The cluster root finishes before kube-apiserver serves on a fresh cluster, and the Kubernetes
+# and Helm providers do not retry, so every Kubernetes read and write waits for readiness here.
+data "http" "apiserver_ready" {
+  url             = "${local.kube_cluster.server}/readyz"
+  ca_cert_pem     = base64decode(local.kube_cluster["certificate-authority-data"])
+  client_cert_pem = base64decode(local.kube_user["client-certificate-data"])
+  client_key_pem  = base64decode(local.kube_user["client-key-data"])
+
+  retry {
+    attempts     = 90
+    min_delay_ms = 5000
+    max_delay_ms = 10000
+  }
+
+  lifecycle {
+    postcondition {
+      condition     = self.status_code == 200
+      error_message = "kube-apiserver did not become ready."
+    }
+  }
+}
+
 resource "helm_release" "gateway_api" {
   name      = "gateway-api"
   namespace = "kube-system"
   chart     = "${local.components}/gateway-api"
   timeout   = 300
+
+  depends_on = [data.http.apiserver_ready]
 }
 
 # SPIRE needs a StorageClass that Argo CD installs later, so Helm must not wait for it.
@@ -52,6 +76,8 @@ data "kubernetes_nodes" "burst" {
   metadata {
     labels = { "burst.talos.dev/compute" = "aws" }
   }
+
+  depends_on = [data.http.apiserver_ready]
 }
 
 # talos_cluster_health fails on any Kubernetes node missing from its node lists, so it can only
@@ -94,6 +120,8 @@ resource "kubernetes_namespace_v1" "external_secrets_auth" {
   metadata {
     name = "external-secrets-auth"
   }
+
+  depends_on = [data.http.apiserver_ready]
 }
 
 resource "kubernetes_secret_v1" "doppler_token" {
