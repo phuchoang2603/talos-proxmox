@@ -1,0 +1,9 @@
+apiVersion: v2
+name: platform-karpenter-crd
+description: Karpenter CRDs, installed before the controller so Helm can manage upgrades
+type: application
+version: 0.1.0
+dependencies:
+  - name: karpenter-crd
+    version: 1.14.1
+    repository: oci://public.ecr.aws/karpenter

@@ -1,0 +1,34 @@
+# Set by the platform root from the environment's Doppler config.
+clusterName: dev-talos
+amiId: ami-00000000000000000
+instanceProfile: dev-talos-burst-worker
+userData: "# set by the platform root"
+
+burst:
+  labelKey: burst.talos.dev/compute
+  labelValue: aws
+  taintKey: burst.talos.dev/stateless
+  taintValue: "true"
+
+rootVolumeSize: 40Gi
+
+# Karpenter uses these only to predict allocatable capacity; they are not applied to Talos.
+# Tune against a real worker's allocatable (see the dev spike in the change tasks).
+kubelet:
+  kubeReserved:
+    cpu: 50m
+    memory: 250Mi
+  evictionHard:
+    memory.available: 100Mi
+
+nodePool:
+  limits:
+    cpu: "8"
+    memory: 32Gi
+  instanceCategories: [c, m, r]
+  instanceGenerationGt: "5"
+  instanceCpus: ["2", "4", "8"]
+  capacityTypes: [spot, on-demand]
+  consolidateAfter: 5m
+  expireAfter: 720h
+  terminationGracePeriod: 30m

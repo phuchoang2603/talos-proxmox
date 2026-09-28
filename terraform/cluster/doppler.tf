@@ -3,17 +3,21 @@ locals {
   secrets         = data.doppler_secrets.this.map
 
   generated_secret_types = {
-    KUBECONFIG                       = "yaml"
-    TALOSCONFIG                      = "yaml"
-    AUTOSCALER_AWS_ACCESS_KEY_ID     = "string"
-    AUTOSCALER_AWS_SECRET_ACCESS_KEY = "string"
+    KUBECONFIG                      = "yaml"
+    TALOSCONFIG                     = "yaml"
+    KARPENTER_AWS_ACCESS_KEY_ID     = "string"
+    KARPENTER_AWS_SECRET_ACCESS_KEY = "string"
+    AWS_WORKER_MACHINE_CONFIG       = "yaml"
+    AWS_WORKER_AMI_ID               = "string"
   }
 
   generated_secret_values = {
-    KUBECONFIG                       = module.proxmox.kubeconfig
-    TALOSCONFIG                      = module.proxmox.talosconfig
-    AUTOSCALER_AWS_ACCESS_KEY_ID     = module.aws.autoscaler_access_key_id
-    AUTOSCALER_AWS_SECRET_ACCESS_KEY = module.aws.autoscaler_secret_access_key
+    KUBECONFIG                      = module.proxmox.kubeconfig
+    TALOSCONFIG                     = module.proxmox.talosconfig
+    KARPENTER_AWS_ACCESS_KEY_ID     = module.aws.karpenter_access_key_id
+    KARPENTER_AWS_SECRET_ACCESS_KEY = module.aws.karpenter_secret_access_key
+    AWS_WORKER_MACHINE_CONFIG       = module.aws.worker_machine_configuration
+    AWS_WORKER_AMI_ID               = module.aws.worker_ami_id
   }
 }
 

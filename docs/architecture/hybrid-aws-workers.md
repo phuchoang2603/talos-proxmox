@@ -2,7 +2,7 @@
 
 [Documentation home](../../README.md) · [AWS worker operations](../operations/aws-burst-workers.md)
 
-AWS workers extend each Talos cluster with temporary compute. Control planes, storage, GPU capacity, and the autoscaler remain on fixed Proxmox nodes, so the cluster can scale AWS capacity from zero.
+AWS workers extend each Talos cluster with temporary compute. Control planes, storage, GPU capacity, and the Karpenter controller remain on fixed Proxmox nodes, so the cluster can scale AWS capacity from zero. **Karpenter** launches EC2 instances directly from pending pods; there is no Auto Scaling Group.
 
 ## Topology
 
@@ -11,42 +11,43 @@ flowchart LR
     subgraph LAN["On-premises: one environment"]
         CP["Fixed Talos control planes"]
         Fixed["Fixed storage and GPU nodes"]
-        CA["Cluster Autoscaler"]
+        KP["Karpenter controller"]
         VIP["Private Kubernetes API VIP"]
         VIP --> CP
-        CA --> CP
+        KP --> CP
     end
     subgraph AWS["Environment's AWS VPC"]
-        ASG["Auto Scaling Group: 0–2"]
-        Worker["Talos EC2 workers"]
+        Sub["Public subnets in four zones"]
+        Worker["Talos EC2 workers: spot or on-demand"]
         Prism["KubePrism on each worker: localhost:7445"]
-        ASG --> Worker
+        Sub --> Worker
         Worker --> Prism
     end
-    CA -->|"AWS API: desired capacity"| ASG
+    KP -->|"EC2 API: launch, tag, terminate"| Worker
     Worker <-->|"KubeSpan: UDP 51820"| CP
     Worker <-->|"KubeSpan"| Fixed
     Prism -->|"Discovered control-plane endpoints over the mesh"| CP
 ```
 
-The diagram represents either dev or prod. Each has its own VPC, Auto Scaling Group (ASG), Talos identity, and autoscaler IAM user.
+The diagram represents either dev or prod. Each has its own VPC, Talos identity, Karpenter controller, and Karpenter IAM user.
 
 | Setting | dev | prod |
 | --- | --- | --- |
-| Cluster / ASG | `dev-talos` / `dev-talos-burst` | `prod-talos` / `prod-talos-burst` |
+| Cluster | `dev-talos` | `prod-talos` |
 | VPC CIDR | `10.80.0.0/16` | `10.81.0.0/16` |
 | Private API VIP | `10.69.11.10` | `10.69.12.10` |
 | Default persistent storage | local-path | Longhorn |
+| Karpenter replicas | 1 | 2 |
 
-Both use `us-east-1`, a public subnet in `us-east-1d`, and `m7i-flex.large` instances. Each group has minimum zero and maximum two workers. The launch template uses a 40 GiB disposable `gp3` boot disk and a pinned Talos AMI. This disk is node storage, not a Kubernetes EBS volume.
+Both use `us-east-1` with one public subnet in each of `us-east-1a` through `us-east-1d`. There is a single `NodePool`, `aws-burst`, that allows amd64 `c`, `m`, and `r` instances of generation 6 or newer with 2, 4, or 8 vCPUs, on spot or on-demand capacity. It is limited to 8 CPUs and 32Gi of memory in total. Workers use a pinned Talos AMI and a 40 GiB disposable `gp3` boot disk. This disk is node storage, not a Kubernetes EBS volume.
 
-Configuration: [`terraform/aws/`](../../terraform/aws/) and the [environment variable files](../../terraform/cluster/env/).
+Configuration: [`terraform/aws/`](../../terraform/aws/), [`terraform/platform/karpenter.tf`](../../terraform/platform/karpenter.tf), and [`apps/components/karpenter-nodes/`](../../apps/components/karpenter-nodes/).
 
 ## Network path
 
 Talos discovery provides peer information. **KubeSpan** builds the encrypted WireGuard mesh between Talos nodes. Each AWS worker's **KubePrism** proxy selects discovered control-plane endpoints over that mesh. Cilium uses `localhost:7445` for API access and provides Kubernetes pod networking.
 
-The private LAN VIP stays private. AWS workers do not require public TCP 6443 or a route to the VIP. The worker security group permits inbound UDP 51820 for KubeSpan and outbound traffic; the public subnet has an internet gateway. Discovery and mesh reachability must work before a worker can join.
+The private LAN VIP stays private. AWS workers do not require public TCP 6443 or a route to the VIP. The worker security group permits inbound UDP 51820 for KubeSpan and outbound traffic; the public subnets have an internet gateway. Discovery and mesh reachability must work before a worker can join.
 
 Tailscale has a different role: it connects CI runners to the private management APIs. It is not the AWS workers' cluster network.
 
@@ -55,29 +56,34 @@ Tailscale has a different role: it connects CI runners to the private management
 ```mermaid
 sequenceDiagram
     participant Pod as Pending workload
-    participant CA as Cluster Autoscaler
-    participant ASG as AWS Auto Scaling Group
+    participant KP as Karpenter
+    participant EC2 as AWS EC2
     participant Node as Talos worker
     participant K8s as Kubernetes
-    participant GC as Burst node cleanup
     Pod->>K8s: Request eligible stateless capacity
-    CA->>K8s: Observe unschedulable pod
-    CA->>ASG: Increase desired capacity within limits
-    ASG->>Node: Boot pinned AMI with Talos configuration
-    Node->>K8s: Join through KubeSpan and KubePrism
+    KP->>K8s: Observe unschedulable pod
+    KP->>EC2: Create a NodeClaim and launch a fitting instance
+    EC2->>Node: Boot pinned AMI with Talos configuration
+    Node->>K8s: Join through KubeSpan and KubePrism, tainted karpenter.sh/unregistered
+    KP->>Node: Match provider ID, apply labels and taints
     K8s->>Node: Initialize cloud identity and Cilium
     K8s->>Node: Schedule pod once Ready
-    Note over CA,Node: Workload finishes and worker becomes removable
-    CA->>ASG: Scale down after configured delays
-    ASG->>Node: Terminate instance
-    GC->>K8s: Delete stale NotReady burst Node object
+    Note over KP,Node: Node is empty or underutilized for 5 minutes
+    KP->>Node: Drain
+    KP->>EC2: Terminate instance and delete the Node
 ```
 
-ASG tags advertise the future node's labels, taint, and measured allocatable capacity: **1950m CPU, 7274Mi memory, 32Gi ephemeral storage**. The autoscaler can evaluate pending pods before any AWS node exists. Requests larger than that template cannot trigger a useful scale-up.
+Karpenter picks an instance size that fits the pending pods, so requests must fit the largest allowed instance. A worker registers with the `karpenter.sh/unregistered` taint so nothing schedules before Karpenter labels it. Two startup taints, the cloud provider's `uninitialized` taint and Cilium's `agent-not-ready`, keep pods off until Talos CCM and Cilium finish; Karpenter does not count them against the node.
 
-Talos CCM initializes AWS node provider IDs such as `aws:///<zone>/<instance-id>`. The autoscaler recognizes the cloud-provider initialization and Cilium startup taints. OpenTofu ignores ASG `desired_capacity` after creation, so an infrastructure apply does not reset the autoscaler's current worker count.
+Talos CCM initializes AWS provider IDs such as `aws:///<zone>/<instance-id>`, which Karpenter uses to match each NodeClaim to its Node.
 
-The current autoscaler settings use a five-minute unneeded interval and five-minute delay after adding a node. Actual removal also depends on pod eviction constraints. The cleanup CronJob runs every five minutes and removes AWS-labeled nodes whose Ready condition has been non-True for over 15 minutes; it does not independently check EC2 termination.
+Karpenter predicts each instance type's allocatable capacity from the EC2NodeClass `kubelet` values. These are not applied to Talos. If they exceed what Talos actually reserves, Karpenter can launch a node a pod does not fit on.
+
+## Spot instances and node replacement
+
+The pool prefers spot capacity and falls back to on-demand. There is no interruption queue, so AWS reclaiming a spot instance gives no advance drain. Karpenter notices the missing instance, deletes the NodeClaim and Node, and launches capacity for the pods that became pending. Burst workloads are stateless, so this is expected. A workload that cannot tolerate it can require `karpenter.sh/capacity-type: on-demand` with a node selector.
+
+Karpenter compares each worker with the current AMI and Talos worker configuration. When either changes, the worker is drifted and replaced, one node at a time. Workers are also replaced after 720 hours.
 
 ## Keep persistent workloads on Proxmox
 
@@ -96,14 +102,18 @@ There is no AWS EBS CSI driver or Longhorn replica storage on burst workers. See
 
 | Owner | Responsibility |
 | --- | --- |
-| Cluster OpenTofu root | VPC, subnet/routes, launch template, ASG bounds, autoscaler IAM user/key |
-| Cluster Autoscaler | ASG desired worker count |
-| Argo CD | Autoscaler, Talos CCM, burst admission policy, stale-node cleanup |
-| Doppler and ESO | Delivery of the autoscaler's AWS key to its Deployment |
+| Cluster OpenTofu root | VPC, subnets, security group, worker IAM role and profile, Karpenter IAM user and key, worker Talos configuration |
+| Platform OpenTofu root | Karpenter CRDs, controller, `EC2NodeClass`, `NodePool`, and the controller's AWS key Secret |
+| Argo CD | Talos CCM and the burst admission policy |
+| Doppler | Hand-off of the Karpenter key, worker machine configuration, and AMI ID from the cluster root to the platform root |
 
-Each autoscaler key can scale only its environment's named group; AWS Describe permissions are account-wide. CI uses a separate OIDC provisioning role. Key rotation is an [OpenTofu replacement followed by an Argo CD restart](../operations/aws-burst-workers.md#rotate-the-autoscaler-key).
+The platform root owns Karpenter so that a destroy can delete the `NodePool` and wait for Karpenter to terminate its instances before the controller is removed. Because the worker Talos configuration contains cluster secrets, the `EC2NodeClass` user data is applied from OpenTofu instead of Git. Anyone who can read `ec2nodeclasses` in the cluster can read it.
+
+The Karpenter key can launch, tag, and terminate only instances tagged for its own cluster, in subnets and a security group tagged for it, from the pinned AMI. It can pass only the worker role, which has no permissions. AWS Describe permissions are regional. CI uses a separate OIDC provisioning role and never launches instances. Key rotation is [two OpenTofu applies](../operations/aws-burst-workers.md#rotate-the-karpenter-key).
 
 ## Known operating limits
+
+Spot and on-demand capacity can be unavailable in a zone. Karpenter then tries other instance types and zones in the pool. Nothing schedules past the CPU and memory limits, and excess workloads stay Pending.
 
 The existing deployment notes report roughly three minutes to worker readiness; treat this as an observation, not a deadline. Image startup, discovery, networking, and Cilium can change that timing.
 

@@ -2,7 +2,6 @@
 locals {
   name       = "${var.cluster_name}-burst"
   burst_key  = "burst.talos.dev/stateless"
-  burst_tag  = "k8s.io/cluster-autoscaler/${var.cluster_name}"
   node_label = "burst.talos.dev/compute"
   tags = {
     managed-by  = "talos-proxmox"
@@ -27,7 +26,7 @@ data "talos_machine_configuration" "worker" {
           extraArgs = {
             "cloud-provider"       = "external"
             "node-labels"          = "${local.node_label}=aws"
-            "register-with-taints" = "${local.burst_key}=true:NoSchedule"
+            "register-with-taints" = "${local.burst_key}=true:NoSchedule,karpenter.sh/unregistered=true:NoExecute"
           }
         }
         network = {
@@ -62,7 +61,10 @@ resource "aws_security_group" "worker" {
   description = "Talos KubeSpan burst workers (no public Kubernetes API)"
   vpc_id      = aws_vpc.worker.id
 
-  tags = merge(local.tags, { Name = local.name })
+  tags = merge(local.tags, {
+    Name                     = local.name
+    "karpenter.sh/discovery" = var.cluster_name
+  })
 }
 
 resource "aws_vpc_security_group_ingress_rule" "kubespan" {
@@ -80,81 +82,4 @@ resource "aws_vpc_security_group_egress_rule" "all" {
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
   tags              = { managed-by = "talos-proxmox" }
-}
-
-resource "aws_launch_template" "worker" {
-  name_prefix   = "${local.name}-"
-  image_id      = var.ami_id
-  instance_type = "m7i-flex.large"
-  user_data     = base64encode(data.talos_machine_configuration.worker.machine_configuration)
-
-  metadata_options {
-    http_endpoint = "enabled"
-    http_tokens   = "required"
-  }
-
-  network_interfaces {
-    associate_public_ip_address = true
-    security_groups             = [aws_security_group.worker.id]
-  }
-
-  block_device_mappings {
-    device_name = "/dev/xvda"
-    ebs {
-      volume_size           = 40
-      volume_type           = "gp3"
-      delete_on_termination = true
-    }
-  }
-
-  tags = {
-    Name       = local.name
-    managed-by = "talos-proxmox"
-  }
-
-  tag_specifications {
-    resource_type = "instance"
-    tags = {
-      Name              = local.name
-      managed-by        = "talos-proxmox"
-      (local.burst_tag) = "owned"
-    }
-  }
-}
-
-resource "aws_autoscaling_group" "worker" {
-  name                = local.name
-  vpc_zone_identifier = [aws_subnet.worker.id]
-  min_size            = 0
-  max_size            = 2
-  desired_capacity    = 0
-  health_check_type   = "EC2"
-
-  launch_template {
-    id      = aws_launch_template.worker.id
-    version = tostring(aws_launch_template.worker.latest_version)
-  }
-
-  # Resource tags are the measured allocatable of a Talos m7i-flex.large worker with a 40 GB root disk.
-  dynamic "tag" {
-    for_each = {
-      "managed-by"                                                          = "talos-proxmox"
-      "k8s.io/cluster-autoscaler/enabled"                                   = "true"
-      (local.burst_tag)                                                     = "owned"
-      "k8s.io/cluster-autoscaler/node-template/label/${local.node_label}"   = "aws"
-      "k8s.io/cluster-autoscaler/node-template/taint/${local.burst_key}"    = "true:NoSchedule"
-      "k8s.io/cluster-autoscaler/node-template/resources/cpu"               = "1950m"
-      "k8s.io/cluster-autoscaler/node-template/resources/memory"            = "7274Mi"
-      "k8s.io/cluster-autoscaler/node-template/resources/ephemeral-storage" = "32Gi"
-    }
-    content {
-      key                 = tag.key
-      value               = tag.value
-      propagate_at_launch = true
-    }
-  }
-
-  lifecycle {
-    ignore_changes = [desired_capacity]
-  }
 }

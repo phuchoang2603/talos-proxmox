@@ -7,12 +7,17 @@ resource "aws_vpc" "worker" {
 }
 
 resource "aws_subnet" "worker" {
+  for_each = { for i, az in var.availability_zones : az => i }
+
   vpc_id                  = aws_vpc.worker.id
-  cidr_block              = cidrsubnet(var.vpc_cidr, 8, 0)
-  availability_zone       = var.availability_zone
+  cidr_block              = cidrsubnet(var.vpc_cidr, 8, each.value)
+  availability_zone       = each.key
   map_public_ip_on_launch = true
 
-  tags = merge(local.tags, { Name = "${local.name}-public" })
+  tags = merge(local.tags, {
+    Name                     = "${local.name}-${each.key}"
+    "karpenter.sh/discovery" = var.cluster_name
+  })
 }
 
 resource "aws_internet_gateway" "worker" {
@@ -34,6 +39,8 @@ resource "aws_route" "internet" {
 }
 
 resource "aws_route_table_association" "public" {
-  subnet_id      = aws_subnet.worker.id
+  for_each = aws_subnet.worker
+
+  subnet_id      = each.value.id
   route_table_id = aws_route_table.public.id
 }

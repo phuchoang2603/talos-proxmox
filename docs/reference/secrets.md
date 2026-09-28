@@ -18,7 +18,7 @@ Set these directly in the matching Doppler config before deployment. They are no
 | `CLOUDFLARE_TUNNEL_TOKEN` | Tunnel ExternalSecret | Both |
 | `LONGHORN_AWS_ENDPOINTS`, `LONGHORN_AWS_ACCESS_KEY_ID`, `LONGHORN_AWS_SECRET_ACCESS_KEY` | Longhorn backup ExternalSecret | prod |
 
-`LONGHORN_AWS_*` are MinIO backup credentials despite their names; they are separate from the autoscaler's AWS IAM credentials.
+`LONGHORN_AWS_*` are MinIO backup credentials despite their names; they are separate from Karpenter's AWS IAM credentials.
 
 ## Generated secrets
 
@@ -27,7 +27,8 @@ Set these directly in the matching Doppler config before deployment. They are no
 | `ESO_DOPPLER_TOKEN` | Foundation | Platform creates `external-secrets-auth/doppler-token` |
 | `KUBECONFIG` | Cluster root | Platform providers and operators |
 | `TALOSCONFIG` | Cluster root | Operators using `talosctl` |
-| `AUTOSCALER_AWS_ACCESS_KEY_ID`, `AUTOSCALER_AWS_SECRET_ACCESS_KEY` | Cluster root's AWS module | Autoscaler ExternalSecret |
+| `KARPENTER_AWS_ACCESS_KEY_ID`, `KARPENTER_AWS_SECRET_ACCESS_KEY` | Cluster root's AWS module | Platform creates `kube-system/karpenter-aws` |
+| `AWS_WORKER_MACHINE_CONFIG`, `AWS_WORKER_AMI_ID` | Cluster root's AWS module | Platform passes them to the Karpenter `EC2NodeClass` |
 
 Foundation also creates a read/write CI service token per config and publishes it as that GitHub Environment's `DOPPLER_TOKEN` secret. This differs from the read-only ESO token. A local foundation apply uses a workspace-level Doppler login token to manage these service tokens.
 
@@ -38,7 +39,7 @@ Foundation also creates a read/write CI service token per config and publishes i
 | CI Doppler token | Read/write one environment config |
 | ESO Doppler token | Read one environment config; only Doppler credential installed in the cluster |
 | CI AWS session | GitHub OIDC provisioning role |
-| Autoscaler AWS key | Scale the environment's named ASG; account-wide Describe access |
+| Karpenter AWS key | Launch, tag, and terminate the environment's tagged instances; regional Describe access |
 | HCP operator token | State access across the configured workspaces |
 
 HCP state holds generated credentials and Talos bootstrap material. Doppler provider reads also bring secret data into the planning/state flow. Keep state and saved plans restricted to operators; sensitive plan rendering is not encryption of state.
@@ -47,11 +48,10 @@ HCP state holds generated credentials and Talos bootstrap material. Doppler prov
 
 | Kubernetes Secret | Namespace | Refresh |
 | --- | --- | --- |
-| `cluster-autoscaler-aws` | `cluster-autoscaler` | 5 minutes |
 | `cloudflare-tunnel-token` | `cloudflare-tunnel` | 1 hour |
 | `longhorn-minio-credentials` | `longhorn-system` | 1 hour |
 
-All three are produced by ExternalSecrets using the `doppler` ClusterSecretStore. If Doppler is unreachable, existing Secrets are retained and refresh failures are exposed through ESO status. Inspect status without printing secret values:
+Both are produced by ExternalSecrets using the `doppler` ClusterSecretStore. If Doppler is unreachable, existing Secrets are retained and refresh failures are exposed through ESO status. Inspect status without printing secret values:
 
 ```bash
 kubectl get clustersecretstore doppler
@@ -60,4 +60,4 @@ kubectl get externalsecrets -A
 
 Select your cluster first using [cluster access](../operations/cluster-access.md).
 
-For Cloudflare, change `CLOUDFLARE_TUNNEL_TOKEN` in Doppler, wait for the ExternalSecret to refresh successfully, then use Argo CD's **Restart** action on `cloudflared`. For generated autoscaler keys, use the [OpenTofu rotation procedure](../operations/aws-burst-workers.md#rotate-the-autoscaler-key). Updating a Kubernetes Secret does not restart these Deployments automatically.
+For Cloudflare, change `CLOUDFLARE_TUNNEL_TOKEN` in Doppler, wait for the ExternalSecret to refresh successfully, then use Argo CD's **Restart** action on `cloudflared`. Updating a Kubernetes Secret does not restart these Deployments automatically. The Karpenter key is not delivered by ESO: rotate it with the [OpenTofu procedure](../operations/aws-burst-workers.md#rotate-the-karpenter-key), where the platform apply restarts the controller.

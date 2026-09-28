@@ -25,8 +25,8 @@ The [bootstrap chart](../../apps/argocd/bootstrap/) creates the `talos-proxmox` 
 
 | Owner | Components |
 | --- | --- |
-| Platform OpenTofu root | Gateway API CRDs, Cilium/SPIRE, ESO token namespace/Secret, Argo CD, bootstrap AppProject/root Application/UI route |
-| Argo CD | ESO/store, Cilium address pools/L2 policies, storage, metrics, cloud controller, autoscaler, GPU components, routes, operators, observability, tunnel |
+| Platform OpenTofu root | Gateway API CRDs, Cilium/SPIRE, ESO token namespace/Secret, Karpenter (CRDs, controller, `EC2NodeClass`, `NodePool`, and its AWS key Secret), Argo CD, bootstrap AppProject/root Application/UI route |
+| Argo CD | ESO/store, Cilium address pools/L2 policies, storage, metrics, cloud controller, GPU components, routes, operators, observability, tunnel |
 
 Cilium and Argo CD remain OpenTofu-owned after bring-up. Changes to them go through a platform apply. Application changes go through Git and Argo CD. The `cilium-network` chart contains cluster-scoped networking resources; it does not install a second Cilium release.
 
@@ -41,7 +41,7 @@ The source of truth is [`apps/argocd/platform/values.yaml`](../../apps/argocd/pl
 | -1 | Burst admission policy, Cilium network resources, metrics-server | dev, prod |
 | 0 | local-path | dev |
 | 0 | Longhorn and backup/storage resources | prod |
-| 0 | Talos CCM/cleanup, autoscaler, CNPG, Strimzi, MongoDB operator | dev, prod |
+| 0 | Talos CCM, CNPG, Strimzi, MongoDB operator | dev, prod |
 | 1 | GPU operator, NVIDIA DRA, observability | dev, prod |
 | 2 | Cloudflare tunnel | dev, prod |
 
@@ -66,9 +66,9 @@ flowchart LR
     Secrets --> Pods["Workloads"]
 ```
 
-The token Secret is the one Doppler-derived Kubernetes Secret owned by OpenTofu. ESO owns the tunnel, autoscaler, and Longhorn credential Secrets. Each store uses a read-only token scoped to its environment. Secret values never belong in Helm values files.
+The token Secret and Karpenter's `karpenter-aws` Secret are the Doppler-derived Kubernetes Secrets owned by OpenTofu. ESO owns the tunnel and Longhorn credential Secrets. Each store uses a read-only token scoped to its environment. Secret values never belong in Helm values files.
 
-The autoscaler refresh interval is five minutes; tunnel and Longhorn credentials refresh hourly. Workloads that read credentials only at startup need an Argo CD Restart after the Secret refreshes. See [secret delivery and rotation](../reference/secrets.md#delivery-and-rotation).
+Tunnel and Longhorn credentials refresh hourly. Workloads that read credentials only at startup need an Argo CD Restart after the Secret refreshes. See [secret delivery and rotation](../reference/secrets.md#delivery-and-rotation).
 
 ## Change a component
 

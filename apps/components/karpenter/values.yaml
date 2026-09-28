@@ -1,0 +1,39 @@
+# The platform root sets settings.clusterName, settings.clusterEndpoint, and a credentials
+# checksum pod annotation. The AWS key comes from the platform-owned karpenter-aws Secret.
+karpenter:
+  # CRDs are installed by the karpenter-crd release.
+  replicas: 1
+  settings:
+    # Spot interruption handling is intentionally off: burst workloads are stateless.
+    interruptionQueue: ""
+  controller:
+    env:
+      - name: AWS_REGION
+        value: us-east-1
+      - name: AWS_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            name: karpenter-aws
+            key: AWS_ACCESS_KEY_ID
+      - name: AWS_SECRET_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            name: karpenter-aws
+            key: AWS_SECRET_ACCESS_KEY
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 512Mi
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+  # Proxmox nodes have no zone label, so spread by host only.
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway

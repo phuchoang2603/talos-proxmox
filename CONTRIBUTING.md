@@ -27,9 +27,9 @@ tofu -chdir=terraform/cluster validate
 For a component chart, lint its base values and any changed environment overlay. For example:
 
 ```bash
-helm lint apps/components/cluster-autoscaler --kube-version 1.36.3
-helm lint apps/components/cluster-autoscaler --kube-version 1.36.3 \
-  --values apps/components/cluster-autoscaler/environments/prod/values.yaml
+helm lint apps/components/karpenter --kube-version 1.36.3
+helm lint apps/components/karpenter --kube-version 1.36.3 \
+  --values apps/components/karpenter/environments/prod/values.yaml
 ```
 
 For changes to platform membership, check both environments:
@@ -72,7 +72,7 @@ The foundation root **imports an existing Doppler project and its dev/prod envir
 2. Create an HCP user token for an operator with access to the organization. Store it as `HCP_TERRAFORM_TOKEN` in both Doppler configs. This deployment uses an operator user token shared across the workspaces.
 3. Enter the operator-issued credentials listed in the [secrets reference](docs/reference/secrets.md#operator-entered-secrets), including Proxmox, Tailscale, Cloudflare, and prod's Longhorn backup credentials.
 
-Foundation creates the CI and ESO service tokens. Cluster applies generate kubeconfigs, Talos configs, and autoscaler AWS keys. You do not enter those by hand.
+Foundation creates the CI and ESO service tokens. Cluster applies generate kubeconfigs, Talos configs, and Karpenter AWS keys and worker configuration. You do not enter those by hand.
 
 ## 3. Review inventory and network settings
 
@@ -140,4 +140,4 @@ Both roots reject a workspace belonging to the other environment. The platform r
 
 ## Destroy an environment
 
-Use **Manual Provision** on `main`, select the environment, then **destroy**. The workflow destroys platform first and cluster second, including the AWS worker infrastructure and autoscaler key. Foundation is separate and remains in place. This removes the environment's infrastructure; preserve any data you need beforehand.
+Use **Manual Provision** on `main`, select the environment, then **destroy**. The workflow destroys platform first and cluster second, including the AWS worker infrastructure, Karpenter's instances, and its key. Foundation is separate and remains in place. This removes the environment's infrastructure; preserve any data you need beforehand.

@@ -77,15 +77,6 @@ components:
     syncWave: "0"
     releaseName: talos-cloud-controller-manager
     clusters: [dev, prod]
-  cluster-autoscaler:
-    path: apps/components/cluster-autoscaler
-    namespace: cluster-autoscaler
-    syncWave: "0"
-    releaseName: cluster-autoscaler
-    clusters: [dev, prod]
-    valueFilesByCluster:
-      prod:
-        - environments/prod/values.yaml
   cnpg:
     path: apps/components/cnpg
     namespace: operators

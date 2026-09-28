@@ -2,46 +2,115 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "CreateNamedAutoscalerUsersAndPolicies",
+      "Sid": "CreateNamedKarpenterUsersAndPolicies",
       "Effect": "Allow",
-      "Action": ["iam:CreateUser", "iam:CreatePolicy"],
+      "Action": [
+        "iam:CreateUser",
+        "iam:CreatePolicy"
+      ],
       "Resource": [
-        "arn:aws:iam::ACCOUNT_ID:user/talos-proxmox-autoscaler-*",
-        "arn:aws:iam::ACCOUNT_ID:policy/talos-proxmox-autoscaler-*"
+        "arn:aws:iam::ACCOUNT_ID:user/talos-proxmox-karpenter-*",
+        "arn:aws:iam::ACCOUNT_ID:policy/talos-proxmox-karpenter-*"
       ],
       "Condition": {
-        "StringEquals": { "aws:RequestTag/managed-by": "talos-proxmox" }
+        "StringEquals": {
+          "aws:RequestTag/managed-by": "talos-proxmox"
+        }
       }
     },
     {
-      "Sid": "ManageNamedAutoscalerUsersAndPolicies",
+      "Sid": "ManageNamedKarpenterUsersAndPolicies",
       "Effect": "Allow",
       "Action": [
-        "iam:GetUser", "iam:DeleteUser", "iam:TagUser", "iam:UntagUser", "iam:ListUserTags",
-        "iam:ListUserPolicies", "iam:ListAttachedUserPolicies",
-        "iam:GetPolicy", "iam:GetPolicyVersion", "iam:ListPolicyVersions", "iam:ListPolicyTags",
-        "iam:CreatePolicyVersion", "iam:DeletePolicyVersion", "iam:SetDefaultPolicyVersion",
-        "iam:DeletePolicy", "iam:TagPolicy", "iam:UntagPolicy"
+        "iam:GetUser",
+        "iam:DeleteUser",
+        "iam:TagUser",
+        "iam:UntagUser",
+        "iam:ListUserTags",
+        "iam:ListUserPolicies",
+        "iam:ListAttachedUserPolicies",
+        "iam:ListGroupsForUser",
+        "iam:GetPolicy",
+        "iam:GetPolicyVersion",
+        "iam:ListPolicyVersions",
+        "iam:ListPolicyTags",
+        "iam:CreatePolicyVersion",
+        "iam:DeletePolicyVersion",
+        "iam:SetDefaultPolicyVersion",
+        "iam:DeletePolicy",
+        "iam:TagPolicy",
+        "iam:UntagPolicy"
       ],
       "Resource": [
-        "arn:aws:iam::ACCOUNT_ID:user/talos-proxmox-autoscaler-*",
-        "arn:aws:iam::ACCOUNT_ID:policy/talos-proxmox-autoscaler-*"
+        "arn:aws:iam::ACCOUNT_ID:user/talos-proxmox-karpenter-*",
+        "arn:aws:iam::ACCOUNT_ID:policy/talos-proxmox-karpenter-*"
       ]
     },
     {
-      "Sid": "ManageNamedAutoscalerAccessKeys",
+      "Sid": "ManageNamedKarpenterAccessKeys",
       "Effect": "Allow",
-      "Action": ["iam:CreateAccessKey", "iam:DeleteAccessKey", "iam:ListAccessKeys"],
-      "Resource": "arn:aws:iam::ACCOUNT_ID:user/talos-proxmox-autoscaler-*"
+      "Action": [
+        "iam:CreateAccessKey",
+        "iam:DeleteAccessKey",
+        "iam:ListAccessKeys"
+      ],
+      "Resource": "arn:aws:iam::ACCOUNT_ID:user/talos-proxmox-karpenter-*"
     },
     {
-      "Sid": "AttachOnlyNamedAutoscalerPolicies",
+      "Sid": "AttachOnlyNamedKarpenterPolicies",
       "Effect": "Allow",
-      "Action": ["iam:AttachUserPolicy", "iam:DetachUserPolicy"],
-      "Resource": "arn:aws:iam::ACCOUNT_ID:user/talos-proxmox-autoscaler-*",
+      "Action": [
+        "iam:AttachUserPolicy",
+        "iam:DetachUserPolicy"
+      ],
+      "Resource": "arn:aws:iam::ACCOUNT_ID:user/talos-proxmox-karpenter-*",
       "Condition": {
-        "ArnLike": { "iam:PolicyARN": "arn:aws:iam::ACCOUNT_ID:policy/talos-proxmox-autoscaler-*" }
+        "ArnLike": {
+          "iam:PolicyARN": "arn:aws:iam::ACCOUNT_ID:policy/talos-proxmox-karpenter-*"
+        }
       }
+    },
+    {
+      "Sid": "CreateWorkerRoleAndProfile",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateRole",
+        "iam:CreateInstanceProfile"
+      ],
+      "Resource": [
+        "arn:aws:iam::ACCOUNT_ID:role/*-talos-burst-worker",
+        "arn:aws:iam::ACCOUNT_ID:instance-profile/*-talos-burst-worker"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/managed-by": "talos-proxmox"
+        }
+      }
+    },
+    {
+      "Sid": "ManageWorkerRoleAndProfile",
+      "Effect": "Allow",
+      "Action": [
+        "iam:GetRole",
+        "iam:DeleteRole",
+        "iam:TagRole",
+        "iam:UntagRole",
+        "iam:ListRoleTags",
+        "iam:ListRolePolicies",
+        "iam:ListAttachedRolePolicies",
+        "iam:UpdateAssumeRolePolicy",
+        "iam:GetInstanceProfile",
+        "iam:DeleteInstanceProfile",
+        "iam:TagInstanceProfile",
+        "iam:UntagInstanceProfile",
+        "iam:ListInstanceProfileTags",
+        "iam:AddRoleToInstanceProfile",
+        "iam:RemoveRoleFromInstanceProfile"
+      ],
+      "Resource": [
+        "arn:aws:iam::ACCOUNT_ID:role/*-talos-burst-worker",
+        "arn:aws:iam::ACCOUNT_ID:instance-profile/*-talos-burst-worker"
+      ]
     }
   ]
 }

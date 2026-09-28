@@ -1,0 +1,9 @@
+apiVersion: v2
+name: platform-karpenter
+description: Karpenter controller for stateless AWS burst workers
+type: application
+version: 0.1.0
+dependencies:
+  - name: karpenter
+    version: 1.14.1
+    repository: oci://public.ecr.aws/karpenter

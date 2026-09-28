@@ -21,8 +21,8 @@ variable "vpc_cidr" {
   type = string
 }
 
-variable "availability_zone" {
-  type = string
+variable "availability_zones" {
+  type = list(string)
 }
 
 variable "ami_id" {

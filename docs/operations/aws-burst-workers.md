@@ -2,7 +2,7 @@
 
 [Documentation home](../../README.md) · [Hybrid AWS architecture](../architecture/hybrid-aws-workers.md)
 
-Use this guide to place a stateless workload on AWS, observe scaling, disable bursting, or rotate the autoscaler key. First [select the cluster](cluster-access.md#select-an-environment). AWS inspection/maintenance commands also require the AWS CLI and an operator AWS session; the CLI is not included in `devenv.nix`.
+Use this guide to place a stateless workload on AWS, observe scaling, pause bursting, or rotate the Karpenter key. First [select the cluster](cluster-access.md#select-an-environment). AWS inspection commands also require the AWS CLI and an operator AWS session; the CLI is not included in `devenv.nix`.
 
 ## Schedule a workload
 
@@ -24,61 +24,63 @@ affinity:
               values: [aws]
 ```
 
-The toleration permits AWS placement; the affinity requires it, so the Pod waits for burst capacity rather than landing on Proxmox. Set CPU and memory requests on its containers. A single worker advertises 1950m CPU, 7274Mi memory, and 32Gi ephemeral storage before system workload overhead is considered by scheduling.
+The toleration permits AWS placement; the affinity requires it, so the Pod waits for burst capacity rather than landing on Proxmox. Set CPU and memory requests on its containers. Karpenter chooses an instance that fits them, up to 8 vCPUs, and can use spot capacity. To require on-demand capacity for a workload that cannot tolerate a sudden spot reclaim, add a node selector:
+
+```yaml
+nodeSelector:
+  karpenter.sh/capacity-type: on-demand
+```
 
 Use no PVCs, generic ephemeral volumes, or persistent claim templates. `emptyDir` is allowed but disappears with the worker. The admission policy rejects persistent workloads opting into AWS. Store the workload definition in its usual Git-managed location so Argo CD can reconcile it.
 
 ## Observe scaling
 
 ```bash
+kubectl get nodepool,ec2nodeclass
+kubectl get nodeclaims -o wide
 kubectl get nodes -l burst.talos.dev/compute=aws -o wide
-kubectl -n cluster-autoscaler logs deploy/cluster-autoscaler-aws-cluster-autoscaler \
-  --tail=200 | rg 'scale-up plan|Scale-down|Registering ASG|AccessDenied|InvalidClientTokenId'
-aws autoscaling describe-auto-scaling-groups --region us-east-1 \
-  --auto-scaling-group-names "${CLUSTER_ENV}-talos-burst" \
-  --query 'AutoScalingGroups[0].[MinSize,DesiredCapacity,MaxSize]'
+kubectl -n kube-system logs deploy/karpenter --tail=200
 ```
 
-A zero desired count is normal when idle. Each group is bounded at two workers. Once workloads finish, scale-down depends on the configured delays and eviction constraints; stale NotReady burst Node objects are later removed by the cleanup CronJob.
+No NodeClaims and no AWS nodes is normal when idle. After workloads finish, Karpenter drains and removes unneeded workers once the five-minute consolidation delay has passed; eviction constraints such as PodDisruptionBudgets can delay it. The Node object is removed along with the instance.
 
-If a Pod stays Pending, inspect its events and check:
+If a Pod stays Pending, inspect its events and the NodeClaim, and check:
 
 | Check | Why it matters |
 | --- | --- |
-| Requests fit the node template | An oversized Pod cannot fit even if a new node starts |
-| Taint toleration and node affinity | Scheduling intent must match the ASG template |
-| ASG is below maximum and can launch the pinned AMI | Capacity bounds or EC2 launch failures can prevent scale-up |
-| Autoscaler Secret is Ready and logs show ASG registration | Stale/invalid credentials prevent AWS API calls |
+| Requests fit an allowed instance | Pods larger than 8 vCPUs, or than the NodePool's remaining limit, cannot be scheduled |
+| Taint toleration and node affinity | Scheduling intent must match the NodePool's taint and label |
+| `kubectl describe nodepool aws-burst` shows limits not reached | Total CPU and memory are capped |
+| Karpenter logs show no `AccessDenied` or launch errors | Stale credentials, insufficient capacity, and a wrong AMI all fail at launch |
 | New node has mesh connectivity, cloud identity, and Cilium | A launched EC2 instance is not yet a Ready Kubernetes node |
+
+If Karpenter launches a node that a pod does not fit on, compare `kubectl get nodeclaim -o yaml` allocatable with the Node's allocatable and adjust the `kubelet` values in [`apps/components/karpenter-nodes/values.yaml`](../../apps/components/karpenter-nodes/values.yaml).
 
 See [the join sequence](../architecture/hybrid-aws-workers.md#scale-from-zero-then-return-to-zero) for the responsibilities of each component.
 
-## Return to zero or disable bursting
+## Return to zero or pause bursting
 
-For normal scale-down, remove or scale down the burst workloads through their Git owner and let the autoscaler remove unneeded nodes. Leaving AWS-only workloads Pending can trigger new capacity.
+For normal scale-down, remove or scale down the burst workloads through their Git owner and let Karpenter remove unneeded nodes. Leaving AWS-only workloads Pending can trigger new capacity.
 
-To disable automatic bursting for an environment:
+To stop new AWS capacity for an environment, set the NodePool limits to zero in `apps/components/karpenter-nodes/environments/<env>/values.yaml`:
 
-1. Remove that environment from `clusters` for `cluster-autoscaler` in [`apps/argocd/platform/values.yaml`](../../apps/argocd/platform/values.yaml), merge, and wait for Argo CD to prune its Application/resources.
-2. Remove or scale down burst workloads, then drain remaining AWS nodes. Draining removes their disposable local data:
+```yaml
+nodePool:
+  limits:
+    cpu: "0"
+    memory: 0Gi
+```
 
-   ```bash
-   kubectl drain -l burst.talos.dev/compute=aws \
-     --ignore-daemonsets --delete-emptydir-data
-   ```
+Merge it and let the platform apply run. Existing workers keep running until their workloads finish and consolidation removes them. To remove them immediately, delete the workloads or drain the nodes and let Karpenter terminate them:
 
-3. Set the group to zero with an operator AWS session:
+```bash
+kubectl drain -l burst.talos.dev/compute=aws \
+  --ignore-daemonsets --delete-emptydir-data
+```
 
-   ```bash
-   aws autoscaling set-desired-capacity --region us-east-1 \
-     --auto-scaling-group-name "${CLUSTER_ENV}-talos-burst" --desired-capacity 0
-   ```
+Draining removes their disposable local data. Restore the limits to resume bursting. Deleting the AWS module is a larger infrastructure removal: it also removes the IAM user, key, and worker role.
 
-4. Wait for the stale-node cleanup CronJob. If necessary, inspect and remove the terminated workers' Node objects.
-
-OpenTofu ignores desired capacity, so a routine apply will not turn it back up. Restore the environment's autoscaler membership in Git to re-enable automatic scaling. Deleting the AWS module is a larger infrastructure removal: it also removes the IAM user and key.
-
-## Rotate the autoscaler key
+## Rotate the Karpenter key
 
 Start at the repository root and follow [local OpenTofu setup](../../CONTRIBUTING.md#run-opentofu-locally). Select the same environment as your kubeconfig:
 
@@ -88,21 +90,30 @@ export TF_WORKSPACE="talos-cluster-${TF_VAR_env}"
 tofu -chdir=terraform/cluster init
 tofu -chdir=terraform/cluster apply \
   -var-file="env/${TF_VAR_env}/main.tfvars" \
-  -replace=module.aws.aws_iam_access_key.autoscaler
+  -replace=module.aws.aws_iam_access_key.karpenter
 ```
 
-Review the replacement before approving it. OpenTofu creates the replacement key and updates Doppler as part of the apply. ESO refreshes `cluster-autoscaler/cluster-autoscaler-aws` every five minutes. There can be an authentication gap until the Secret and process use the new key.
+Review the replacement before approving it. OpenTofu creates the replacement key and updates Doppler as part of the apply. Then apply the platform root for the same environment:
 
-1. Wait for the ExternalSecret to refresh successfully:
+```bash
+export TF_WORKSPACE="talos-platform-${TF_VAR_env}"
+tofu -chdir=terraform/platform init
+tofu -chdir=terraform/platform apply
+```
 
-   ```bash
-   kubectl -n cluster-autoscaler get externalsecret cluster-autoscaler-aws
-   ```
-
-2. In the environment's Argo CD UI, use **Restart** on the autoscaler Deployment.
-3. Check logs for successful registration of the environment's ASG without `AccessDenied` or `InvalidClientTokenId`.
+The platform apply updates the `kube-system/karpenter-aws` Secret and restarts the controller, so there is no Argo CD restart. Check the controller logs for launches without `AccessDenied` or `InvalidClientTokenId`.
 
 CI's OIDC session is independent of this key. Do not create a replacement key manually in AWS or copy it into Kubernetes.
+
+## Destroy an environment with running workers
+
+Use the **Manual Provision** destroy workflow. The platform root is destroyed first: it removes the NodePool, waits for Karpenter to terminate its instances (up to 30 minutes for workloads that ignore eviction), and then removes the controller and CRDs. If the wait fails, list the environment's remaining instances before retrying:
+
+```bash
+aws ec2 describe-instances --region us-east-1 \
+  --filters "Name=tag:kubernetes.io/cluster/${CLUSTER_ENV}-talos,Values=owned" \
+  --query 'Reservations[].Instances[?State.Name!=`terminated`].InstanceId'
+```
 
 ## Inspect AWS resources in state
 
@@ -112,4 +123,4 @@ With the environment's cluster workspace initialized:
 tofu -chdir=terraform/cluster state list module.aws
 ```
 
-AWS resources share cluster state with Proxmox and Talos. They do not have a separate root or workspace.
+AWS resources share cluster state with Proxmox and Talos. They do not have a separate root or workspace. Karpenter-launched instances and launch templates are not in state; Karpenter owns them.

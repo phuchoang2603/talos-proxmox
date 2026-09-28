@@ -12,15 +12,10 @@
         "ec2:DescribeRouteTables",
         "ec2:DescribeSecurityGroups",
         "ec2:DescribeSecurityGroupRules",
-        "ec2:DescribeLaunchTemplates",
-        "ec2:DescribeLaunchTemplateVersions",
         "ec2:DescribeNetworkInterfaces",
         "ec2:DescribeImages",
         "ec2:DescribeInstanceTypes",
-        "autoscaling:DescribeAutoScalingGroups",
-        "autoscaling:DescribeScalingActivities",
-        "autoscaling:DescribeAutoScalingInstances",
-        "autoscaling:DescribeTags"
+        "ec2:DescribeAvailabilityZones"
       ],
       "Resource": "*"
     },
@@ -32,16 +27,14 @@
         "ec2:CreateSubnet",
         "ec2:CreateInternetGateway",
         "ec2:CreateRouteTable",
-        "ec2:CreateSecurityGroup",
-        "ec2:CreateLaunchTemplate"
+        "ec2:CreateSecurityGroup"
       ],
       "Resource": [
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:vpc/*",
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:subnet/*",
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:internet-gateway/*",
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:route-table/*",
-        "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/*",
-        "arn:aws:ec2:us-east-1:ACCOUNT_ID:launch-template/*"
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/*"
       ],
       "Condition": {
         "StringEquals": {
@@ -52,10 +45,16 @@
     {
       "Sid": "CreateResourcesInOwnedVpc",
       "Effect": "Allow",
-      "Action": ["ec2:CreateSecurityGroup", "ec2:CreateSubnet", "ec2:CreateRouteTable"],
+      "Action": [
+        "ec2:CreateSecurityGroup",
+        "ec2:CreateSubnet",
+        "ec2:CreateRouteTable"
+      ],
       "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:vpc/*",
       "Condition": {
-        "StringEquals": { "aws:ResourceTag/managed-by": "talos-proxmox" }
+        "StringEquals": {
+          "aws:ResourceTag/managed-by": "talos-proxmox"
+        }
       }
     },
     {
@@ -68,8 +67,7 @@
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:internet-gateway/*",
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:route-table/*",
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/*",
-        "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group-rule/*",
-        "arn:aws:ec2:us-east-1:ACCOUNT_ID:launch-template/*"
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group-rule/*"
       ],
       "Condition": {
         "StringEquals": {
@@ -79,7 +77,6 @@
             "CreateInternetGateway",
             "CreateRouteTable",
             "CreateSecurityGroup",
-            "CreateLaunchTemplate",
             "AuthorizeSecurityGroupIngress",
             "AuthorizeSecurityGroupEgress"
           ],
@@ -108,11 +105,7 @@
         "ec2:AuthorizeSecurityGroupIngress",
         "ec2:AuthorizeSecurityGroupEgress",
         "ec2:RevokeSecurityGroupIngress",
-        "ec2:RevokeSecurityGroupEgress",
-        "ec2:CreateLaunchTemplateVersion",
-        "ec2:DeleteLaunchTemplateVersions",
-        "ec2:ModifyLaunchTemplate",
-        "ec2:DeleteLaunchTemplate"
+        "ec2:RevokeSecurityGroupEgress"
       ],
       "Resource": [
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:vpc/*",
@@ -120,8 +113,7 @@
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:internet-gateway/*",
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:route-table/*",
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/*",
-        "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group-rule/*",
-        "arn:aws:ec2:us-east-1:ACCOUNT_ID:launch-template/*"
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group-rule/*"
       ],
       "Condition": {
         "StringEquals": {
@@ -139,86 +131,6 @@
       "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group-rule/*",
       "Condition": {
         "StringEquals": {
-          "aws:RequestTag/managed-by": "talos-proxmox"
-        }
-      }
-    },
-    {
-      "Sid": "ManageNamedWorkerGroupsOnly",
-      "Effect": "Allow",
-      "Action": [
-        "autoscaling:CreateAutoScalingGroup",
-        "autoscaling:UpdateAutoScalingGroup",
-        "autoscaling:DeleteAutoScalingGroup",
-        "autoscaling:CreateOrUpdateTags",
-        "autoscaling:DeleteTags"
-      ],
-      "Resource": [
-        "arn:aws:autoscaling:us-east-1:ACCOUNT_ID:autoScalingGroup:*:autoScalingGroupName/dev-talos-burst",
-        "arn:aws:autoscaling:us-east-1:ACCOUNT_ID:autoScalingGroup:*:autoScalingGroupName/prod-talos-burst"
-      ]
-    },
-    {
-      "Sid": "LaunchOnlyProjectWorkerInstances",
-      "Effect": "Allow",
-      "Action": "ec2:RunInstances",
-      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:instance/*",
-      "Condition": {
-        "StringEquals": {
-          "aws:RequestTag/managed-by": "talos-proxmox",
-          "ec2:InstanceType": "m7i-flex.large"
-        }
-      }
-    },
-    {
-      "Sid": "UseOwnedWorkerTemplate",
-      "Effect": "Allow",
-      "Action": "ec2:RunInstances",
-      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:launch-template/*",
-      "Condition": {
-        "StringEquals": {
-          "aws:ResourceTag/managed-by": "talos-proxmox"
-        }
-      }
-    },
-    {
-      "Sid": "UseOwnedWorkerSecurityGroup",
-      "Effect": "Allow",
-      "Action": "ec2:RunInstances",
-      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/*",
-      "Condition": {
-        "StringEquals": {
-          "aws:ResourceTag/managed-by": "talos-proxmox"
-        }
-      }
-    },
-    {
-      "Sid": "WorkerImageSubnetAndEphemeralResources",
-      "Effect": "Allow",
-      "Action": "ec2:RunInstances",
-      "Resource": [
-        "arn:aws:ec2:us-east-1::image/ami-09b2293881e8b9139",
-        "arn:aws:ec2:us-east-1:ACCOUNT_ID:network-interface/*",
-        "arn:aws:ec2:us-east-1:ACCOUNT_ID:volume/*"
-      ]
-    },
-    {
-      "Sid": "UseOwnedWorkerSubnet",
-      "Effect": "Allow",
-      "Action": "ec2:RunInstances",
-      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:subnet/*",
-      "Condition": {
-        "StringEquals": { "aws:ResourceTag/managed-by": "talos-proxmox" }
-      }
-    },
-    {
-      "Sid": "TagCreatedWorkerInstances",
-      "Effect": "Allow",
-      "Action": "ec2:CreateTags",
-      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:instance/*",
-      "Condition": {
-        "StringEquals": {
-          "ec2:CreateAction": "RunInstances",
           "aws:RequestTag/managed-by": "talos-proxmox"
         }
       }

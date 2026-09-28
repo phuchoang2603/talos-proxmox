@@ -23,9 +23,10 @@ variable "aws_vpc_cidr" {
   default = null
 }
 
-variable "aws_availability_zone" {
-  type    = string
-  default = "us-east-1d"
+variable "aws_availability_zones" {
+  description = "Availability zones that get a Karpenter worker subnet"
+  type        = list(string)
+  default     = ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"]
 }
 
 variable "aws_ami_id" {
