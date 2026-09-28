@@ -43,13 +43,13 @@ Each infrastructure resource, cluster component, and secret SHALL have exactly o
 - the platform root owns only the components required before GitOps can run;
 - the environment's Argo CD owns everything else.
 
-The platform root MUST be limited to Gateway API CRDs, the CNI, the secret-store bootstrap token Secret, and Argo CD with its root Application. No component MAY be managed by both OpenTofu and Argo CD.
+The platform root MUST be limited to Gateway API CRDs, the CNI, the secret-store bootstrap token Secret, and Argo CD with its root Application and UI route. No component MAY be managed by both OpenTofu and Argo CD.
 
 Gateway API CRDs SHALL be installed from a pinned Helm chart archive committed to Git. Cilium and SPIRE SHALL share `kube-system` for their namespaced resources. Their chart/release SHALL handle any additional namespace it requires declaratively; provisioning MUST NOT create per-component namespaces through scripts. Cluster-scoped Cilium resources remain cluster-scoped.
 
 #### Scenario: Pre-GitOps components
 - **WHEN** the platform root is applied to an environment
-- **THEN** it installs only Gateway API CRDs, the CNI, the bootstrap token Secret, and Argo CD with its root Application
+- **THEN** it installs only Gateway API CRDs, the CNI, the bootstrap token Secret, and Argo CD with its root Application and UI route
 
 #### Scenario: Drift on an Argo-owned component
 - **WHEN** an Argo-owned component is changed in Git

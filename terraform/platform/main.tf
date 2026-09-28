@@ -10,13 +10,14 @@ locals {
   talosconfig   = yamldecode(local.secrets.TALOSCONFIG)
   talos_context = local.talosconfig.contexts[local.talosconfig.context]
 
-  # Base values plus the environment overlay, when the component has one.
-  component_values = {
-    for name in ["cilium", "argo-cd"] : name => [
-      for f in [
-        "${local.components}/${name}/values.yaml",
-        "${local.components}/${name}/environments/${var.env}/values.yaml",
-      ] : file(f) if fileexists(f)
+  # Base values plus the environment overlay, when the chart has one.
+  chart_values = {
+    for name, dir in {
+      cilium             = "${local.components}/cilium"
+      "argo-cd"          = "${local.components}/argo-cd"
+      "argocd-bootstrap" = "${local.apps}/argocd/bootstrap"
+      } : name => [
+      for f in ["${dir}/values.yaml", "${dir}/environments/${var.env}/values.yaml"] : file(f) if fileexists(f)
     ]
   }
 }

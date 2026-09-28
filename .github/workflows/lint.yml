@@ -64,6 +64,8 @@ jobs:
         run: |
           for chart in apps/argocd/*/; do
             for cluster in dev prod; do
-              helm lint "${chart}" --kube-version "${KUBE_VERSION}" --set cluster="${cluster}"
+              overlay=()
+              [ -f "${chart}environments/${cluster}/values.yaml" ] && overlay=(--values "${chart}environments/${cluster}/values.yaml")
+              helm lint "${chart}" --kube-version "${KUBE_VERSION}" --set cluster="${cluster}" "${overlay[@]}"
             done
           done

@@ -2,3 +2,10 @@ repoURL: https://github.com/phuchoang2603/talos-proxmox.git
 targetRevision: main
 # Set by the platform root to the environment this Argo CD runs in.
 cluster: ""
+
+# Argo CD UI route. The address comes from the environment's Cilium pool (environments/<env>/values.yaml).
+gateway:
+  address: ""
+  # Service created by the platform root's argo-cd Helm release.
+  backendService: argo-cd-argocd-server
+  backendPort: 80

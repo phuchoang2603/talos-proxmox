@@ -10,7 +10,7 @@ The repository uses Terraform configuration executed by **OpenTofu**. Three root
 | --- | --- | --- | --- |
 | `foundation` | Operator | AWS CI identity, Doppler project/environments and service tokens, GitHub Environments, four state workspaces | `talos-proxmox` |
 | `cluster` | CI, per environment | Proxmox VMs, Talos identity/configuration, AWS worker infrastructure, generated credentials | `talos-cluster-dev`, `talos-cluster-prod` |
-| `platform` | CI, per environment | Gateway API CRDs, Cilium, ESO bootstrap token Secret, Argo CD and its root Application | `talos-platform-dev`, `talos-platform-prod` |
+| `platform` | CI, per environment | Gateway API CRDs, Cilium, ESO bootstrap token Secret, Argo CD with its root Application and UI route | `talos-platform-dev`, `talos-platform-prod` |
 
 `terraform/proxmox` and `terraform/aws` are modules called by `cluster`, not separate deployment roots. Argo CD owns the remaining cluster components; see [GitOps architecture](gitops.md).
 

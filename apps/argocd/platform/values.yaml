@@ -118,17 +118,6 @@ components:
     releaseName: nvidia-dra-driver-gpu
     clusters: [dev, prod]
     managedNamespaceMetadata: *privileged
-  argo-cd-route:
-    path: apps/components/argo-cd-route
-    namespace: argo-cd
-    syncWave: "1"
-    releaseName: argo-cd-route
-    clusters: [dev, prod]
-    valueFilesByCluster:
-      dev:
-        - environments/dev/values.yaml
-      prod:
-        - environments/prod/values.yaml
   observability:
     path: apps/components/observability
     releaseName: observability

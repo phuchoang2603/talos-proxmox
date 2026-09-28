@@ -82,7 +82,7 @@ Foundation creates the CI and ESO service tokens. Cluster applies generate kubec
 | API VIP and LoadBalancer address range | Each environment's `network.json` |
 | Proxmox bridge, datastore, gateway, versions, AWS AMI and VPC CIDR | Each environment's `main.tfvars` |
 | Cilium address pools and L2 announcement nodes | [`cilium-network/environments/`](apps/components/cilium-network/environments/) |
-| Argo CD UI addresses | [`argo-cd-route/environments/`](apps/components/argo-cd-route/environments/) |
+| Argo CD UI addresses | [`argocd/bootstrap/environments/`](apps/argocd/bootstrap/environments/) |
 | Longhorn UI address | [`longhorn/environments/prod/values.yaml`](apps/components/longhorn/environments/prod/values.yaml) |
 
 Inventory role `servers` means control plane; `worker` means a general worker; `longhorn` means a storage worker. A node's `pci` entries enable GPU passthrough and select the Talos image with NVIDIA extensions.

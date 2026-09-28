@@ -12,7 +12,7 @@ flowchart TD
     CNI --> Gate["Fixed-node health gate"]
     Gate --> Argo["Argo CD Helm release"]
     TF --> Auth["ESO bootstrap authentication Secret"]
-    Argo --> Bootstrap["Bootstrap chart: AppProject + root Application"]
+    Argo --> Bootstrap["Bootstrap chart: AppProject + root Application + UI Gateway"]
     Bootstrap --> Root["platform Application: cluster=dev or prod"]
     Root --> Shared["apps/argocd/platform"]
     Shared --> Apps["One Application per enabled component"]
@@ -20,13 +20,13 @@ flowchart TD
     Components --> Local["Local Kubernetes cluster"]
 ```
 
-The [bootstrap chart](../../apps/argocd/bootstrap/) creates the `talos-proxmox` AppProject and `platform` root Application. The [platform chart](../../apps/argocd/platform/) creates child Applications from its component table. Every destination is `https://kubernetes.default.svc`; there are no remote-cluster registrations or cross-environment kubeconfigs.
+The [bootstrap chart](../../apps/argocd/bootstrap/) creates the `talos-proxmox` AppProject, the `platform` root Application, and the Gateway and HTTPRoute for the Argo CD UI, whose address comes from its per-environment overlay. The [platform chart](../../apps/argocd/platform/) creates child Applications from its component table. Every destination is `https://kubernetes.default.svc`; there are no remote-cluster registrations or cross-environment kubeconfigs.
 
 ## One owner per resource
 
 | Owner | Components |
 | --- | --- |
-| Platform OpenTofu root | Gateway API CRDs, Cilium/SPIRE, ESO token namespace/Secret, Argo CD, bootstrap AppProject/root Application |
+| Platform OpenTofu root | Gateway API CRDs, Cilium/SPIRE, ESO token namespace/Secret, Argo CD, bootstrap AppProject/root Application/UI route |
 | Argo CD | ESO/store, Cilium address pools/L2 policies, storage, metrics, cloud controller, autoscaler, GPU components, routes, operators, observability, tunnel |
 
 Cilium and Argo CD remain OpenTofu-owned after bring-up. Changes to them go through a platform apply. Application changes go through Git and Argo CD. The `cilium-network` chart contains cluster-scoped networking resources; it does not install a second Cilium release.
@@ -43,7 +43,7 @@ The source of truth is [`apps/argocd/platform/values.yaml`](../../apps/argocd/pl
 | 0 | local-path | dev |
 | 0 | Longhorn and backup/storage resources | prod |
 | 0 | Talos CCM/cleanup, autoscaler, CNPG, Strimzi, MongoDB operator | dev, prod |
-| 1 | GPU operator, NVIDIA DRA, Argo CD route, observability | dev, prod |
+| 1 | GPU operator, NVIDIA DRA, observability | dev, prod |
 | 2 | Cloudflare tunnel | dev, prod |
 
 Waves order submission of child Applications; they do not wait for each child's resources to become healthy. Children converge asynchronously. Unlimited retries with backoff and `SkipDryRunOnMissingResource` handle dependencies such as CRDs arriving later. Automated prune removes resources deleted from Git, and self-heal repairs drift.

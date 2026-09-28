@@ -12,7 +12,7 @@ resource "helm_release" "cilium" {
   name      = "cilium"
   namespace = "kube-system"
   chart     = "${local.components}/cilium"
-  values    = local.component_values["cilium"]
+  values    = local.chart_values["cilium"]
   wait      = false
   timeout   = 900
 

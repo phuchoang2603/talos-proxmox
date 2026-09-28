@@ -1,5 +1,0 @@
-# LoadBalancer address from the environment's Cilium pool (environments/<env>/values.yaml).
-address: ""
-# Service created by the platform root's argo-cd Helm release.
-backendService: argo-cd-argocd-server
-backendPort: 80

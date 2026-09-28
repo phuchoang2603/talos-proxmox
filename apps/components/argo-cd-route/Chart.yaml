@@ -1,5 +1,0 @@
-apiVersion: v2
-name: platform-argo-cd-route
-description: Gateway API route to this cluster's Argo CD UI
-type: application
-version: 0.1.0
