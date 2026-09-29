@@ -6,7 +6,7 @@
     "address": "10.69.12.11/16",
     "cpu_cores": 4,
     "cpu_type": "host",
-    "memory_mb": 10240,
+    "memory_mb": 16384,
     "disk_size_gb": 64,
     "datastore_id": "local-lvm",
     "pci": [
@@ -43,7 +43,7 @@
     "address": "10.69.12.21/16",
     "cpu_cores": 2,
     "cpu_type": "host",
-    "memory_mb": 4096,
+    "memory_mb": 6144,
     "disk_size_gb": 300,
     "datastore_id": "local-lvm"
   },
@@ -54,7 +54,7 @@
     "address": "10.69.12.22/16",
     "cpu_cores": 2,
     "cpu_type": "host",
-    "memory_mb": 4096,
+    "memory_mb": 6144,
     "disk_size_gb": 300,
     "datastore_id": "local-lvm"
   },
@@ -65,7 +65,7 @@
     "address": "10.69.12.23/16",
     "cpu_cores": 2,
     "cpu_type": "host",
-    "memory_mb": 4096,
+    "memory_mb": 6144,
     "disk_size_gb": 300,
     "datastore_id": "local-lvm"
   }
