@@ -31,4 +31,4 @@
 - [x] 6.2 Run the Manual Provision destroy on dev with no AWS workers; verify it finishes without a "Destroy platform" step, `tofu state list` in `talos-platform-dev` is empty, and no instance or launch template tagged `kubernetes.io/cluster/dev-talos=owned` remains
 - [ ] 6.3 Apply dev, start a burst workload so at least one AWS worker is running, and run the destroy again; verify the sweep terminates the worker in minutes rather than draining it, the VPC is removed, and no dev instance or launch template remains
 - [ ] 6.4 Apply dev once more from the emptied platform state; verify the apply succeeds and Argo CD converges as for a fresh environment
-- [ ] 6.5 Run `openspec validate fast-environment-destroy --strict` and verify it passes
+- [x] 6.5 Run `openspec validate fast-environment-destroy --strict` and verify it passes
