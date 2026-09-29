@@ -79,7 +79,7 @@ Each environment's Argo CD SHALL reconcile its components from one shared Git pl
 
 #### Scenario: Storage selection
 - **WHEN** the platform definition is reconciled
-- **THEN** prod runs Longhorn, dev runs local-path, and neither cluster has more than one default StorageClass
+- **THEN** both dev and prod run local-path, neither runs Longhorn, and neither cluster has more than one default StorageClass
 
 #### Scenario: Component disabled for an environment
 - **WHEN** a component does not list an environment
