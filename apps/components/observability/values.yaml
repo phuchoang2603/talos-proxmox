@@ -150,7 +150,7 @@ victoria-metrics-k8s-stack:
   vmsingle:
     enabled: true
     spec:
-      retentionPeriod: 7d
+      retentionPeriod: 3d
       resources:
         requests:
           cpu: 50m
