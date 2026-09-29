@@ -1,0 +1,223 @@
+# Set per environment in environments/<env>/values.yaml; read by both collectors' configs.
+global:
+  clusterName: ""
+  environment: ""
+  gatewayEndpoint: ""
+
+secrets:
+  refreshInterval: 1h
+
+agent:
+  fullnameOverride: otel-agent
+  mode: daemonset
+  image:
+    repository: otel/opentelemetry-collector-contrib
+    tag: "0.161.0"
+  presets:
+    logsCollection:
+      enabled: true
+      storeCheckpoints: true
+    kubeletMetrics:
+      enabled: true
+    hostMetrics:
+      enabled: true
+    kubernetesAttributes:
+      enabled: true
+  # Applications send OTLP to otel-agent.observability.svc and reach their own node's agent.
+  service:
+    enabled: true
+  # Runs on every node, including tainted AWS burst workers.
+  tolerations:
+    - operator: Exists
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+  extraEnvs:
+    - name: OTEL_INGEST_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: otel-agent-token
+          key: token
+  ports:
+    jaeger-compact:
+      enabled: false
+    jaeger-thrift:
+      enabled: false
+    jaeger-grpc:
+      enabled: false
+    zipkin:
+      enabled: false
+  alternateConfig:
+    extensions:
+      health_check:
+        endpoint: ${env:MY_POD_IP}:13133
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: ${env:MY_POD_IP}:4317
+          http:
+            endpoint: ${env:MY_POD_IP}:4318
+      # Talos kubelets serve self-signed certificates.
+      kubeletstats:
+        insecure_skip_verify: true
+    processors:
+      memory_limiter:
+        check_interval: 5s
+        limit_percentage: 80
+        spike_limit_percentage: 25
+      resource/environment:
+        attributes:
+          - key: k8s.cluster.name
+            value: "{{ .Values.global.clusterName }}"
+            action: upsert
+          - key: deployment.environment
+            value: "{{ .Values.global.environment }}"
+            action: upsert
+      batch: {}
+    exporters:
+      # Bearer token as a header: the bearertokenauth client refuses plaintext gRPC.
+      otlp/gateway:
+        endpoint: "{{ .Values.global.gatewayEndpoint }}"
+        tls:
+          insecure: true
+        headers:
+          authorization: Bearer ${env:OTEL_INGEST_TOKEN}
+        retry_on_failure:
+          enabled: true
+          max_elapsed_time: 15m
+        sending_queue:
+          enabled: true
+          queue_size: 1000
+          storage: file_storage
+    service:
+      extensions:
+        - health_check
+      pipelines:
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, k8s_attributes, resource/environment, batch]
+          exporters: [otlp/gateway]
+        metrics:
+          receivers: [otlp]
+          processors: [memory_limiter, k8s_attributes, resource/environment, batch]
+          exporters: [otlp/gateway]
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, k8s_attributes, resource/environment, batch]
+          exporters: [otlp/gateway]
+
+cluster:
+  fullnameOverride: otel-cluster
+  mode: deployment
+  replicaCount: 1
+  image:
+    repository: otel/opentelemetry-collector-contrib
+    tag: "0.161.0"
+  presets:
+    clusterMetrics:
+      enabled: true
+    kubernetesEvents:
+      enabled: true
+  clusterRole:
+    rules:
+      - apiGroups: [""]
+        resources: [pods]
+        verbs: [get, list, watch]
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+  extraEnvs:
+    - name: OTEL_INGEST_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: otel-agent-token
+          key: token
+  service:
+    enabled: false
+  ports:
+    otlp:
+      enabled: false
+    otlp-http:
+      enabled: false
+    jaeger-compact:
+      enabled: false
+    jaeger-thrift:
+      enabled: false
+    jaeger-grpc:
+      enabled: false
+    zipkin:
+      enabled: false
+  alternateConfig:
+    extensions:
+      health_check:
+        endpoint: ${env:MY_POD_IP}:13133
+    receivers:
+      prometheus:
+        config:
+          scrape_configs:
+            - job_name: annotated-pods
+              kubernetes_sd_configs:
+                - role: pod
+              relabel_configs:
+                - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+                  action: keep
+                  regex: "true"
+                - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+                  action: replace
+                  target_label: __metrics_path__
+                  regex: (.+)
+                - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+                  action: replace
+                  regex: ([^:]+)(?::\d+)?;(\d+)
+                  replacement: $$1:$$2
+                  target_label: __address__
+                - source_labels: [__meta_kubernetes_namespace]
+                  target_label: namespace
+                - source_labels: [__meta_kubernetes_pod_name]
+                  target_label: pod
+    processors:
+      memory_limiter:
+        check_interval: 5s
+        limit_percentage: 80
+        spike_limit_percentage: 25
+      resource/environment:
+        attributes:
+          - key: k8s.cluster.name
+            value: "{{ .Values.global.clusterName }}"
+            action: upsert
+          - key: deployment.environment
+            value: "{{ .Values.global.environment }}"
+            action: upsert
+      batch: {}
+    exporters:
+      otlp/gateway:
+        endpoint: "{{ .Values.global.gatewayEndpoint }}"
+        tls:
+          insecure: true
+        headers:
+          authorization: Bearer ${env:OTEL_INGEST_TOKEN}
+        retry_on_failure:
+          enabled: true
+          max_elapsed_time: 15m
+        sending_queue:
+          enabled: true
+          queue_size: 1000
+    service:
+      extensions:
+        - health_check
+      pipelines:
+        logs:
+          receivers: []
+          processors: [memory_limiter, resource/environment, batch]
+          exporters: [otlp/gateway]
+        metrics:
+          receivers: [prometheus]
+          processors: [memory_limiter, resource/environment, batch]
+          exporters: [otlp/gateway]

@@ -1,0 +1,16 @@
+# No cert-manager in the cluster, so the admission webhooks stay off.
+clickhouse-operator-helm:
+  webhook:
+    enabled: false
+  certManager:
+    enabled: false
+  crd:
+    enabled: true
+  manager:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi

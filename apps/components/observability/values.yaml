@@ -1,0 +1,171 @@
+# Wrapper-owned resources. Names feed the operator-generated Services
+# (<name>-clickhouse-headless, <name>-svc) that HyperDX and the gateway use.
+store:
+  # The only SSD-backed prod node; keeps ClickHouse merges off the HDD etcd nodes.
+  nodeName: prod-server1
+  clickhouse:
+    name: clickstack
+    image:
+      repository: clickhouse/clickhouse-server
+      tag: "25.7-alpine"
+    resources:
+      requests:
+        cpu: 500m
+        memory: 2Gi
+      limits:
+        memory: 2Gi
+    # local-path does not enforce claim sizes; keep_free_space_bytes is the real bound.
+    storage: 50Gi
+    keepFreeSpaceBytes: 21474836480
+  keeper:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+      limits:
+        memory: 512Mi
+    storage: 5Gi
+  mongodb:
+    name: hyperdx-mongodb
+
+secrets:
+  refreshInterval: 1h
+
+global:
+  # HyperDX UI Gateway address from prod's Cilium pool; .254 is the Argo CD UI.
+  hyperdxAddress: 10.69.12.128
+
+clickstack:
+  fullnameOverride: hyperdx
+  # Credentials come from ExternalSecrets, so the chart's secret-bearing pieces stay off.
+  clickhouse:
+    enabled: false
+  mongodb:
+    enabled: false
+  otel-collector:
+    enabled: false
+  hyperdx:
+    # Blanked rather than null: Helm 4 keeps a subchart's map defaults when the parent sets null.
+    # The real values reach HyperDX through deployment.env, which overrides the chart's envFrom.
+    secrets:
+      HYPERDX_API_KEY: ""
+      CLICKHOUSE_PASSWORD: ""
+      CLICKHOUSE_APP_PASSWORD: ""
+      MONGODB_PASSWORD: ""
+    config:
+      FRONTEND_URL: 'http://{{ .Values.global.hyperdxAddress }}'
+      USAGE_STATS_ENABLED: "false"
+      # Set from the hyperdx Secret below; the chart default embeds the password.
+      MONGO_URI: ""
+    deployment:
+      useExistingConfigSecret: true
+      existingConfigSecret: hyperdx
+      env:
+        - name: MONGO_URI
+          valueFrom:
+            secretKeyRef:
+              name: hyperdx
+              key: MONGO_URI
+        - name: HYPERDX_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: hyperdx
+              key: HYPERDX_API_KEY
+      resources:
+        requests:
+          cpu: 100m
+          memory: 512Mi
+        limits:
+          memory: 1Gi
+
+otel-gateway:
+  fullnameOverride: otel-gateway
+  mode: deployment
+  image:
+    repository: otel/opentelemetry-collector-contrib
+    tag: "0.161.0"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 1Gi
+  extraEnvs:
+    - name: OTEL_INGEST_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: otel-gateway-token
+          key: token
+    - name: CLICKHOUSE_OTEL_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: clickhouse-credentials
+          key: otel-password
+  ports:
+    jaeger-compact:
+      enabled: false
+    jaeger-thrift:
+      enabled: false
+    jaeger-grpc:
+      enabled: false
+    zipkin:
+      enabled: false
+  # Prod's agents reach this Service in-cluster; dev reaches its LAN address.
+  service:
+    type: LoadBalancer
+    annotations:
+      lbipam.cilium.io/ips: 10.69.12.129
+  alternateConfig:
+    extensions:
+      health_check:
+        endpoint: ${env:MY_POD_IP}:13133
+      bearertokenauth:
+        token: ${env:OTEL_INGEST_TOKEN}
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: ${env:MY_POD_IP}:4317
+            auth:
+              authenticator: bearertokenauth
+          http:
+            endpoint: ${env:MY_POD_IP}:4318
+            auth:
+              authenticator: bearertokenauth
+    processors:
+      memory_limiter:
+        check_interval: 5s
+        limit_percentage: 80
+        spike_limit_percentage: 25
+      batch:
+        send_batch_size: 10000
+        timeout: 5s
+    exporters:
+      clickhouse:
+        endpoint: tcp://clickstack-clickhouse-headless:9000?dial_timeout=10s
+        database: default
+        username: otelcollector
+        password: ${env:CLICKHOUSE_OTEL_PASSWORD}
+        create_schema: true
+        ttl: 168h
+        timeout: 10s
+        retry_on_failure:
+          enabled: true
+          max_elapsed_time: 5m
+    service:
+      extensions:
+        - health_check
+        - bearertokenauth
+      pipelines:
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [clickhouse]
+        metrics:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [clickhouse]
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [clickhouse]

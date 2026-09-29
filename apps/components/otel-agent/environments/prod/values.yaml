@@ -1,0 +1,4 @@
+global:
+  clusterName: prod-talos
+  environment: prod
+  gatewayEndpoint: otel-gateway.observability.svc:4317

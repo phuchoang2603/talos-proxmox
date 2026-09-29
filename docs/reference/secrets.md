@@ -26,6 +26,14 @@ Set these directly in the matching Doppler config before deployment. They are no
 | `TALOSCONFIG` | Cluster root | Operators using `talosctl` |
 | `KARPENTER_AWS_ACCESS_KEY_ID`, `KARPENTER_AWS_SECRET_ACCESS_KEY` | Cluster root's AWS module | Platform creates `kube-system/karpenter-aws` |
 | `AWS_WORKER_MACHINE_CONFIG`, `AWS_WORKER_AMI_ID` | Cluster root's AWS module | Platform passes them to the Karpenter `EC2NodeClass` |
+| `OTEL_INGEST_TOKEN` (dev and prod, same value) | Foundation | Prod's OTLP gateway authenticator; both environments' telemetry agents |
+| `CLICKHOUSE_DEFAULT_PASSWORD` (prod) | Foundation | ClickHouse `default` user |
+| `CLICKHOUSE_OTEL_PASSWORD` (prod) | Foundation | ClickHouse `otelcollector` user; OTLP gateway's ClickHouse exporter |
+| `CLICKHOUSE_APP_PASSWORD` (prod) | Foundation | ClickHouse `app` user; HyperDX's ClickHouse connection |
+| `HYPERDX_MONGODB_PASSWORD` (prod) | Foundation | HyperDX's MongoDB user and `MONGO_URI` |
+| `HYPERDX_API_KEY` (prod) | Foundation | HyperDX |
+
+Foundation generates the telemetry credentials, so they survive environment destroys. `OTEL_INGEST_TOKEN` is write-only ingest access to prod and is the only prod credential dev holds.
 
 Foundation also creates a read/write CI service token per config and publishes it as that GitHub Environment's `DOPPLER_TOKEN` secret. This differs from the read-only ESO token. A local foundation apply uses a workspace-level Doppler login token to manage these service tokens.
 
@@ -46,8 +54,10 @@ HCP state holds generated credentials and Talos bootstrap material. Doppler prov
 | Kubernetes Secret | Namespace | Refresh |
 | --- | --- | --- |
 | `cloudflare-tunnel-token` | `cloudflare-tunnel` | 1 hour |
+| `otel-agent-token` | `observability` (dev, prod) | 1 hour |
+| `otel-gateway-token`, `clickhouse-credentials`, `hyperdx-mongodb-password`, `hyperdx` | `observability` (prod) | 1 hour |
 
-It is produced by an ExternalSecret using the `doppler` ClusterSecretStore. If Doppler is unreachable, existing Secrets are retained and refresh failures are exposed through ESO status. Inspect status without printing secret values:
+Each is produced by an ExternalSecret using the `doppler` ClusterSecretStore. If Doppler is unreachable, existing Secrets are retained and refresh failures are exposed through ESO status. Inspect status without printing secret values:
 
 ```bash
 kubectl get clustersecretstore doppler
@@ -56,4 +66,4 @@ kubectl get externalsecrets -A
 
 Select your cluster first using [cluster access](../operations/cluster-access.md).
 
-For Cloudflare, change `CLOUDFLARE_TUNNEL_TOKEN` in Doppler, wait for the ExternalSecret to refresh successfully, then use Argo CD's **Restart** action on `cloudflared`. Updating a Kubernetes Secret does not restart these Deployments automatically. The Karpenter key is not delivered by ESO: rotate it with the [OpenTofu procedure](../operations/aws-burst-workers.md#rotate-the-karpenter-key), where the platform apply restarts the controller.
+For Cloudflare, change `CLOUDFLARE_TUNNEL_TOKEN` in Doppler, wait for the ExternalSecret to refresh successfully, then use Argo CD's **Restart** action on `cloudflared`. Updating a Kubernetes Secret does not restart these Deployments automatically. The same applies to the telemetry credentials: after changing one, restart the collectors and HyperDX that read it. ClickHouse and MongoDB read their user passwords when they start. The Karpenter key is not delivered by ESO: rotate it with the [OpenTofu procedure](../operations/aws-burst-workers.md#rotate-the-karpenter-key), where the platform apply restarts the controller.

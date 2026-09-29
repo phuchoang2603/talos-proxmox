@@ -1,0 +1,9 @@
+apiVersion: v2
+name: clickhouse-operator
+description: Official ClickHouse operator wrapper
+type: application
+version: 0.1.0
+dependencies:
+  - name: clickhouse-operator-helm
+    version: 0.0.8
+    repository: oci://ghcr.io/clickhouse

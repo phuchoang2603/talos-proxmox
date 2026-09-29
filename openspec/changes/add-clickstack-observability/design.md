@@ -3,7 +3,7 @@
 See proposal.md for motivation. The current state and constraints that shape the approach:
 
 - After `remove-longhorn-and-victoria`, neither environment has an `observability` component, a `monitoring` namespace, Victoria CRDs, or Grafana. `apps/components/observability/` does not exist.
-- After that change, prod consists of three control-plane nodes that also run workloads: `prod-server1` (pve, SSD, 6 cores, 22 GB, GPU) and `prod-server2`/`prod-server3` (pve2/pve3, HDD, 6 cores, 16 GB), each with a 364 GB disk shared by etcd and local-path volumes. Kubelet reservations protect system services. Dev is one 12 GB control-plane node with a GPU.
+- After that change, prod consists of three control-plane nodes that also run workloads: `prod-server1` (pve, SSD, 6 cores, 22 GB, GPU) and `prod-server2` (pve2, HDD, 6 cores, 16 GB) and `prod-server3` (pve3, HDD, 4 cores, 16 GB), each with a 364 GB disk shared by etcd and local-path volumes. Kubelet reservations protect system services. Dev is one 12 GB control-plane node with a GPU.
 - The platform already runs the MongoDB Controllers for Kubernetes operator 1.12 (`mongodb-operator`, `operators` namespace, both clusters), watching `MongoDBCommunity` in all namespaces.
 - ClickStack chart 3.4.0 no longer templates ClickHouse or MongoDB directly. It renders `ClickHouseCluster`/`KeeperCluster` (`clickhouse.com/v1alpha1`, official ClickHouse operator) and `MongoDBCommunity` custom resources, and puts every credential in `hyperdx.secrets` values, which are rendered into the `clickstack-secret` Secret, the ClickHouse user config, the MongoDB URI, and HyperDX's connection JSON. Setting `hyperdx.secrets: null` is supported only when the chart's ClickHouse, MongoDB, and collector are all disabled.
 - The official ClickHouse operator chart (`oci://ghcr.io/clickhouse/clickhouse-operator-helm`, 0.0.8) requires cert-manager unless webhooks are disabled, as the `clickstack-operators` chart does. `ClickHouseCluster` requires `keeperClusterRef`, supports `settings.defaultUserPassword` from a Secret, container `env`/`envFrom`, and `settings.systemLogsTTLDays`.
@@ -57,7 +57,7 @@ See proposal.md for motivation. The current state and constraints that shape the
 | `observability` | prod | `observability` | ClickStack chart (HyperDX only), OpenTelemetry Collector chart as gateway, ClickHouse/Keeper/MongoDB custom resources, ExternalSecrets, Gateway |
 | `otel-agent` | dev, prod | `observability` | OpenTelemetry Collector chart twice: a DaemonSet agent and a single-replica cluster collector |
 
-Sync waves: `clickhouse-operator` at `0` with the other operators, `observability` at `1`, `otel-agent` at `2`. The agent can start before the gateway is ready; its exporters retry.
+Sync waves: `clickhouse-operator` at `0` with the other operators, `observability` at `1`, `otel-agent` at `2`. The agent can start before the gateway is ready; its exporters retry. On prod both components share the `observability` namespace, and both declare the same privileged namespace metadata: the agent needs it for hostPath volumes, and the store's pods then never depend on which Application labels the namespace first.
 
 Alternative considered: one component holding everything. Dev would need values that disable all store resources, and the two environments would diverge inside one chart.
 
@@ -69,7 +69,7 @@ Alternative considered: Altinity's operator. It is more mature, but the ClickSta
 
 ### ClickStack chart for HyperDX only; custom resources owned by the wrapper
 
-The chart puts credentials in values, which the secrets spec forbids. The wrapper therefore sets `hyperdx.secrets: null` and disables `clickhouse`, `mongodb`, and `otel-collector` in the chart, and owns those pieces itself:
+The chart puts credentials in values, which the secrets spec forbids. The wrapper therefore disables `clickhouse`, `mongodb`, and `otel-collector` in the chart, blanks every `hyperdx.secrets` key, and owns those pieces itself. The chart's `hyperdx.secrets: null` option is not used: Argo CD's Helm 3.19 honors it, but Helm 4 keeps a subchart's map defaults when the parent sets null, which would render the chart's placeholder passwords. Blank keys render an empty `clickstack-secret` in both, and HyperDX's explicit `env` entries take precedence over its `envFrom`.
 
 - **`KeeperCluster`**: 1 replica, 5 Gi local-path claim.
 - **`ClickHouseCluster`**: 1 shard, 1 replica, `keeperClusterRef` to the Keeper. The image tag matches the chart default (`25.7-alpine`), with a 2 Gi memory request and limit. Settings are copied from the chart's defaults: `logger` at `information`, 100M × 10 files, and `systemLogsTTLDays: 7`. Two additions: `storage_configuration` sets `keep_free_space_bytes` on the default disk (20 GiB), because local-path does not enforce the claim size, and `defaultUserPassword` comes from the ESO Secret.
@@ -89,7 +89,7 @@ The gateway is the `opentelemetry-collector` chart in `deployment` mode with the
 - `memory_limiter` and `batch` processors.
 - The `clickhouse` exporter against `tcp://<cluster>:9000`, database `default`, user `otelcollector`, with `create_schema: true` and `ttl: 168h`.
 
-That exporter produces the standard `otel_logs`, `otel_traces`, and `otel_metrics_*` tables that HyperDX's default sources read. The gateway Service is `LoadBalancer` with `lbipam.cilium.io/ips: 10.69.12.129`. A second `ClusterIP` Service is used by prod's agents in-cluster.
+That exporter produces the standard `otel_logs`, `otel_traces`, and `otel_metrics_*` tables that HyperDX's default sources read. The gateway Service is `LoadBalancer` with `lbipam.cilium.io/ips: 10.69.12.129`. Prod's agents use the same Service's cluster IP through `otel-gateway.observability.svc`, so no second Service is needed.
 
 Alternative considered: ClickStack's collector image with OpAMP management by HyperDX. It ties collector configuration and ingest auth to HyperDX's runtime state instead of Git, and the chart's collector is disabled anyway because of the secrets constraint.
 
@@ -109,7 +109,7 @@ Alternative considered: ClickStack's collector image with OpAMP management by Hy
 **Both:**
 - Add `k8s.cluster.name` (`dev-talos`/`prod-talos`) and `deployment.environment` (`dev`/`prod`) through a `resource` processor with `upsert`, so applications cannot mislabel their environment.
 - Export OTLP gRPC to the gateway: prod through the in-cluster Service, dev to `10.69.12.129:4317`.
-- Send the bearer token from the ESO Secret. The ingest token is used even in-cluster so the gateway has a single auth path.
+- Send the ingest token from the ESO Secret as an `authorization: Bearer` header on the OTLP exporter. The `bearertokenauth` client extension is not used because it refuses to send credentials over plaintext gRPC; the gateway still validates the header with `bearertokenauth`. The token is used even in-cluster so the gateway has a single auth path.
 - Bound retries and the sending queue (for example 15 minutes of retry and a fixed queue size), so a prod outage drops data instead of growing without limit.
 
 Per-environment differences are only the export endpoint and resource attribute values, in `environments/<env>/values.yaml`.
@@ -144,7 +144,7 @@ MongoDB, HyperDX, the gateway, and the cluster collector are not pinned. MongoDB
 ## Risks / Trade-offs
 
 - [Official operator is `v1alpha1` / chart 0.0.8] → Pin the chart. The custom resources live in the wrapper, so a move to Altinity touches only the wrapper's templates.
-- [`from_env` passwords in `extraUsersConfig` may not render as expected through the operator] → Verify first during implementation. Fallback: a PostSync Job that creates the two users with SQL through the `default` user, whose password is supported natively from a Secret.
+- [`from_env` passwords in `extraUsersConfig` may not render as expected through the operator] → The operator writes `extraUsersConfig` verbatim as JSON into `users.d/99-extra-users-config.yaml`; a local test of that file against `clickhouse-server:25.7-alpine` authenticated both users from environment variables. Confirm on prod after rollout. Fallback: a PostSync Job that creates the two users with SQL through the `default` user, whose password is supported natively from a Secret.
 - [Upstream exporter schema drifts from what HyperDX's default sources expect] → Pin the collector version, and verify that HyperDX's logs, traces, and metrics views load against the created tables before rollout.
 - [Single node, no backups] → Accepted. A `prod-server1` outage stops ingest for both environments. Agents buffer only briefly.
 - [ClickHouse merges raise etcd fsync latency on `prod-server1`] → Cap merge concurrency. After rollout, check etcd's `wal_fsync` and `backend_commit` latency metrics in HyperDX. If they degrade, lower the cap further or move ClickHouse to a dedicated disk in a later change.

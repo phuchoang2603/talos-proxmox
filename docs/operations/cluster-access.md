@@ -70,6 +70,20 @@ kubectl -n kube-system get pods -l app=spire-agent
 
 Expected results: the root and child Applications are Synced/Healthy; the Doppler store and ExternalSecrets are Ready; SPIRE pods are ready; and there is exactly one default StorageClass, `local-path`. `kubectl get nodes` lists only the Proxmox control-plane nodes (one in dev, `prod-server1` through `prod-server3` in prod) plus any AWS workers; the control-plane nodes also run workloads, and `prod-server1` is prod's SSD-backed node for write-heavy volumes.
 
+## Observability
+
+Prod holds the only telemetry store; both environments' agents send to it.
+
+| Endpoint | Address |
+| --- | --- |
+| HyperDX UI (prod) | <http://10.69.12.128> |
+| OTLP from workloads, in either cluster | `otel-agent.observability.svc:4317` (gRPC) or `:4318` (HTTP) |
+| OTLP gateway on the LAN (prod) | `10.69.12.129:4317` / `:4318`, requires `Authorization: Bearer <OTEL_INGEST_TOKEN>` |
+
+Workloads send OTLP to their node's agent without credentials; the agent adds `k8s.cluster.name` and `deployment.environment` and forwards to the gateway. Filter by `deployment.environment` in HyperDX to separate dev and prod. Telemetry is kept for 7 days.
+
+HyperDX's first sign-up creates the first account, and anyone on the LAN who reaches the UI first can take it. After a new prod rollout, open the UI and create the operator account immediately.
+
 ## Find the failing layer
 
 | Symptom | Start here |

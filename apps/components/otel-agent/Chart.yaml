@@ -1,0 +1,14 @@
+apiVersion: v2
+name: otel-agent
+description: OpenTelemetry node agents and cluster collector shipping to prod's gateway
+type: application
+version: 0.1.0
+dependencies:
+  - name: opentelemetry-collector
+    alias: agent
+    version: 0.174.0
+    repository: https://open-telemetry.github.io/opentelemetry-helm-charts
+  - name: opentelemetry-collector
+    alias: cluster
+    version: 0.174.0
+    repository: https://open-telemetry.github.io/opentelemetry-helm-charts

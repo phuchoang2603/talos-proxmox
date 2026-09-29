@@ -73,6 +73,12 @@ components:
     syncWave: "0"
     releaseName: mongodb-operator
     clusters: [dev, prod]
+  clickhouse-operator:
+    path: apps/components/clickhouse-operator
+    namespace: operators
+    syncWave: "0"
+    releaseName: clickhouse-operator
+    clusters: [prod]
   gpu-operator:
     path: apps/components/gpu-operator
     namespace: operators
@@ -80,6 +86,25 @@ components:
     releaseName: gpu-operator
     clusters: [dev, prod]
     # Its operands need hostPath and privileged pods, so this relaxes Pod Security for all of `operators`.
+    managedNamespaceMetadata: *privileged
+  observability:
+    path: apps/components/observability
+    namespace: observability
+    syncWave: "1"
+    releaseName: observability
+    clusters: [prod]
+    managedNamespaceMetadata: *privileged
+  otel-agent:
+    path: apps/components/otel-agent
+    namespace: observability
+    syncWave: "2"
+    releaseName: otel-agent
+    clusters: [dev, prod]
+    valueFilesByCluster:
+      dev:
+        - environments/dev/values.yaml
+      prod:
+        - environments/prod/values.yaml
     managedNamespaceMetadata: *privileged
   cloudflare-tunnel:
     path: apps/components/cloudflare-tunnel

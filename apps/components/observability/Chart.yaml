@@ -1,0 +1,13 @@
+apiVersion: v2
+name: observability
+description: ClickStack (HyperDX, ClickHouse, MongoDB) and the OTLP gateway collector
+type: application
+version: 0.1.0
+dependencies:
+  - name: clickstack
+    version: 3.4.0
+    repository: https://clickhouse.github.io/ClickStack-helm-charts
+  - name: opentelemetry-collector
+    alias: otel-gateway
+    version: 0.174.0
+    repository: https://open-telemetry.github.io/opentelemetry-helm-charts

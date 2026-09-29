@@ -26,7 +26,7 @@ The [bootstrap chart](../../apps/argocd/bootstrap/) creates the `talos-proxmox` 
 | Owner | Components |
 | --- | --- |
 | Platform OpenTofu root | Gateway API CRDs, Cilium/SPIRE, ESO token namespace/Secret, Karpenter (CRDs, controller, `EC2NodeClass`, `NodePool`, and its AWS key Secret), Argo CD, bootstrap AppProject/root Application/UI route |
-| Argo CD | ESO/store, Cilium address pools/L2 policies, storage, metrics, cloud controller, GPU components, routes, operators, tunnel |
+| Argo CD | ESO/store, Cilium address pools/L2 policies, storage, metrics, cloud controller, GPU components, routes, operators, observability, telemetry agents, tunnel |
 
 Cilium and Argo CD remain OpenTofu-owned after bring-up. Changes to them go through a platform apply. Application changes go through Git and Argo CD.
 
@@ -44,8 +44,12 @@ The source of truth is [`apps/argocd/platform/values.yaml`](../../apps/argocd/pl
 | -2 | Doppler ClusterSecretStore | dev, prod |
 | -1 | Burst admission policy, Cilium network resources, metrics-server | dev, prod |
 | 0 | local-path, Talos CCM, CNPG, Strimzi, MongoDB operator | dev, prod |
+| 0 | ClickHouse operator | prod |
 | 1 | GPU operator, NVIDIA DRA | dev, prod |
-| 2 | Cloudflare tunnel | dev, prod |
+| 1 | Observability store: ClickHouse, HyperDX, OTLP gateway | prod |
+| 2 | Telemetry agents, Cloudflare tunnel | dev, prod |
+
+Dev's telemetry agents are its only dependency on prod: they send to prod's OTLP gateway at `10.69.12.129` with the shared ingest token. Dev converges without prod; only its telemetry export fails.
 
 Waves order submission of child Applications; they do not wait for each child's resources to become healthy. Children converge asynchronously. Unlimited retries with backoff and `SkipDryRunOnMissingResource` handle dependencies such as CRDs arriving later. Automated prune removes resources deleted from Git, and self-heal repairs drift.
 

@@ -1,0 +1,9 @@
+dependencies:
+- name: clickstack
+  repository: https://clickhouse.github.io/ClickStack-helm-charts
+  version: 3.4.0
+- name: opentelemetry-collector
+  repository: https://open-telemetry.github.io/opentelemetry-helm-charts
+  version: 0.174.0
+digest: sha256:39f745c12c6ae6fd1c69a415c873ac33160e3d394945b29a02c050aa8c58574d
+generated: "2026-09-29T18:49:03.327687077-04:00"
