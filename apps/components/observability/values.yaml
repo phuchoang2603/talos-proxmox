@@ -18,6 +18,9 @@ store:
     storage: 50Gi
     keepFreeSpaceBytes: 21474836480
   keeper:
+    image:
+      repository: clickhouse/clickhouse-keeper
+      tag: "25.7-alpine"
     resources:
       requests:
         cpu: 50m

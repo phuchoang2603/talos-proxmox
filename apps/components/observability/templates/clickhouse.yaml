@@ -1,4 +1,27 @@
 {{- $store := .Values.store }}
+{{- /*
+The operator mounts the data volume through subPaths. On local-path hostPath volumes the
+kubelet creates those directories as root and ignores fsGroup, so the server (uid 101)
+cannot write to them without this init container.
+*/}}
+{{- define "observability.volumePermissions" -}}
+- name: volume-permissions
+  image: {{ printf "%s:%s" .repository .tag }}
+  command:
+    - sh
+    - -c
+    - mkdir -p /data/var-lib-clickhouse /data/var-log-clickhouse && chown 101:101 /data/var-lib-clickhouse /data/var-log-clickhouse
+  securityContext:
+    runAsUser: 0
+    runAsNonRoot: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: [ALL]
+      add: [CHOWN]
+  volumeMounts:
+    - name: clickhouse-storage-volume
+      mountPath: /data
+{{- end }}
 apiVersion: clickhouse.com/v1alpha1
 kind: KeeperCluster
 metadata:
@@ -7,11 +30,15 @@ metadata:
 spec:
   replicas: 1
   containerTemplate:
+    image:
+      {{- toYaml $store.keeper.image | nindent 6 }}
     resources:
       {{- toYaml $store.keeper.resources | nindent 6 }}
   podTemplate:
     nodeSelector:
       kubernetes.io/hostname: {{ $store.nodeName }}
+    initContainers:
+      {{- include "observability.volumePermissions" $store.keeper.image | nindent 6 }}
   dataVolumeClaimSpec:
     accessModes:
       - ReadWriteOnce
@@ -48,6 +75,8 @@ spec:
   podTemplate:
     nodeSelector:
       kubernetes.io/hostname: {{ $store.nodeName }}
+    initContainers:
+      {{- include "observability.volumePermissions" $store.clickhouse.image | nindent 6 }}
   dataVolumeClaimSpec:
     accessModes:
       - ReadWriteOnce
