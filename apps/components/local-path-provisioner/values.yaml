@@ -10,7 +10,8 @@ local-path-provisioner:
   nodePathMap:
     - node: DEFAULT_PATH_FOR_NON_LISTED_NODES
       paths:
-        - /opt/local-path-provisioner
+        # Talos's kubelet does not see the host's /opt, which breaks subPath mounts; /var/mnt is shared with it.
+        - /var/mnt/local-path-provisioner
   helperImage:
     tag: "1.37.0"
   configmap:

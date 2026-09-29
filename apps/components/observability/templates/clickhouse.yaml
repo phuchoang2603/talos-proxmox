@@ -1,8 +1,8 @@
 {{- $store := .Values.store }}
 {{- /*
 The operator mounts the data volume through subPaths. On local-path hostPath volumes the
-kubelet creates those directories as root and ignores fsGroup, so the server (uid 101)
-cannot write to them without this init container.
+kubelet creates missing subPath directories as root and ignores fsGroup, so they are
+created here first, owned by the server's uid 101.
 */}}
 {{- define "observability.volumePermissions" -}}
 - name: volume-permissions
