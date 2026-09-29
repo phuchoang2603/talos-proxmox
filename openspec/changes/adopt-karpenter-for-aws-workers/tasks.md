@@ -5,7 +5,7 @@
 - [ ] 1.3 Add the `<env>-talos-burst-worker` IAM role (EC2 trust, no policies) and instance profile; verify a dev plan shows no policy attachments on the role.
 - [x] 1.4 Replace the autoscaler IAM user, policy, and key with `talos-proxmox-karpenter-<env>` and `terraform/aws/iam/karpenter-policy.json` as scoped in design.md; verify the rendered policy JSON has no `ENV`, `CLUSTER`, or `ACCOUNT_ID` placeholders left and that every mutating statement has a cluster tag, discovery tag, AMI, or named-resource restriction.
 - [ ] 1.5 Change the AWS module outputs to the worker machine configuration (sensitive), the AMI ID, the instance profile name, and the Karpenter key, and change `terraform/cluster/doppler.tf` to write `KARPENTER_AWS_*`, `AWS_WORKER_MACHINE_CONFIG`, and `AWS_WORKER_AMI_ID` instead of `AUTOSCALER_AWS_*`; verify the dev plan shows those values only as sensitive.
-- [ ] 1.6 Update `terraform/foundation/ci-policy.json` and `ci-iam-policy.json` as described in design.md (drop ASG, launch template, and `RunInstances`; add `DescribeAvailabilityZones`; manage the Karpenter user and policy and the worker role and profile; no `PassRole`); verify with a foundation plan and a dev cluster plan run under the CI role.
+- [ ] 1.6 Update `terraform/foundation/ci-policy.json` and `ci-iam-policy.json` as described in design.md (drop ASG, launch template, and `RunInstances`; add `DescribeAvailabilityZones`; manage the Karpenter user and policy and the worker role and profile; `PassRole` only for the worker role to EC2); verify with a foundation plan and a dev cluster plan run under the CI role.
 
 ## 2. Karpenter charts
 
@@ -24,12 +24,12 @@
 
 ## 5. Dev spike and validation (from an operator machine, before merge)
 
-- [ ] 5.1 Apply the cluster and platform roots locally against the dev workspaces; verify the Karpenter pod is Ready on the control plane, logs show no `AccessDenied`, and Doppler accepts `AWS_WORKER_MACHINE_CONFIG` (if it is rejected, switch that hand-off to `tfe_outputs` and update design.md).
-- [ ] 5.2 Scale a stateless burst Deployment from zero; verify a NodeClaim reaches `Registered`, `Initialized`, and `Ready`, the Node has an `aws:///` provider ID, the burst label and taint, and no `karpenter.sh/unregistered` or startup taints remaining, and the pod runs on it over KubeSpan.
-- [ ] 5.3 Compare Karpenter's predicted allocatable on the NodeClaim with the Node's real allocatable for each instance size launched, and tune the EC2NodeClass `kubelet` block until the prediction is at or below the real value; verify with a pod sized to the predicted allocatable, which must schedule on the first node.
+- [x] 5.1 Apply the cluster and platform roots locally against the dev workspaces; verify the Karpenter pod is Ready on the control plane, logs show no `AccessDenied`, and Doppler accepts `AWS_WORKER_MACHINE_CONFIG` (if it is rejected, switch that hand-off to `tfe_outputs` and update design.md).
+- [x] 5.2 Scale a stateless burst Deployment from zero; verify a NodeClaim reaches `Registered`, `Initialized`, and `Ready`, the Node has an `aws:///` provider ID, the burst label and taint, and no `karpenter.sh/unregistered` or startup taints remaining, and the pod runs on it over KubeSpan.
+- [x] 5.3 Compare Karpenter's predicted allocatable on the NodeClaim with the Node's real allocatable for each instance size launched, and tune the EC2NodeClass `kubelet` block until the prediction is at or below the real value; verify with a pod sized to the predicted allocatable, which must schedule on the first node.
 - [ ] 5.4 Verify the stateless-only policy still holds: a PVC-backed pod that tolerates the burst taint is rejected, and an `emptyDir` pod schedules on AWS.
-- [ ] 5.5 Scale the Deployment to zero and verify consolidation terminates the worker and removes its Node within about ten minutes; terminate a worker from the AWS console and verify its NodeClaim and Node are removed and a replacement is launched for the pending pods.
-- [ ] 5.6 Change a value that affects `userData` (for example a harmless Talos patch) and verify Karpenter marks the running worker as drifted and replaces it.
+- [ ] 5.5 (consolidation to zero verified on dev; console-termination check still to do) Scale the Deployment to zero and verify consolidation terminates the worker and removes its Node within about ten minutes; terminate a worker from the AWS console and verify its NodeClaim and Node are removed and a replacement is launched for the pending pods.
+- [x] 5.6 Change a value that affects `userData` (for example a harmless Talos patch) and verify Karpenter marks the running worker as drifted and replaces it.
 - [ ] 5.7 Run a local platform destroy on dev with a worker running; verify the NodeClaims and EC2 instances are gone and the Karpenter launch templates are deleted before the controller release is removed, then re-apply the platform.
 - [ ] 5.8 Verify the dev Karpenter key cannot terminate a prod-tagged instance or launch into a prod subnet, with an IAM policy simulator run or a direct denied call.
 

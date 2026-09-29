@@ -84,14 +84,14 @@ The AMI restriction takes the AMI ID from `aws_ami_id`, so a Talos upgrade updat
 
 | Field | Value |
 | --- | --- |
-| Requirements | `kubernetes.io/arch In [amd64]`, `karpenter.sh/capacity-type In [spot, on-demand]`, `karpenter.k8s.aws/instance-category In [c, m, r]`, `karpenter.k8s.aws/instance-generation Gt 5`, `karpenter.k8s.aws/instance-cpu In [2, 4, 8]` |
+| Requirements | `kubernetes.io/arch In [amd64]`, `karpenter.sh/capacity-type In [spot, on-demand]`, `node.kubernetes.io/instance-type In [m7i-flex.large, c7i-flex.large]` (the AWS account is on the free plan and can launch only free-tier-eligible types; widen on a paid account) |
 | Labels / taints | `burst.talos.dev/compute=aws`; `burst.talos.dev/stateless=true:NoSchedule` |
 | Startup taints | `node.cloudprovider.kubernetes.io/uninitialized:NoSchedule`, `node.cilium.io/agent-not-ready:NoSchedule` |
 | Limits | `cpu: 8`, `memory: 32Gi` |
 | Disruption | `consolidationPolicy: WhenEmptyOrUnderutilized`, `consolidateAfter: 5m`, budget `nodes: "1"` |
 | Lifetime | `expireAfter: 720h`, `terminationGracePeriod: 30m` |
 
-The EC2NodeClass sets `amiFamily: Custom`, `amiSelectorTerms: [{id: <AMI>}]`, a 40 GiB `gp3` root volume (unencrypted, as before, to avoid KMS grants) on `/dev/xvda` deleted on termination, IMDSv2 required, and a `kubelet` block whose reservations and eviction thresholds match Talos defaults. Karpenter uses those values only to predict allocatable capacity; it does not apply them to Talos.
+The EC2NodeClass sets `amiFamily: Custom`, `amiSelectorTerms: [{id: <AMI>}]`, a 40 GiB `gp3` root volume (unencrypted, as before, to avoid KMS grants) on `/dev/xvda` deleted on termination, IMDSv2 required, and a `kubelet` block tuned to measured Talos values (kubeReserved 50m CPU and 400Mi memory, `nodefs.available` 20%, `memory.available` 100Mi), so predicted allocatable is at or below real. Karpenter uses those values only to predict allocatable capacity; it does not apply them to Talos.
 
 Karpenter treats both `spec.amiSelectorTerms` and `spec.userData` as drift inputs, which provides the replacement behavior the spec requires on Talos upgrades and config changes.
 
@@ -109,7 +109,7 @@ On destroy, OpenTofu reverses the dependency graph shown above. `helm_release.ka
 
 ### CI permissions
 
-`ci-policy.json` drops the Auto Scaling Group, launch template, and `RunInstances` statements. It keeps VPC, subnet, route, and security group management, and gains `ec2:DescribeAvailabilityZones`. `ci-iam-policy.json` renames the user and policy patterns to `talos-proxmox-karpenter-*` and adds create, delete, tag, and get permissions for the role and instance profile `*-talos-burst-worker`, along with `iam:AddRoleToInstanceProfile` and `iam:RemoveRoleFromInstanceProfile`. It grants no `iam:PassRole`, because CI never launches instances.
+`ci-policy.json` drops the Auto Scaling Group, launch template, and `RunInstances` statements. It keeps VPC, subnet, route, and security group management, and gains `ec2:DescribeAvailabilityZones`. `ci-iam-policy.json` renames the user and policy patterns to `talos-proxmox-karpenter-*` and adds create, delete, tag, and get permissions for the role and instance profile `*-talos-burst-worker`, along with `iam:AddRoleToInstanceProfile` and `iam:RemoveRoleFromInstanceProfile`. It grants `iam:PassRole` only for the worker role and only to `ec2.amazonaws.com`, because AWS requires it to add the role to the instance profile. CI still never launches instances.
 
 ## Risks / Trade-offs
 

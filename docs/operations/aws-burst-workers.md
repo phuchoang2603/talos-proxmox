@@ -24,7 +24,7 @@ affinity:
               values: [aws]
 ```
 
-The toleration permits AWS placement; the affinity requires it, so the Pod waits for burst capacity rather than landing on Proxmox. Set CPU and memory requests on its containers. Karpenter chooses an instance that fits them, up to 8 vCPUs, and can use spot capacity. To require on-demand capacity for a workload that cannot tolerate a sudden spot reclaim, add a node selector:
+The toleration permits AWS placement; the affinity requires it, so the Pod waits for burst capacity rather than landing on Proxmox. Set CPU and memory requests on its containers. Karpenter chooses an allowed instance that fits them and can use spot capacity. To require on-demand capacity for a workload that cannot tolerate a sudden spot reclaim, add a node selector:
 
 ```yaml
 nodeSelector:
@@ -48,7 +48,7 @@ If a Pod stays Pending, inspect its events and the NodeClaim, and check:
 
 | Check | Why it matters |
 | --- | --- |
-| Requests fit an allowed instance | Pods larger than 8 vCPUs, or than the NodePool's remaining limit, cannot be scheduled |
+| Requests fit an allowed instance | Pods larger than one `m7i-flex.large`, or than the NodePool's remaining limit, cannot be scheduled |
 | Taint toleration and node affinity | Scheduling intent must match the NodePool's taint and label |
 | `kubectl describe nodepool aws-burst` shows limits not reached | Total CPU and memory are capped |
 | Karpenter logs show no `AccessDenied` or launch errors | Stale credentials, insufficient capacity, and a wrong AMI all fail at launch |

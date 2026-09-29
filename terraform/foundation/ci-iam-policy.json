@@ -111,6 +111,17 @@
         "arn:aws:iam::ACCOUNT_ID:role/*-talos-burst-worker",
         "arn:aws:iam::ACCOUNT_ID:instance-profile/*-talos-burst-worker"
       ]
+    },
+    {
+      "Sid": "PassOnlyWorkerRoleToInstanceProfile",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::ACCOUNT_ID:role/*-talos-burst-worker",
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": "ec2.amazonaws.com"
+        }
+      }
     }
   ]
 }

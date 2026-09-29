@@ -39,7 +39,7 @@ The diagram represents either dev or prod. Each has its own VPC, Talos identity,
 | Default persistent storage | local-path | Longhorn |
 | Karpenter replicas | 1 | 2 |
 
-Both use `us-east-1` with one public subnet in each of `us-east-1a` through `us-east-1d`. There is a single `NodePool`, `aws-burst`, that allows amd64 `c`, `m`, and `r` instances of generation 6 or newer with 2, 4, or 8 vCPUs, on spot or on-demand capacity. It is limited to 8 CPUs and 32Gi of memory in total. Workers use a pinned Talos AMI and a 40 GiB disposable `gp3` boot disk. This disk is node storage, not a Kubernetes EBS volume.
+Both use `us-east-1` with one public subnet in each of `us-east-1a` through `us-east-1d`. There is a single `NodePool`, `aws-burst`, that allows amd64 `m7i-flex.large` and `c7i-flex.large` instances, on spot or on-demand capacity. These are the free-tier-eligible types the account can launch; a paid account can widen the list. It is limited to 8 CPUs and 32Gi of memory in total. Workers use a pinned Talos AMI and a 40 GiB disposable `gp3` boot disk. This disk is node storage, not a Kubernetes EBS volume.
 
 Configuration: [`terraform/aws/`](../../terraform/aws/), [`terraform/platform/karpenter.tf`](../../terraform/platform/karpenter.tf), and [`apps/components/karpenter-nodes/`](../../apps/components/karpenter-nodes/).
 
@@ -73,7 +73,7 @@ sequenceDiagram
     KP->>EC2: Terminate instance and delete the Node
 ```
 
-Karpenter picks an instance size that fits the pending pods, so requests must fit the largest allowed instance. A worker registers with the `karpenter.sh/unregistered` taint so nothing schedules before Karpenter labels it. Two startup taints, the cloud provider's `uninitialized` taint and Cilium's `agent-not-ready`, keep pods off until Talos CCM and Cilium finish; Karpenter does not count them against the node.
+Karpenter picks an allowed instance type that fits the pending pods, so requests must fit one node (about 1.9 CPUs, and 3.2Gi memory on `c7i-flex.large` or 7Gi on `m7i-flex.large`). A worker registers with the `karpenter.sh/unregistered` taint so nothing schedules before Karpenter labels it. Two startup taints, the cloud provider's `uninitialized` taint and Cilium's `agent-not-ready`, keep pods off until Talos CCM and Cilium finish; Karpenter does not count them against the node.
 
 Talos CCM initializes AWS provider IDs such as `aws:///<zone>/<instance-id>`, which Karpenter uses to match each NodeClaim to its Node.
 

@@ -13,21 +13,24 @@ burst:
 rootVolumeSize: 40Gi
 
 # Karpenter uses these only to predict allocatable capacity; they are not applied to Talos.
-# Tune against a real worker's allocatable (see the dev spike in the change tasks).
+# Measured on c7i-flex.large workers: Talos allocates 1950m CPU, ~477Mi less memory than capacity,
+# and ~8Gi less ephemeral storage than a 40Gi disk. Keep the prediction at or below the real value.
 kubelet:
   kubeReserved:
     cpu: 50m
-    memory: 250Mi
+    memory: 400Mi
   evictionHard:
     memory.available: 100Mi
+    nodefs.available: 20%
 
 nodePool:
   limits:
     cpu: "8"
     memory: 32Gi
-  instanceCategories: [c, m, r]
-  instanceGenerationGt: "5"
-  instanceCpus: ["2", "4", "8"]
+  # The AWS account is on the free plan, which launches only free-tier-eligible types
+  # (`aws ec2 describe-instance-types --filters Name=free-tier-eligible,Values=true`).
+  # Widen this list, or switch to category/generation requirements, on a paid account.
+  instanceTypes: [m7i-flex.large, c7i-flex.large]
   capacityTypes: [spot, on-demand]
   consolidateAfter: 5m
   expireAfter: 720h
