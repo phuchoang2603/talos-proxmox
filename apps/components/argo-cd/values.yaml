@@ -7,6 +7,11 @@ argo-cd:
     enabled: false
   applicationSet:
     replicas: 0
+  controller:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 384Mi
 
   configs:
     params:

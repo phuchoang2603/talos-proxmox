@@ -3,6 +3,10 @@ cilium:
   ipam:
     mode: kubernetes
   kubeProxyReplacement: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 320Mi
   k8sServiceHost: localhost
   k8sServicePort: "7445"
   securityContext:

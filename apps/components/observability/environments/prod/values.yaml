@@ -8,3 +8,12 @@ victoria-metrics-k8s-stack:
       server:
         domain: grafana.phuchoang.sbs
         root_url: https://grafana.phuchoang.sbs
+  vmsingle:
+    spec:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 768Mi
+        limits:
+          cpu: "1"
+          memory: 1536Mi
