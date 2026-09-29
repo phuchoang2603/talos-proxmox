@@ -6,6 +6,13 @@ backupCredentials:
   refreshInterval: 1h
 
 longhorn:
+  csi:
+    attacherReplicaCount: 1
+    provisionerReplicaCount: 1
+    resizerReplicaCount: 1
+    snapshotterReplicaCount: 1
+  longhornUI:
+    replicas: 1
   # Argo CD runs Helm pre-upgrade hooks before the chart's ServiceAccount exists.
   preUpgradeChecker:
     jobEnabled: false

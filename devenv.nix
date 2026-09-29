@@ -15,6 +15,7 @@
   packages = with pkgs; [
     doppler
     gh
+    awscli2
 
     jq
 
