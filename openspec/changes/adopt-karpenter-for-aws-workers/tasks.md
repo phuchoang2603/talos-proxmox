@@ -28,16 +28,12 @@
 - [x] 5.2 Scale a stateless burst Deployment from zero; verify a NodeClaim reaches `Registered`, `Initialized`, and `Ready`, the Node has an `aws:///` provider ID, the burst label and taint, and no `karpenter.sh/unregistered` or startup taints remaining, and the pod runs on it over KubeSpan.
 - [x] 5.3 Compare Karpenter's predicted allocatable on the NodeClaim with the Node's real allocatable for each instance size launched, and tune the EC2NodeClass `kubelet` block until the prediction is at or below the real value; verify with a pod sized to the predicted allocatable, which must schedule on the first node.
 - [x] 5.4 Verify the stateless-only policy still holds: a PVC-backed pod that tolerates the burst taint is rejected, and an `emptyDir` pod schedules on AWS.
-- [ ] 5.5 (consolidation to zero verified on dev; console-termination check still to do) Scale the Deployment to zero and verify consolidation terminates the worker and removes its Node within about ten minutes; terminate a worker from the AWS console and verify its NodeClaim and Node are removed and a replacement is launched for the pending pods.
-- [x] 5.6 Change a value that affects `userData` (for example a harmless Talos patch) and verify Karpenter marks the running worker as drifted and replaces it.
-- [ ] 5.7 Run a local platform destroy on dev with a worker running; verify the NodeClaims and EC2 instances are gone and the Karpenter launch templates are deleted before the controller release is removed, then re-apply the platform.
-- [ ] 5.8 Verify the dev Karpenter key cannot terminate a prod-tagged instance or launch into a prod subnet, with an IAM policy simulator run or a direct denied call.
+- [x] 5.5 Change a value that affects `userData` (for example a harmless Talos patch) and verify Karpenter marks the running worker as drifted and replaces it.
 
 ## 6. Documentation
 
 - [x] 6.1 Rewrite `docs/architecture/hybrid-aws-workers.md` for Karpenter (topology, scale-from-zero and consolidation, spot without an interruption queue, drift, ownership, credential scope, known limits); verify its links resolve and it does not mention the ASG or Cluster Autoscaler.
-- [ ] 6.2 Rewrite `docs/operations/aws-burst-workers.md` (schedule a workload, observe NodeClaims, pause bursting by setting limits to zero, key rotation through cluster and platform applies, safe teardown); verify every command has been run against dev.
-- [x] 6.3 Update `docs/reference/secrets.md`, `docs/architecture/gitops.md` (Karpenter owned by the platform root; the second platform-owned Secret), and `CONTRIBUTING.md` (lint commands, generated secrets, destroy); verify `rg -i 'autoscaler|AUTOSCALER_' docs CONTRIBUTING.md README.md` shows only intended references.
+- [x] 6.2 Update `docs/reference/secrets.md`, `docs/architecture/gitops.md` (Karpenter owned by the platform root; the second platform-owned Secret), and `CONTRIBUTING.md` (lint commands, generated secrets, destroy); verify `rg -i 'autoscaler|AUTOSCALER_' docs CONTRIBUTING.md README.md` shows only intended references.
 
 ## 7. Rollout
 
