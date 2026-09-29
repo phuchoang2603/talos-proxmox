@@ -7,6 +7,8 @@ cilium:
     requests:
       cpu: 100m
       memory: 320Mi
+    limits:
+      memory: 768Mi
   k8sServiceHost: localhost
   k8sServicePort: "7445"
   securityContext:
