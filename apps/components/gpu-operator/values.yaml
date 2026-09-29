@@ -39,9 +39,16 @@ gpu-operator:
         requests: {cpu: 10m, memory: 32Mi}
         limits: {memory: 128Mi}
     worker:
-      # Only GPU nodes need PCI labelling; Terraform sets this label.
-      nodeSelector:
-        nvidia.com/gpu.present: "true"
+      # Only GPU nodes need PCI labelling. Talos sets this label from the
+      # extension; nvidia.com/gpu.present is owned by the operator and is only
+      # true after NFD has labelled the node.
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: extensions.talos.dev/nvidia-open-gpu-kernel-modules-production
+                    operator: Exists
       resources:
         requests: {cpu: 5m, memory: 24Mi}
         limits: {memory: 64Mi}
