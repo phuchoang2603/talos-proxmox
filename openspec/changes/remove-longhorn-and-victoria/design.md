@@ -38,7 +38,7 @@ Delete `prod-longhorn1..3` and give their resources to the `servers` VM on the s
 |---|---|---|---|---|---|
 | `prod-server1` | pve | SSD | 6 | 22528 MB | 364 GB |
 | `prod-server2` | pve2 | HDD | 6 | 16384 MB | 364 GB |
-| `prod-server3` | pve3 | HDD | 6 | 16384 MB | 364 GB |
+| `prod-server3` | pve3 | HDD | 4 | 16384 MB | 364 GB |
 
 VM IDs 1211–1213, addresses, datastore, and `prod-server1`'s PCI devices stay. VM IDs 1221–1223 and addresses `10.69.12.21-23` are freed.
 
