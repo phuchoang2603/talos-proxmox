@@ -127,7 +127,10 @@
       "Sid": "ReadWorkerInstanceProfile",
       "Effect": "Allow",
       "Action": "iam:GetInstanceProfile",
-      "Resource": "arn:aws:iam::ACCOUNT_ID:instance-profile/WORKER_PROFILE"
+      "Resource": [
+        "arn:aws:iam::ACCOUNT_ID:instance-profile/WORKER_PROFILE",
+        "arn:aws:iam::ACCOUNT_ID:instance-profile/*CLUSTER_*"
+      ]
     }
   ]
 }

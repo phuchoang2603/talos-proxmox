@@ -29,6 +29,8 @@ See proposal.md for motivation. The current state and constraints that shape the
 
 Alternative considered: `"Resource": "*"`, as in Karpenter's reference policy. It lets one environment's key enumerate the other's instance profiles for no benefit.
 
+After listing, the finalizer also calls `iam:GetInstanceProfile` on the name of the profile it would have created, `<cluster>_<hash>`, even though `spec.instanceProfile` means it never created one. IAM answers `AccessDenied` before `NoSuchEntity`, so `ReadWorkerInstanceProfile` also allows `GetInstanceProfile` on `instance-profile/*CLUSTER_*`. The call is read-only and matches only the environment's own names. Karpenter still gets no IAM write permission, because no managed profile ever exists to delete.
+
 This fix is independent of the rest of the change. It is needed for any apply that replaces or deletes the `EC2NodeClass`, and it unblocks the stuck node classes.
 
 ### The AWS module sweeps Karpenter resources during destroy

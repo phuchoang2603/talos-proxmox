@@ -1,6 +1,7 @@
 ## 1. Karpenter controller policy
 
 - [x] 1.1 Change the `ListKarpenterInstanceProfiles` resource in `terraform/aws/iam/karpenter-policy.json` to `arn:aws:iam::ACCOUNT_ID:instance-profile/karpenter/REGION/CLUSTER/*`; verify `tofu validate` in `terraform/cluster` passes and the rendered policy in a dev plan shows only that resource changing
+- [x] 1.2 Allow `iam:GetInstanceProfile` on `instance-profile/*CLUSTER_*` in `ReadWorkerInstanceProfile`, which the finalizer calls for the managed profile name after listing; verify with `aws iam simulate-custom-policy` that dev names are allowed and prod names denied
 
 ## 2. AWS-side sweep in the cluster root
 
