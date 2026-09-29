@@ -13,3 +13,23 @@ gpu-operator:
     deployCR: true
   gpuCluster:
     deployCR: false
+  # Trim optional operands; the DRA driver handles allocation.
+  dcgmExporter:
+    enabled: false
+  gfd:
+    enabled: false
+  migManager:
+    enabled: false
+  node-feature-discovery:
+    master:
+      resources:
+        requests: {cpu: 10m, memory: 32Mi}
+        limits: {memory: 128Mi}
+    worker:
+      resources:
+        requests: {cpu: 5m, memory: 24Mi}
+        limits: {memory: 64Mi}
+    gc:
+      resources:
+        requests: {cpu: 5m, memory: 24Mi}
+        limits: {memory: 64Mi}

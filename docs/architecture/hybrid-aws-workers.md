@@ -37,7 +37,7 @@ The diagram represents either dev or prod. Each has its own VPC, Talos identity,
 | VPC CIDR | `10.80.0.0/16` | `10.81.0.0/16` |
 | Private API VIP | `10.69.11.10` | `10.69.12.10` |
 | Default persistent storage | local-path | Longhorn |
-| Karpenter replicas | 1 | 2 |
+| Karpenter replicas | 1 | 1 |
 
 Both use `us-east-1` with one public subnet in each of `us-east-1a` through `us-east-1d`. There is a single `NodePool`, `aws-burst`, that allows amd64 `m7i-flex.large` and `c7i-flex.large` instances, on spot or on-demand capacity. These are the free-tier-eligible types the account can launch; a paid account can widen the list. It has no NodePool cap, so the AWS account's vCPU quota (64 on-demand, shared by dev and prod) is the ceiling; set `nodePool.limits` in the chart to add one. Workers use a pinned Talos AMI and a 40 GiB disposable `gp3` boot disk. This disk is node storage, not a Kubernetes EBS volume.
 
