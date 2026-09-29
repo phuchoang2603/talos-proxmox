@@ -5,16 +5,18 @@ resource "helm_release" "argo_cd" {
   chart            = "${local.components}/argo-cd"
   values           = local.chart_values["argo-cd"]
   timeout          = 900
+  upgrade_install  = true
 
   depends_on = [helm_release.cilium]
 }
 
 resource "helm_release" "argocd_bootstrap" {
-  name      = "argocd-bootstrap"
-  namespace = helm_release.argo_cd.namespace
-  chart     = "${local.apps}/argocd/bootstrap"
-  values    = local.chart_values["argocd-bootstrap"]
-  wait      = false
+  name            = "argocd-bootstrap"
+  namespace       = helm_release.argo_cd.namespace
+  chart           = "${local.apps}/argocd/bootstrap"
+  values          = local.chart_values["argocd-bootstrap"]
+  wait            = false
+  upgrade_install = true
 
   set = [
     { name = "cluster", value = var.env },

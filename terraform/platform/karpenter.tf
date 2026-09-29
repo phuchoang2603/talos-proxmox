@@ -18,13 +18,14 @@ resource "kubernetes_secret_v1" "karpenter_aws" {
 
 # Pods cannot start until Cilium is ready and Cilium itself waits on Argo CD, so do not gate on rollout.
 resource "helm_release" "karpenter" {
-  name         = "karpenter"
-  namespace    = "kube-system"
-  chart        = "${local.components}/karpenter"
-  values       = local.chart_values["karpenter"]
-  skip_crds    = true
-  wait         = false
-  reset_values = true
+  name            = "karpenter"
+  namespace       = "kube-system"
+  chart           = "${local.components}/karpenter"
+  values          = local.chart_values["karpenter"]
+  skip_crds       = true
+  wait            = false
+  reset_values    = true
+  upgrade_install = true
 
   set = [
     { name = "karpenter.settings.clusterName", value = local.cluster_name },
@@ -42,10 +43,11 @@ resource "helm_release" "karpenter" {
 # Uninstalling this release deletes the NodePool. Helm waits for its NodeClaims to finalize, which
 # terminates the instances, so the controller and CRDs must outlive it. terminationGracePeriod is 30m.
 resource "helm_release" "karpenter_nodes" {
-  name    = "karpenter-nodes"
-  chart   = "${local.components}/karpenter-nodes"
-  wait    = true
-  timeout = 2700
+  name            = "karpenter-nodes"
+  chart           = "${local.components}/karpenter-nodes"
+  wait            = true
+  timeout         = 2700
+  upgrade_install = true
 
   namespace = "kube-system"
 
