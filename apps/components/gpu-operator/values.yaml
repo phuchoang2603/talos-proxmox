@@ -15,7 +15,10 @@ gpu-operator:
     deployCR: false
   # Trim optional operands; the DRA driver handles allocation.
   dcgmExporter:
-    enabled: false
+    enabled: true
+    resources:
+      requests: {cpu: 10m, memory: 64Mi}
+      limits: {memory: 256Mi}
   gfd:
     enabled: false
   migManager:
