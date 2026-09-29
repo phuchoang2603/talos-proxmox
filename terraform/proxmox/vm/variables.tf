@@ -9,7 +9,7 @@ variable "env" {
 }
 
 variable "role" {
-  description = "Node role (servers, worker, longhorn). Used for Talos machine config, not Proxmox tags."
+  description = "Node role (servers or worker). Used for Talos machine config, not Proxmox tags."
   type        = string
 }
 

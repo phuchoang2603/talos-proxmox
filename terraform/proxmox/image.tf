@@ -3,8 +3,6 @@ data "talos_image_factory_extensions_versions" "default" {
   filters = {
     names = [
       "qemu-guest-agent",
-      "iscsi-tools",
-      "util-linux-tools",
     ]
   }
 }
@@ -16,8 +14,6 @@ data "talos_image_factory_extensions_versions" "gpu" {
   filters = {
     names = [
       "qemu-guest-agent",
-      "iscsi-tools",
-      "util-linux-tools",
       "nvidia-open-gpu-kernel-modules-production",
       "nvidia-container-toolkit-production",
     ]

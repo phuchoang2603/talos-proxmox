@@ -3,7 +3,7 @@ locals {
   cluster_name       = "${var.env}-talos"
   cluster_endpoint   = "https://${local.cluster_vip}:6443"
   controlplane_nodes = { for name, node in var.nodes : name => node if node.role == "servers" }
-  worker_nodes       = { for name, node in var.nodes : name => node if contains(["worker", "longhorn"], node.role) }
+  worker_nodes       = { for name, node in var.nodes : name => node if node.role == "worker" }
   controlplane_names = sort(keys(local.controlplane_nodes))
   bootstrap_name     = local.controlplane_names[0]
   bootstrap_ip       = local.controlplane_nodes[local.bootstrap_name].ip
@@ -17,21 +17,17 @@ locals {
         disk = var.talos_install_disk
       }
       certSANs = local.cert_sans
-      kernel = {
-        modules = [
-          { name = "iscsi_tcp" },
-          { name = "dm_crypt" },
-        ]
-      }
       kubelet = {
-        extraMounts = [
-          {
-            destination = "/var/lib/longhorn"
-            type        = "bind"
-            source      = "/var/lib/longhorn"
-            options     = ["bind", "rshared", "rw"]
+        extraConfig = {
+          systemReserved = {
+            cpu    = "250m"
+            memory = "1Gi"
           }
-        ]
+          kubeReserved = {
+            cpu    = "250m"
+            memory = "512Mi"
+          }
+        }
       }
     }
     cluster = {
@@ -114,21 +110,14 @@ locals {
           ]
         }
         kernel = {
-          modules = concat(
-            [
-              { name = "iscsi_tcp" },
-              { name = "dm_crypt" },
-            ],
-            contains(keys(local.gpu_nodes), name) ? [
-              { name = "nvidia" },
-              { name = "nvidia_uvm" },
-              { name = "nvidia_drm" },
-              { name = "nvidia_modeset" },
-            ] : []
-          )
+          modules = contains(keys(local.gpu_nodes), name) ? [
+            { name = "nvidia" },
+            { name = "nvidia_uvm" },
+            { name = "nvidia_drm" },
+            { name = "nvidia_modeset" },
+          ] : []
         }
         nodeLabels = merge(
-          node.role == "longhorn" ? tomap({ "node.longhorn.io/create-default-disk" = "true" }) : tomap({}),
           contains(keys(local.gpu_nodes), name) ? tomap({ "nvidia.com/gpu.present" = "true" }) : tomap({}),
           node.role == "servers" ? tomap({
             "node.kubernetes.io/exclude-from-external-load-balancers" = {

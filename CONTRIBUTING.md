@@ -70,7 +70,7 @@ The foundation root **imports an existing Doppler project and its dev/prod envir
 
 1. Create the HCP Terraform organization and set its default execution mode to **Local** before initializing foundation. Plans will run on your machine or the CI runner; HCP stores and locks state.
 2. Create an HCP user token for an operator with access to the organization. Store it as `HCP_TERRAFORM_TOKEN` in both Doppler configs. This deployment uses an operator user token shared across the workspaces.
-3. Enter the operator-issued credentials listed in the [secrets reference](docs/reference/secrets.md#operator-entered-secrets), including Proxmox, Tailscale, Cloudflare, and prod's Longhorn backup credentials.
+3. Enter the operator-issued credentials listed in the [secrets reference](docs/reference/secrets.md#operator-entered-secrets), including Proxmox, Tailscale, and Cloudflare credentials.
 
 Foundation creates the CI and ESO service tokens. Cluster applies generate kubeconfigs, Talos configs, and Karpenter AWS keys and worker configuration. You do not enter those by hand.
 
@@ -83,9 +83,8 @@ Foundation creates the CI and ESO service tokens. Cluster applies generate kubec
 | Proxmox bridge, datastore, gateway, versions, AWS AMI and VPC CIDR | Each environment's `main.tfvars` |
 | Cilium address pools and L2 announcement nodes | [`cilium-network/environments/`](apps/components/cilium-network/environments/) |
 | Argo CD UI addresses | [`argocd/bootstrap/environments/`](apps/argocd/bootstrap/environments/) |
-| Longhorn UI address | [`longhorn/environments/prod/values.yaml`](apps/components/longhorn/environments/prod/values.yaml) |
 
-Inventory role `servers` means control plane; `worker` means a general worker; `longhorn` means a storage worker. A node's `pci` entries enable GPU passthrough and select the Talos image with NVIDIA extensions.
+Inventory role `servers` means a control-plane node that also runs workloads; `worker` means a general worker. A node's `pci` entries enable GPU passthrough and select the Talos image with NVIDIA extensions.
 
 Keep Cilium's address pools consistent with `network.json`, choose UI addresses from those pools, and keep L2 announcement selectors consistent with node names. These settings are maintained in separate files.
 

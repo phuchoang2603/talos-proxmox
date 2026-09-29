@@ -16,9 +16,6 @@ Set these directly in the matching Doppler config before deployment. They are no
 | `PROXMOX_ENDPOINT`, `PROXMOX_USERNAME`, `PROXMOX_PASSWORD` | Cluster root's Proxmox provider | Both |
 | `TS_OAUTH_CLIENT_ID`, `TS_OAUTH_SECRET` | GitHub runner's Tailscale connection | Both |
 | `CLOUDFLARE_TUNNEL_TOKEN` | Tunnel ExternalSecret | Both |
-| `LONGHORN_AWS_ENDPOINTS`, `LONGHORN_AWS_ACCESS_KEY_ID`, `LONGHORN_AWS_SECRET_ACCESS_KEY` | Longhorn backup ExternalSecret | prod |
-
-`LONGHORN_AWS_*` are MinIO backup credentials despite their names; they are separate from Karpenter's AWS IAM credentials.
 
 ## Generated secrets
 
@@ -49,9 +46,8 @@ HCP state holds generated credentials and Talos bootstrap material. Doppler prov
 | Kubernetes Secret | Namespace | Refresh |
 | --- | --- | --- |
 | `cloudflare-tunnel-token` | `cloudflare-tunnel` | 1 hour |
-| `longhorn-minio-credentials` | `longhorn-system` | 1 hour |
 
-Both are produced by ExternalSecrets using the `doppler` ClusterSecretStore. If Doppler is unreachable, existing Secrets are retained and refresh failures are exposed through ESO status. Inspect status without printing secret values:
+It is produced by an ExternalSecret using the `doppler` ClusterSecretStore. If Doppler is unreachable, existing Secrets are retained and refresh failures are exposed through ESO status. Inspect status without printing secret values:
 
 ```bash
 kubectl get clustersecretstore doppler

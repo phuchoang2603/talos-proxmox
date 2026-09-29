@@ -68,7 +68,7 @@ kubectl -n kube-system get pods -l app=spire-server
 kubectl -n kube-system get pods -l app=spire-agent
 ```
 
-Expected results: the root and child Applications are Synced/Healthy; the Doppler store and ExternalSecrets are Ready; SPIRE pods are ready; and there is exactly one default StorageClass (`local-path` in dev, `longhorn` in prod).
+Expected results: the root and child Applications are Synced/Healthy; the Doppler store and ExternalSecrets are Ready; SPIRE pods are ready; and there is exactly one default StorageClass, `local-path`. `kubectl get nodes` lists only the Proxmox control-plane nodes (one in dev, `prod-server1` through `prod-server3` in prod) plus any AWS workers; the control-plane nodes also run workloads, and `prod-server1` is prod's SSD-backed node for write-heavy volumes.
 
 ## Find the failing layer
 

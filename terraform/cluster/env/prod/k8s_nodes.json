@@ -4,10 +4,10 @@
     "node": "pve",
     "role": "servers",
     "address": "10.69.12.11/16",
-    "cpu_cores": 4,
+    "cpu_cores": 6,
     "cpu_type": "host",
-    "memory_mb": 16384,
-    "disk_size_gb": 64,
+    "memory_mb": 22528,
+    "disk_size_gb": 364,
     "datastore_id": "local-lvm",
     "pci": [
       "0000:b3:00.0",
@@ -19,10 +19,10 @@
     "node": "pve2",
     "role": "servers",
     "address": "10.69.12.12/16",
-    "cpu_cores": 4,
+    "cpu_cores": 6,
     "cpu_type": "host",
-    "memory_mb": 10240,
-    "disk_size_gb": 64,
+    "memory_mb": 16384,
+    "disk_size_gb": 364,
     "datastore_id": "local-lvm"
   },
   "prod-server3": {
@@ -30,43 +30,10 @@
     "node": "pve3",
     "role": "servers",
     "address": "10.69.12.13/16",
-    "cpu_cores": 4,
+    "cpu_cores": 6,
     "cpu_type": "host",
-    "memory_mb": 10240,
-    "disk_size_gb": 64,
-    "datastore_id": "local-lvm"
-  },
-  "prod-longhorn1": {
-    "vm_id": 1221,
-    "node": "pve",
-    "role": "longhorn",
-    "address": "10.69.12.21/16",
-    "cpu_cores": 2,
-    "cpu_type": "host",
-    "memory_mb": 6144,
-    "disk_size_gb": 300,
-    "datastore_id": "local-lvm"
-  },
-  "prod-longhorn2": {
-    "vm_id": 1222,
-    "node": "pve2",
-    "role": "longhorn",
-    "address": "10.69.12.22/16",
-    "cpu_cores": 2,
-    "cpu_type": "host",
-    "memory_mb": 6144,
-    "disk_size_gb": 300,
-    "datastore_id": "local-lvm"
-  },
-  "prod-longhorn3": {
-    "vm_id": 1223,
-    "node": "pve3",
-    "role": "longhorn",
-    "address": "10.69.12.23/16",
-    "cpu_cores": 2,
-    "cpu_type": "host",
-    "memory_mb": 6144,
-    "disk_size_gb": 300,
+    "memory_mb": 16384,
+    "disk_size_gb": 364,
     "datastore_id": "local-lvm"
   }
 }

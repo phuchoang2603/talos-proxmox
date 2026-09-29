@@ -37,9 +37,9 @@ variable "nodes" {
 
   validation {
     condition = alltrue([
-      for node in values(var.nodes) : contains(["servers", "worker", "longhorn"], node.role)
+      for node in values(var.nodes) : contains(["servers", "worker"], node.role)
     ])
-    error_message = "node role must be servers, worker, or longhorn."
+    error_message = "node role must be servers or worker."
   }
 
   validation {

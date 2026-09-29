@@ -13,7 +13,7 @@ flowchart LR
     Prod <-->|"KubeSpan"| AWSProd["prod AWS workers: 0–2"]
 ```
 
-Persistent workloads stay on Proxmox: dev uses local-path storage and prod uses Longhorn. Each environment has its own state workspaces, Doppler config, AWS worker group, and Argo CD. Neither cluster manages the other.
+Persistent workloads stay on Proxmox, on local-path node storage in both environments. Prod runs three control-plane VMs, one per Proxmox host, that also run workloads; only `prod-server1` sits on SSD, so write-heavy volumes belong there. Each environment has its own state workspaces, Doppler config, AWS worker group, and Argo CD. Neither cluster manages the other.
 
 ## Start here
 

@@ -26,11 +26,11 @@ The [bootstrap chart](../../apps/argocd/bootstrap/) creates the `talos-proxmox` 
 | Owner | Components |
 | --- | --- |
 | Platform OpenTofu root | Gateway API CRDs, Cilium/SPIRE, ESO token namespace/Secret, Karpenter (CRDs, controller, `EC2NodeClass`, `NodePool`, and its AWS key Secret), Argo CD, bootstrap AppProject/root Application/UI route |
-| Argo CD | ESO/store, Cilium address pools/L2 policies, storage, metrics, cloud controller, GPU components, routes, operators, observability, tunnel |
+| Argo CD | ESO/store, Cilium address pools/L2 policies, storage, metrics, cloud controller, GPU components, routes, operators, tunnel |
 
 Cilium and Argo CD remain OpenTofu-owned after bring-up. Changes to them go through a platform apply. Application changes go through Git and Argo CD.
 
-An environment destroy removes the cluster and empties the platform root's state; it does not uninstall anything from the cluster. The platform root and Argo CD components must therefore not create resources outside the cluster that need removing on destroy, such as DNS records, tailnet devices, or cloud resources. When a component does need one, the cluster or foundation root owns its removal, as the cluster root does for Karpenter's EC2 instances and launch templates. The Cloudflare tunnel exists outside the cluster and only its token is in the cluster, and Longhorn backups are meant to outlive it.
+An environment destroy removes the cluster and empties the platform root's state; it does not uninstall anything from the cluster. The platform root and Argo CD components must therefore not create resources outside the cluster that need removing on destroy, such as DNS records, tailnet devices, or cloud resources. When a component does need one, the cluster or foundation root owns its removal, as the cluster root does for Karpenter's EC2 instances and launch templates. The Cloudflare tunnel exists outside the cluster and only its token is in the cluster.
 
 The `cilium-network` chart contains cluster-scoped networking resources; it does not install a second Cilium release.
 
@@ -43,15 +43,13 @@ The source of truth is [`apps/argocd/platform/values.yaml`](../../apps/argocd/pl
 | -3 | External Secrets Operator | dev, prod |
 | -2 | Doppler ClusterSecretStore | dev, prod |
 | -1 | Burst admission policy, Cilium network resources, metrics-server | dev, prod |
-| 0 | local-path | dev |
-| 0 | Longhorn and backup/storage resources | prod |
-| 0 | Talos CCM, CNPG, Strimzi, MongoDB operator | dev, prod |
-| 1 | GPU operator, NVIDIA DRA, observability | dev, prod |
+| 0 | local-path, Talos CCM, CNPG, Strimzi, MongoDB operator | dev, prod |
+| 1 | GPU operator, NVIDIA DRA | dev, prod |
 | 2 | Cloudflare tunnel | dev, prod |
 
 Waves order submission of child Applications; they do not wait for each child's resources to become healthy. Children converge asynchronously. Unlimited retries with backoff and `SkipDryRunOnMissingResource` handle dependencies such as CRDs arriving later. Automated prune removes resources deleted from Git, and self-heal repairs drift.
 
-Argo CD uses server-side apply and server-side diff. Privileged component namespaces get labels through `managedNamespaceMetadata`. Cilium and SPIRE share `kube-system`. The Longhorn pre-upgrade checker is disabled because its Helm hook ordering does not fit initial Argo CD reconciliation.
+Argo CD uses server-side apply and server-side diff. Privileged component namespaces get labels through `managedNamespaceMetadata`. Cilium and SPIRE share `kube-system`.
 
 ## Secret delivery
 
@@ -70,9 +68,9 @@ flowchart LR
     Secrets --> Pods["Workloads"]
 ```
 
-The token Secret and Karpenter's `karpenter-aws` Secret are the Doppler-derived Kubernetes Secrets owned by OpenTofu. ESO owns the tunnel and Longhorn credential Secrets. Each store uses a read-only token scoped to its environment. Secret values never belong in Helm values files.
+The token Secret and Karpenter's `karpenter-aws` Secret are the Doppler-derived Kubernetes Secrets owned by OpenTofu. ESO owns the tunnel token Secret. Each store uses a read-only token scoped to its environment. Secret values never belong in Helm values files.
 
-Tunnel and Longhorn credentials refresh hourly. Workloads that read credentials only at startup need an Argo CD Restart after the Secret refreshes. See [secret delivery and rotation](../reference/secrets.md#delivery-and-rotation).
+The tunnel token refreshes hourly. Workloads that read credentials only at startup need an Argo CD Restart after the Secret refreshes. See [secret delivery and rotation](../reference/secrets.md#delivery-and-rotation).
 
 ## Change a component
 

@@ -59,17 +59,7 @@ components:
     namespace: local-path-storage
     syncWave: "0"
     releaseName: local-path-provisioner
-    clusters: [dev]
-    managedNamespaceMetadata: *privileged
-  longhorn:
-    path: apps/components/longhorn
-    namespace: longhorn-system
-    syncWave: "0"
-    releaseName: longhorn
-    clusters: [prod]
-    valueFilesByCluster:
-      prod:
-        - environments/prod/values.yaml
+    clusters: [dev, prod]
     managedNamespaceMetadata: *privileged
   talos-ccm:
     path: apps/components/talos-ccm
@@ -108,17 +98,6 @@ components:
     syncWave: "1"
     releaseName: nvidia-dra-driver-gpu
     clusters: [dev, prod]
-    managedNamespaceMetadata: *privileged
-  observability:
-    path: apps/components/observability
-    releaseName: observability
-    namespace: monitoring
-    syncWave: "1"
-    clusters: [dev, prod]
-    valueFilesByCluster:
-      prod:
-        - environments/prod/values.yaml
-    ignoreDifferences: true
     managedNamespaceMetadata: *privileged
   cloudflare-tunnel:
     path: apps/components/cloudflare-tunnel
