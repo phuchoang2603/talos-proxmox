@@ -121,7 +121,7 @@
       "Sid": "ListKarpenterInstanceProfiles",
       "Effect": "Allow",
       "Action": "iam:ListInstanceProfiles",
-      "Resource": "arn:aws:iam::ACCOUNT_ID:instance-profile/karpenter/REGION/CLUSTER/"
+      "Resource": "arn:aws:iam::ACCOUNT_ID:instance-profile/karpenter/REGION/CLUSTER/*"
     },
     {
       "Sid": "ReadWorkerInstanceProfile",

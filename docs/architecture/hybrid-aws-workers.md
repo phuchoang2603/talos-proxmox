@@ -102,14 +102,16 @@ There is no AWS EBS CSI driver or Longhorn replica storage on burst workers. See
 
 | Owner | Responsibility |
 | --- | --- |
-| Cluster OpenTofu root | VPC, subnets, security group, worker IAM role and profile, Karpenter IAM user and key, worker Talos configuration |
+| Cluster OpenTofu root | VPC, subnets, security group, worker IAM role and profile, Karpenter IAM user and key, worker Talos configuration, and removal of Karpenter's instances and launch templates on destroy |
 | Platform OpenTofu root | Karpenter CRDs, controller, `EC2NodeClass`, `NodePool`, and the controller's AWS key Secret |
 | Argo CD | Talos CCM and the burst admission policy |
 | Doppler | Hand-off of the Karpenter key, worker machine configuration, and AMI ID from the cluster root to the platform root |
 
-The platform root owns Karpenter so that a destroy can delete the `NodePool` and wait for Karpenter to terminate its instances before the controller is removed. Because the worker Talos configuration contains cluster secrets, the `EC2NodeClass` user data is applied from OpenTofu instead of Git. Anyone who can read `ec2nodeclasses` in the cluster can read it.
+The platform root owns Karpenter because the worker Talos configuration contains cluster secrets, so the `EC2NodeClass` user data is applied from OpenTofu instead of Git. Anyone who can read `ec2nodeclasses` in the cluster can read it.
 
-The Karpenter key can launch, tag, and terminate only instances tagged for its own cluster, in subnets and a security group tagged for it, from the pinned AMI. It can pass only the worker role, which has no permissions. AWS Describe permissions are regional. CI uses a separate OIDC provisioning role and never launches instances. Key rotation is [two OpenTofu applies](../operations/aws-burst-workers.md#rotate-the-karpenter-key).
+Destroy does not depend on the cluster. The cluster root detaches the Karpenter policy, terminates the environment's Karpenter-tagged instances through the AWS API, deletes their launch templates, and only then removes the network and worker instance profile. The platform root is not destroyed; its state is emptied after the cluster is gone. See [Destroy an environment](../operations/aws-burst-workers.md#destroy-an-environment).
+
+The Karpenter key can launch, tag, and terminate only instances tagged for its own cluster, in subnets and a security group tagged for it, from the pinned AMI. It can pass only the worker role, which has no permissions. AWS Describe permissions are regional. CI uses a separate OIDC provisioning role that never launches instances; it can terminate instances and delete launch templates only when they carry both `managed-by=talos-proxmox` and a `karpenter.sh/nodepool` tag, which the destroy sweep needs. Key rotation is [two OpenTofu applies](../operations/aws-burst-workers.md#rotate-the-karpenter-key).
 
 ## Known operating limits
 

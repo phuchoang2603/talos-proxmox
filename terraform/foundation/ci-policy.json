@@ -15,7 +15,9 @@
         "ec2:DescribeNetworkInterfaces",
         "ec2:DescribeImages",
         "ec2:DescribeInstanceTypes",
-        "ec2:DescribeAvailabilityZones"
+        "ec2:DescribeAvailabilityZones",
+        "ec2:DescribeInstances",
+        "ec2:DescribeLaunchTemplates"
       ],
       "Resource": "*"
     },
@@ -118,6 +120,26 @@
       "Condition": {
         "StringEquals": {
           "aws:ResourceTag/managed-by": "talos-proxmox"
+        }
+      }
+    },
+    {
+      "Sid": "RemoveKarpenterInstancesAndTemplates",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:TerminateInstances",
+        "ec2:DeleteLaunchTemplate"
+      ],
+      "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:instance/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:launch-template/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/managed-by": "talos-proxmox"
+        },
+        "StringLike": {
+          "aws:ResourceTag/karpenter.sh/nodepool": "*"
         }
       }
     },

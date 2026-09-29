@@ -28,7 +28,11 @@ The [bootstrap chart](../../apps/argocd/bootstrap/) creates the `talos-proxmox` 
 | Platform OpenTofu root | Gateway API CRDs, Cilium/SPIRE, ESO token namespace/Secret, Karpenter (CRDs, controller, `EC2NodeClass`, `NodePool`, and its AWS key Secret), Argo CD, bootstrap AppProject/root Application/UI route |
 | Argo CD | ESO/store, Cilium address pools/L2 policies, storage, metrics, cloud controller, GPU components, routes, operators, observability, tunnel |
 
-Cilium and Argo CD remain OpenTofu-owned after bring-up. Changes to them go through a platform apply. Application changes go through Git and Argo CD. The `cilium-network` chart contains cluster-scoped networking resources; it does not install a second Cilium release.
+Cilium and Argo CD remain OpenTofu-owned after bring-up. Changes to them go through a platform apply. Application changes go through Git and Argo CD.
+
+An environment destroy removes the cluster and empties the platform root's state; it does not uninstall anything from the cluster. The platform root and Argo CD components must therefore not create resources outside the cluster that need removing on destroy, such as DNS records, tailnet devices, or cloud resources. When a component does need one, the cluster or foundation root owns its removal, as the cluster root does for Karpenter's EC2 instances and launch templates. The Cloudflare tunnel exists outside the cluster and only its token is in the cluster, and Longhorn backups are meant to outlive it.
+
+The `cilium-network` chart contains cluster-scoped networking resources; it does not install a second Cilium release.
 
 ## Membership, overlays, and ordering
 

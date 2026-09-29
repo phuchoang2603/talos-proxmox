@@ -53,4 +53,7 @@ resource "aws_iam_access_key" "karpenter" {
 resource "aws_iam_user_policy_attachment" "karpenter" {
   user       = aws_iam_user.karpenter.name
   policy_arn = aws_iam_policy.karpenter.arn
+
+  # Destroyed before the sweep, so the controller cannot launch while its instances are terminated.
+  depends_on = [terraform_data.karpenter_sweep]
 }

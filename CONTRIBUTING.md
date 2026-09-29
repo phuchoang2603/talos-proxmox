@@ -140,4 +140,4 @@ Both roots reject a workspace belonging to the other environment. The platform r
 
 ## Destroy an environment
 
-Use **Manual Provision** on `main`, select the environment, then **destroy**. The workflow destroys platform first and cluster second, including the AWS worker infrastructure, Karpenter's instances, and its key. Foundation is separate and remains in place. This removes the environment's infrastructure; preserve any data you need beforehand.
+Use **Manual Provision** on `main`, select the environment, then **destroy**. The workflow destroys the cluster root, including the AWS worker infrastructure, Karpenter's instances, and its key, and then empties the platform root's state. See [Destroy an environment](docs/operations/aws-burst-workers.md#destroy-an-environment). Foundation is separate and remains in place. This removes the environment's infrastructure; preserve any data you need beforehand.

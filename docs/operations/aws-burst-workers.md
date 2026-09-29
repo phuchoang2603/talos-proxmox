@@ -105,14 +105,30 @@ The platform apply updates the `kube-system/karpenter-aws` Secret and restarts t
 
 CI's OIDC session is independent of this key. Do not create a replacement key manually in AWS or copy it into Kubernetes.
 
-## Destroy an environment with running workers
+## Destroy an environment
 
-Use the **Manual Provision** destroy workflow. The platform root is destroyed first: it removes the NodePool, waits for Karpenter to terminate its instances (up to 30 minutes for workloads that ignore eviction), and then removes the controller and CRDs. If the wait fails, list the environment's remaining instances before retrying:
+Use the **Manual Provision** destroy workflow. It does not uninstall anything from the cluster, and it works when the cluster is broken or unreachable:
+
+1. The cluster root destroy detaches the Karpenter policy, so the controller can no longer launch instances. It then terminates the environment's Karpenter instances without draining them, waits until they are terminated, and deletes Karpenter's launch templates. Only then does it remove the subnets, security group, internet gateway, and worker instance profile, alongside the Proxmox VMs.
+2. After the cluster destroy succeeds, the workflow removes every resource from the platform root's state. Everything the platform root manages was inside the destroyed cluster. The next apply provisions the platform as it would a fresh environment.
+
+If the cluster destroy fails, the platform state is left as it was; rerun the workflow. If the sweep fails, list the environment's remaining instances before retrying:
 
 ```bash
 aws ec2 describe-instances --region us-east-1 \
   --filters "Name=tag:kubernetes.io/cluster/${CLUSTER_ENV}-talos,Values=owned" \
   --query 'Reservations[].Instances[?State.Name!=`terminated`].InstanceId'
+```
+
+To destroy locally, follow [local OpenTofu setup](../../CONTRIBUTING.md#run-opentofu-locally) with an AWS session that can terminate instances, and run the same two steps. Do not run `tofu destroy` on the platform root.
+
+```bash
+export TF_VAR_env="$CLUSTER_ENV"
+TF_WORKSPACE="talos-cluster-${TF_VAR_env}" tofu -chdir=terraform/cluster destroy \
+  -var-file="env/${TF_VAR_env}/main.tfvars"
+export TF_WORKSPACE="talos-platform-${TF_VAR_env}"
+tofu -chdir=terraform/platform init
+tofu -chdir=terraform/platform state list | xargs -r tofu -chdir=terraform/platform state rm
 ```
 
 ## Inspect AWS resources in state

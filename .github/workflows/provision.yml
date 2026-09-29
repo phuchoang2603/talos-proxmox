@@ -55,16 +55,6 @@ jobs:
           oauth-secret: ${{ env.TS_OAUTH_SECRET }}
           tags: tag:ci
 
-      - name: Destroy platform
-        if: inputs.action == 'destroy'
-        working-directory: terraform/platform
-        env:
-          TF_WORKSPACE: talos-platform-${{ inputs.environment }}
-        run: |
-          tofu init -input=false
-          tofu plan -input=false -no-color -destroy -out=.planfile
-          tofu apply -input=false -auto-approve .planfile
-
       - name: Cluster
         working-directory: terraform/cluster
         env:
@@ -74,6 +64,20 @@ jobs:
           # shellcheck disable=SC2086
           tofu plan -input=false -no-color ${PLAN_FLAGS} -var-file="env/${TF_VAR_env}/main.tfvars" -out=.planfile
           tofu apply -input=false -auto-approve .planfile
+
+      # Everything the platform root manages lives in the cluster just destroyed, so its state is
+      # emptied instead of destroyed. This runs only after the cluster destroy succeeds.
+      - name: Reset platform state
+        if: inputs.action == 'destroy'
+        working-directory: terraform/platform
+        env:
+          TF_WORKSPACE: talos-platform-${{ inputs.environment }}
+        run: |
+          tofu init -input=false
+          tofu state list > .resources
+          if [ -s .resources ]; then
+            xargs tofu state rm < .resources
+          fi
 
       - name: Platform
         if: inputs.action != 'destroy'

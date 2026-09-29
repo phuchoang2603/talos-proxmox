@@ -54,7 +54,7 @@ flowchart TD
 | [`provision.yml`](../../.github/workflows/provision.yml) | Reusable per-environment apply or destroy, restricted to `main` pushes/manual dispatches |
 | [`manual.yml`](../../.github/workflows/manual.yml) | Validate, then apply or destroy one selected environment on `main` |
 
-Provisioning runs are serialized per environment and do not cancel an active run. The job timeout is 90 minutes. Destroy reverses root order: platform, then cluster. Foundation is only validated by CI and must be applied locally.
+Provisioning runs are serialized per environment and do not cancel an active run. The job timeout is 90 minutes. Destroy runs only the cluster root, which also removes Karpenter's EC2 instances and launch templates, and then empties the platform root's state instead of destroying it, so it does not need the Kubernetes API. Foundation is only validated by CI and must be applied locally.
 
 ## Credentials and network access
 
