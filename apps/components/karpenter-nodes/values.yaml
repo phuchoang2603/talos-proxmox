@@ -24,9 +24,9 @@ kubelet:
     nodefs.available: 20%
 
 nodePool:
-  limits:
-    cpu: "8"
-    memory: 32Gi
+  # Optional cap on total provisioned resources. Empty means no NodePool cap, so the AWS account's
+  # vCPU quota is the only ceiling. Example: {cpu: "16", memory: 64Gi}. Set cpu "0" to pause bursting.
+  limits: {}
   # The AWS account is on the free plan, which launches only free-tier-eligible types
   # (`aws ec2 describe-instance-types --filters Name=free-tier-eligible,Values=true`).
   # Widen this list, or switch to category/generation requirements, on a paid account.

@@ -14,18 +14,18 @@ The platform SHALL maintain Talos control planes and on-premises storage and GPU
 - **THEN** it joins the cluster without changing fixed Proxmox capacity or requiring persistent volumes
 
 ### Requirement: Bounded, independently autoscaled AWS workers
-The platform SHALL provision Talos worker nodes for the dev and prod clusters directly from pending pods, choosing among multiple instance types, availability zones, and both spot and on-demand capacity. Each environment SHALL bound its AWS workers by total CPU and memory limits and SHALL support a zero-worker idle state. The provisioner MUST NOT launch new capacity once the environment's provisioned resources reach those limits. AWS scaling MUST NOT change the fixed Proxmox inventory, and in-cluster scaling control MUST remain available when the AWS worker count is zero. When an AWS instance terminates for any reason, its Node object MUST be removed from the cluster without a separate cleanup job.
+The platform SHALL provision Talos worker nodes for the dev and prod clusters directly from pending pods, choosing among multiple instance types, availability zones, and both spot and on-demand capacity. Each environment SHALL support a zero-worker idle state and MAY bound its AWS workers by total CPU and memory limits; when no limit is configured, the AWS account's instance quota is the only ceiling. The provisioner MUST NOT launch new capacity once the environment's provisioned resources reach a configured limit. AWS scaling MUST NOT change the fixed Proxmox inventory, and in-cluster scaling control MUST remain available when the AWS worker count is zero. When an AWS instance terminates for any reason, its Node object MUST be removed from the cluster without a separate cleanup job.
 
 #### Scenario: Burst from zero
 - **WHEN** an eligible pending workload requires AWS capacity and no AWS worker exists
-- **THEN** an AWS worker sized for the pending pods joins the cluster and runs the workload within the configured limits
+- **THEN** an AWS worker sized for the pending pods joins the cluster and runs the workload within any configured limits
 
 #### Scenario: Return to zero
 - **WHEN** AWS workers are empty, or their pods fit on fewer or cheaper nodes, and the consolidation delay has elapsed
 - **THEN** unneeded AWS workers are drained and terminated, and the AWS worker count can return to zero while Proxmox nodes and scaling control remain available
 
 #### Scenario: Reach capacity limit
-- **WHEN** eligible pending workloads require more CPU or memory than the environment's remaining limit
+- **WHEN** a limit is configured and eligible pending workloads require more CPU or memory than the environment's remaining limit
 - **THEN** no worker is launched past the limit and the excess workloads remain visibly pending
 
 #### Scenario: Spot capacity is reclaimed

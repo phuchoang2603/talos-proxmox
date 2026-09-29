@@ -39,7 +39,7 @@ The diagram represents either dev or prod. Each has its own VPC, Talos identity,
 | Default persistent storage | local-path | Longhorn |
 | Karpenter replicas | 1 | 2 |
 
-Both use `us-east-1` with one public subnet in each of `us-east-1a` through `us-east-1d`. There is a single `NodePool`, `aws-burst`, that allows amd64 `m7i-flex.large` and `c7i-flex.large` instances, on spot or on-demand capacity. These are the free-tier-eligible types the account can launch; a paid account can widen the list. It is limited to 8 CPUs and 32Gi of memory in total. Workers use a pinned Talos AMI and a 40 GiB disposable `gp3` boot disk. This disk is node storage, not a Kubernetes EBS volume.
+Both use `us-east-1` with one public subnet in each of `us-east-1a` through `us-east-1d`. There is a single `NodePool`, `aws-burst`, that allows amd64 `m7i-flex.large` and `c7i-flex.large` instances, on spot or on-demand capacity. These are the free-tier-eligible types the account can launch; a paid account can widen the list. It has no NodePool cap, so the AWS account's vCPU quota (64 on-demand, shared by dev and prod) is the ceiling; set `nodePool.limits` in the chart to add one. Workers use a pinned Talos AMI and a 40 GiB disposable `gp3` boot disk. This disk is node storage, not a Kubernetes EBS volume.
 
 Configuration: [`terraform/aws/`](../../terraform/aws/), [`terraform/platform/karpenter.tf`](../../terraform/platform/karpenter.tf), and [`apps/components/karpenter-nodes/`](../../apps/components/karpenter-nodes/).
 
@@ -113,7 +113,7 @@ The Karpenter key can launch, tag, and terminate only instances tagged for its o
 
 ## Known operating limits
 
-Spot and on-demand capacity can be unavailable in a zone. Karpenter then tries other instance types and zones in the pool. Nothing schedules past the CPU and memory limits, and excess workloads stay Pending.
+Spot and on-demand capacity can be unavailable in a zone. Karpenter then tries other instance types and zones in the pool. With no cap set, the account's vCPU quota is the ceiling: launches then fail with a quota error and excess workloads stay Pending. A configured limit stops launches earlier.
 
 The existing deployment notes report roughly three minutes to worker readiness; treat this as an observation, not a deadline. Image startup, discovery, networking, and Cilium can change that timing.
 

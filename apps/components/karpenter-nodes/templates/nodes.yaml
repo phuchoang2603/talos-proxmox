@@ -36,8 +36,10 @@ kind: NodePool
 metadata:
   name: aws-burst
 spec:
+  {{- with .Values.nodePool.limits }}
   limits:
-    {{- toYaml .Values.nodePool.limits | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
     consolidateAfter: {{ .Values.nodePool.consolidateAfter }}

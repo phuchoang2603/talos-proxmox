@@ -50,7 +50,7 @@ If a Pod stays Pending, inspect its events and the NodeClaim, and check:
 | --- | --- |
 | Requests fit an allowed instance | Pods larger than one `m7i-flex.large`, or than the NodePool's remaining limit, cannot be scheduled |
 | Taint toleration and node affinity | Scheduling intent must match the NodePool's taint and label |
-| `kubectl describe nodepool aws-burst` shows limits not reached | Total CPU and memory are capped |
+| `kubectl describe nodepool aws-burst` shows any configured limit not reached; Karpenter logs show no `VcpuLimitExceeded` | A NodePool limit or the account's vCPU quota can stop launches |
 | Karpenter logs show no `AccessDenied` or launch errors | Stale credentials, insufficient capacity, and a wrong AMI all fail at launch |
 | New node has mesh connectivity, cloud identity, and Cilium | A launched EC2 instance is not yet a Ready Kubernetes node |
 
