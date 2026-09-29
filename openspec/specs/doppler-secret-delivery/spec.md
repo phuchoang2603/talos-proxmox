@@ -8,28 +8,32 @@ Make Doppler the single source for platform secrets. OpenTofu writes generated c
 
 ### Requirement: Doppler as the single secret source
 The platform SHALL store every secret consumed by CI or clusters in the Doppler project `talos-proxmox`, in the config for the matching environment (`dev` or `prod`):
-- **Generated credentials** (kubeconfig, talosconfig, autoscaler AWS access keys, and secret-store read tokens) MUST be written by OpenTofu.
+- **Generated credentials** (kubeconfig, talosconfig, autoscaler AWS access keys, AWS worker bootstrap configuration, and secret-store read tokens) MUST be written by OpenTofu.
 - **Externally issued credentials** (Proxmox, HCP Terraform, Tailscale, Cloudflare tunnel, and Longhorn backup credentials) MUST be entered in Doppler by an operator.
 
 No CI step MAY write secrets to Doppler with the Doppler CLI.
 
 #### Scenario: Cluster apply
 - **WHEN** the cluster root is applied
-- **THEN** that environment's generated credentials are present and current in its Doppler config, with no CLI write step
+- **THEN** that environment's generated credentials and AWS worker bootstrap configuration are present and current in its Doppler config, with no CLI write step
 
 #### Scenario: Autoscaler key creation
 - **WHEN** an environment is applied from fresh state
 - **THEN** its autoscaler access key exists and is stored in that environment's Doppler config without manual key creation
 
 ### Requirement: Clusters receive secrets only through the secret store
-Every Kubernetes Secret derived from Doppler SHALL be produced by External Secrets Operator from the cluster's Doppler store, except the bootstrap authentication Secret required by that store. The platform root SHALL create and own that bootstrap Secret; ESO MUST NOT also manage it. The store's credential MUST be a read-only Doppler token scoped to that environment's config, and MUST be the only Doppler credential placed in the cluster. No provisioning step MAY create application Secrets from secret values.
+Every Kubernetes Secret derived from Doppler SHALL be produced by External Secrets Operator from the cluster's Doppler store, except the bootstrap authentication Secret required by that store and the autoscaler's AWS credential Secret. The platform root SHALL create and own those two Secrets; ESO MUST NOT also manage them. The store's credential MUST be a read-only Doppler token scoped to that environment's config, and MUST be the only Doppler credential placed in the cluster. No provisioning step MAY create other application Secrets from secret values.
 
 #### Scenario: Bootstrap store authentication
 - **WHEN** the platform root provisions a fresh environment before ESO is running
-- **THEN** it creates the store's read-only token Secret from `ESO_DOPPLER_TOKEN`, and all application Secrets remain ESO-owned
+- **THEN** it creates the store's read-only token Secret from `ESO_DOPPLER_TOKEN`, and all application Secrets other than the autoscaler credential remain ESO-owned
+
+#### Scenario: Autoscaler credential
+- **WHEN** the platform root installs the autoscaler
+- **THEN** it creates the autoscaler's AWS credential Secret from the environment's Doppler config, and no ExternalSecret manages that Secret
 
 #### Scenario: Application secret
-- **WHEN** the Cloudflare tunnel, Longhorn backup, or autoscaler component is synced by Argo CD
+- **WHEN** the Cloudflare tunnel or Longhorn backup component is synced by Argo CD
 - **THEN** its Secret is created by an ExternalSecret from the Doppler store, and no workflow writes that Secret directly
 
 #### Scenario: Store token scope
@@ -56,14 +60,14 @@ A credential MUST NOT be reused for another purpose. CI Doppler tokens and store
 
 #### Scenario: Autoscaler scope
 - **WHEN** the autoscaler's AWS key is used
-- **THEN** it can scale only its own environment's burst group
+- **THEN** it can launch, tag, and terminate only its own environment's AWS workers
 
 ### Requirement: Secret changes reach the cluster declaratively
-When a secret value changes in Doppler, the derived Kubernetes Secret SHALL update within the store refresh interval. Workloads that read secrets only at startup SHALL use the new value after a restart triggered from Argo CD. Rotating an OpenTofu-generated credential MUST require only an OpenTofu apply and, where needed, that Argo CD restart, with no kubectl or cloud CLI step.
+When a secret value changes in Doppler, the derived Kubernetes Secret SHALL update within the store refresh interval. Workloads that read secrets only at startup SHALL use the new value after a restart triggered from Argo CD. Rotating an OpenTofu-generated credential MUST require only OpenTofu applies and, where needed, that Argo CD restart, with no kubectl or cloud CLI step. Rotating the autoscaler key MUST require only the cluster and platform applies, which restart the autoscaler with the new key.
 
 #### Scenario: Rotate autoscaler key
-- **WHEN** an operator replaces the autoscaler access key through OpenTofu and restarts the autoscaler from Argo CD after the Secret refreshes
-- **THEN** Doppler, the cluster Secret, and the running autoscaler all use the new key
+- **WHEN** an operator replaces the autoscaler access key through the cluster root and the platform root is then applied
+- **THEN** Doppler, the cluster Secret, and the running autoscaler all use the new key, without an Argo CD restart
 
 #### Scenario: Update an operator-entered secret
 - **WHEN** the Cloudflare tunnel token is changed in Doppler
