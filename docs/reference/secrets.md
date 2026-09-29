@@ -21,7 +21,7 @@ Set these directly in the matching Doppler config before deployment. They are no
 
 | Doppler key | Writer | Consumer |
 | --- | --- | --- |
-| `ESO_DOPPLER_TOKEN` | Foundation | Platform creates `external-secrets-auth/doppler-token` |
+| `ESO_DOPPLER_TOKEN` | Foundation | Platform creates `kube-system/doppler-token` |
 | `KUBECONFIG` | Cluster root | Platform providers and operators |
 | `TALOSCONFIG` | Cluster root | Operators using `talosctl` |
 | `KARPENTER_AWS_ACCESS_KEY_ID`, `KARPENTER_AWS_SECRET_ACCESS_KEY` | Cluster root's AWS module | Platform creates `kube-system/karpenter-aws` |

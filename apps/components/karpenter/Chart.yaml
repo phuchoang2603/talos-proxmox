@@ -1,9 +1,13 @@
 apiVersion: v2
 name: platform-karpenter
-description: Karpenter controller for stateless AWS burst workers
+description: Karpenter controller and CRDs for stateless AWS burst workers
 type: application
 version: 0.1.0
 dependencies:
+  # CRDs ship as templates here so Helm upgrades them; the controller chart's crds/ is skipped.
+  - name: karpenter-crd
+    version: 1.14.1
+    repository: oci://public.ecr.aws/karpenter
   - name: karpenter
     version: 1.14.1
     repository: oci://public.ecr.aws/karpenter

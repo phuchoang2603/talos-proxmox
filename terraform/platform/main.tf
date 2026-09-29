@@ -14,7 +14,6 @@ locals {
       cilium             = "${local.components}/cilium"
       "argo-cd"          = "${local.components}/argo-cd"
       "argocd-bootstrap" = "${local.apps}/argocd/bootstrap"
-      karpenter-crd      = "${local.components}/karpenter-crd"
       karpenter          = "${local.components}/karpenter"
       karpenter-nodes    = "${local.components}/karpenter-nodes"
       } : name => [

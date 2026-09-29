@@ -1,4 +1,0 @@
-burstTaintKey: burst.talos.dev/stateless
-burstTaintValue: "true"
-# EC2 private DNS names; fixed Proxmox nodes are named <env>-<role><n>.
-awsNodeNamePrefix: ip-

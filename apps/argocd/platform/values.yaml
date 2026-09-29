@@ -25,18 +25,6 @@ components:
     syncWave: "-3"
     releaseName: external-secrets
     clusters: [dev, prod]
-  secret-stores:
-    path: apps/components/secret-stores
-    namespace: operators
-    syncWave: "-2"
-    releaseName: secret-stores
-    clusters: [dev, prod]
-  burst-policy:
-    path: apps/components/burst-policy
-    namespace: kube-system
-    syncWave: "-1"
-    releaseName: burst-policy
-    clusters: [dev, prod]
   cilium-network:
     path: apps/components/cilium-network
     namespace: kube-system
@@ -64,7 +52,7 @@ components:
   talos-ccm:
     path: apps/components/talos-ccm
     namespace: kube-system
-    syncWave: "0"
+    syncWave: "-1"
     releaseName: talos-cloud-controller-manager
     clusters: [dev, prod]
   cnpg:
@@ -87,10 +75,11 @@ components:
     clusters: [dev, prod]
   gpu-operator:
     path: apps/components/gpu-operator
-    namespace: gpu-operator
+    namespace: operators
     syncWave: "1"
     releaseName: gpu-operator
     clusters: [dev, prod]
+    # Its operands need hostPath and privileged pods, so this relaxes Pod Security for all of `operators`.
     managedNamespaceMetadata: *privileged
   cloudflare-tunnel:
     path: apps/components/cloudflare-tunnel

@@ -1,6 +1,6 @@
 apiVersion: v2
 name: external-secrets-operator
-description: External Secrets Operator wrapper
+description: External Secrets Operator and the Doppler ClusterSecretStore
 type: application
 version: 0.1.0
 dependencies:

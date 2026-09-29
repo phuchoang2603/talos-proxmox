@@ -1,7 +1,7 @@
 # The platform root sets settings.clusterName, settings.clusterEndpoint, and a credentials
 # checksum pod annotation. The AWS key comes from the platform-owned karpenter-aws Secret.
 karpenter:
-  # CRDs are installed by the karpenter-crd release.
+  # CRDs come from the karpenter-crd dependency.
   replicas: 1
   settings:
     # Spot interruption handling is intentionally off: burst workloads are stateless.

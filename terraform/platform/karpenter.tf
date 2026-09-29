@@ -16,16 +16,6 @@ resource "kubernetes_secret_v1" "karpenter_aws" {
   depends_on = [data.http.apiserver_ready]
 }
 
-resource "helm_release" "karpenter_crd" {
-  name      = "karpenter-crd"
-  namespace = "kube-system"
-  chart     = "${local.components}/karpenter-crd"
-  values    = local.chart_values["karpenter-crd"]
-  timeout   = 300
-
-  depends_on = [data.http.apiserver_ready]
-}
-
 # Pods cannot start until Cilium is ready and Cilium itself waits on Argo CD, so do not gate on rollout.
 resource "helm_release" "karpenter" {
   name         = "karpenter"
@@ -45,7 +35,6 @@ resource "helm_release" "karpenter" {
 
   depends_on = [
     kubernetes_secret_v1.karpenter_aws,
-    helm_release.karpenter_crd,
     helm_release.cilium,
   ]
 }

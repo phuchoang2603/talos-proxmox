@@ -1,6 +1,6 @@
 apiVersion: v2
 name: platform-talos-ccm
-description: Talos cloud controller manager for AWS burst node provider IDs
+description: Talos cloud controller manager and stateless-only admission policy for AWS burst nodes
 type: application
 version: 0.1.0
 dependencies:
