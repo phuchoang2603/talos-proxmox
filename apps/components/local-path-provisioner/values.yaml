@@ -10,7 +10,8 @@ local-path-provisioner:
   nodePathMap:
     - node: DEFAULT_PATH_FOR_NON_LISTED_NODES
       paths:
-        # Talos's kubelet does not see the host's /opt, which breaks subPath mounts; /var/mnt is shared with it.
+        # Talos's kubelet does not see the host's /opt, which breaks subPath mounts; this path is bind-mounted
+        # into the kubelet by terraform/proxmox (machine.kubelet.extraMounts).
         - /var/mnt/local-path-provisioner
   helperImage:
     tag: "1.37.0"

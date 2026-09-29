@@ -28,6 +28,15 @@ locals {
             memory = "512Mi"
           }
         }
+        # The kubelet sees /var/mnt read-only; local-path needs it writable to create volumes and subPaths.
+        extraMounts = [
+          {
+            destination = "/var/mnt/local-path-provisioner"
+            type        = "bind"
+            source      = "/var/mnt/local-path-provisioner"
+            options     = ["bind", "rshared", "rw"]
+          }
+        ]
       }
     }
     cluster = {
