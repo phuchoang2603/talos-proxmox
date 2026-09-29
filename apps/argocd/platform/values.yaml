@@ -92,13 +92,6 @@ components:
     releaseName: gpu-operator
     clusters: [dev, prod]
     managedNamespaceMetadata: *privileged
-  nvidia-dra-driver:
-    path: apps/components/nvidia-dra-driver
-    namespace: nvidia-dra-driver-gpu
-    syncWave: "1"
-    releaseName: nvidia-dra-driver-gpu
-    clusters: [dev, prod]
-    managedNamespaceMetadata: *privileged
   cloudflare-tunnel:
     path: apps/components/cloudflare-tunnel
     releaseName: cloudflare-tunnel

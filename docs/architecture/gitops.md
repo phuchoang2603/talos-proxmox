@@ -44,7 +44,7 @@ The source of truth is [`apps/argocd/platform/values.yaml`](../../apps/argocd/pl
 | -2 | Doppler ClusterSecretStore | dev, prod |
 | -1 | Burst admission policy, Cilium network resources, metrics-server | dev, prod |
 | 0 | local-path, Talos CCM, CNPG, Strimzi, MongoDB operator | dev, prod |
-| 1 | GPU operator, NVIDIA DRA | dev, prod |
+| 1 | GPU operator (DRA via `GPUCluster`) | dev, prod |
 | 2 | Cloudflare tunnel | dev, prod |
 
 Waves order submission of child Applications; they do not wait for each child's resources to become healthy. Children converge asynchronously. Unlimited retries with backoff and `SkipDryRunOnMissingResource` handle dependencies such as CRDs arriving later. Automated prune removes resources deleted from Git, and self-heal repairs drift.

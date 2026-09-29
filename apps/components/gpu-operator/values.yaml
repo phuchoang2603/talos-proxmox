@@ -1,4 +1,10 @@
 gpu-operator:
+  # DRA stack (GPUCluster) instead of the device-plugin stack (ClusterPolicy).
+  clusterPolicy:
+    deployCR: false
+  gpuCluster:
+    deployCR: true
+  # Driver and container toolkit come from Talos system extensions.
   driver:
     enabled: false
   toolkit:
@@ -9,13 +15,20 @@ gpu-operator:
     driverInstallDir: /usr/local
   cdi:
     enabled: true
-  clusterPolicy:
-    deployCR: true
-  gpuCluster:
-    deployCR: false
-  # Trim optional operands; the DRA driver handles allocation.
+  draDriver:
+    gpus:
+      kubeletPlugin:
+        env:
+          - name: NVIDIA_CDI_HOOK_PATH
+            value: /usr/local/bin/nvidia-cdi-hook
+    # Multi-Node NVLink only; not available on Proxmox passthrough GPUs.
+    computeDomains:
+      enabled: false
   dcgmExporter:
-    enabled: false
+    enabled: true
+    # No Prometheus Operator CRDs in the cluster.
+    serviceMonitor:
+      enabled: false
   gfd:
     enabled: false
   migManager:
