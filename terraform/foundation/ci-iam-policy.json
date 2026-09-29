@@ -98,6 +98,7 @@
         "iam:ListRoleTags",
         "iam:ListRolePolicies",
         "iam:ListAttachedRolePolicies",
+        "iam:ListInstanceProfilesForRole",
         "iam:UpdateAssumeRolePolicy",
         "iam:GetInstanceProfile",
         "iam:DeleteInstanceProfile",
