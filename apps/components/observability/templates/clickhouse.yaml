@@ -114,6 +114,11 @@ spec:
       max_concurrent_queries: 100
       # Shares prod-server1's SSD with etcd.
       background_pool_size: 4
+      # Defaults assume 16 threads x 2 slots; each threshold must fit the 8 slots left above.
+      merge_tree:
+        number_of_free_entries_in_pool_to_execute_mutation: 5
+        number_of_free_entries_in_pool_to_execute_optimize_entire_partition: 6
+        number_of_free_entries_in_pool_to_lower_max_size_of_merge: 2
       storage_configuration:
         disks:
           default:

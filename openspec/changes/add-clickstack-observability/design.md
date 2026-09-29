@@ -139,7 +139,7 @@ Alternative considered: the cluster root generates prod's credentials. It cannot
 
 `ClickHouseCluster` and `KeeperCluster` use `nodeSelector: kubernetes.io/hostname: prod-server1`, so local-path provisions both volumes on the only SSD-backed node. Keeping ClickHouse's merge writes off `prod-server2` and `prod-server3` protects etcd on their HDDs.
 
-`prod-server1` also runs an etcd member on the same SSD. ClickHouse therefore caps background merge concurrency (`background_pool_size` of 4 instead of the default 16) so merges cannot saturate the disk. Expected use is about 2.5 Gi of memory requests for ClickHouse and Keeper, well within the node's 22 GB.
+`prod-server1` also runs an etcd member on the same SSD. ClickHouse therefore caps background merge concurrency (`background_pool_size` of 4 instead of the default 16) so merges cannot saturate the disk. ClickHouse refuses to start unless the `merge_tree` free-entry thresholds fit the resulting 8 pool slots, so they are scaled down from their defaults in the same proportion (mutation 20 to 5, optimize entire partition 25 to 6, lower max merge size 8 to 2). Expected use is about 2.5 Gi of memory requests for ClickHouse and Keeper, well within the node's 22 GB.
 
 MongoDB, HyperDX, the gateway, and the cluster collector are not pinned. MongoDB's write rate is small enough for any node.
 
