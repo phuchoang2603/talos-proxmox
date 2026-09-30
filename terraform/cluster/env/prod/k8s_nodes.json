@@ -19,7 +19,7 @@
     "node": "pve2",
     "role": "servers",
     "address": "10.69.12.12/16",
-    "cpu_cores": 6,
+    "cpu_cores": 8,
     "cpu_type": "host",
     "memory_mb": 16384,
     "disk_size_gb": 364,

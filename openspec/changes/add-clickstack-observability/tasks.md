@@ -41,4 +41,3 @@
 - [x] 6.3 After merge, verify on prod that the `ClickHouseCluster`, `KeeperCluster`, and `MongoDBCommunity` are ready, the ClickHouse and Keeper pods run on `prod-server1`, and `otel_logs`, `otel_traces`, and `otel_metrics_*` tables exist with a 7-day TTL
 - [x] 6.4 Verify an OTLP request to `10.69.12.129:4317` without the token is rejected, and that a test trace sent from a dev pod to `otel-agent.observability.svc:4317` appears in HyperDX with `deployment.environment=dev`
 - [ ] 6.5 Verify HyperDX at `http://10.69.12.128` shows container logs, node metrics, and Kubernetes events from both environments, including a pod on an AWS burst worker if one is running, and navigates from a trace to its logs; create the operator account
-- [ ] 6.6 Verify dev stays Synced and Healthy, with only its agent export failing, while prod's gateway is scaled to zero, and that dev telemetry resumes after it is scaled back
