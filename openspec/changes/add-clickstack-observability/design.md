@@ -104,6 +104,7 @@ Alternative considered: ClickStack's collector image with OpAMP management by Hy
 - Tolerates all taints, so it also runs on AWS burst workers.
 - Checkpoints and the export queue use `file_storage` on a hostPath under `/var/lib/otelcol`, not a PVC.
 - Inserts `k8s.node.name` and `host.name` from the pod's node name into metrics that lack them, because `hostmetrics` carries no node identity and the nodes' series would otherwise merge.
+- Parses container log bodies that start with `{` as JSON into attributes, then promotes `level` to severity, `trace_id`/`span_id` to the record's trace context, and `msg` to the body. Each step runs only when its key exists and sends the record on failure, so plain text and other JSON shapes are stored as before. Without this, slog-style application logs have no `TraceId` and HyperDX cannot link traces to logs. The container runtime timestamp is kept rather than parsing `time`.
 
 **Cluster collector** (Deployment, 1 replica):
 - Uses the presets `clusterMetrics` and `kubernetesEvents`.

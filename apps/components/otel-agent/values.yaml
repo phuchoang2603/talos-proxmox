@@ -64,6 +64,35 @@ agent:
       # Talos kubelets serve self-signed certificates.
       kubeletstats:
         insecure_skip_verify: true
+      # Replaces the preset's operator list, so container-parser is restated.
+      # JSON bodies promote level, trace_id/span_id, and msg; other lines pass through.
+      file_log:
+        operators:
+          - type: container
+            id: container-parser
+            max_log_size: 102400
+          - type: json_parser
+            id: json-body
+            if: 'body matches "^\\{"'
+            on_error: send_quiet
+          - type: severity_parser
+            id: json-level
+            if: "attributes.level != nil"
+            parse_from: attributes.level
+            on_error: send_quiet
+          - type: trace_parser
+            id: json-trace
+            if: "attributes.trace_id != nil"
+            trace_id:
+              parse_from: attributes.trace_id
+            span_id:
+              parse_from: attributes.span_id
+            on_error: send_quiet
+          - type: move
+            id: json-msg
+            if: "attributes.msg != nil"
+            from: attributes.msg
+            to: body
     processors:
       memory_limiter:
         check_interval: 5s
