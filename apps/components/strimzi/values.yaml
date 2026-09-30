@@ -1,5 +1,9 @@
 strimzi-kafka-operator:
   watchAnyNamespace: true
+  # Becomes STRIMZI_IMAGE_PULL_POLICY for every operand, so custom images on a
+  # moving tag (KafkaConnect `connect-debezium:main`) are re-pulled on each roll.
+  image:
+    imagePullPolicy: Always
   resources:
     requests:
       cpu: 100m
