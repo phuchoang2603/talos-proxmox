@@ -20,7 +20,7 @@ store:
   keeper:
     image:
       repository: clickhouse/clickhouse-keeper
-      tag: "25.7-alpine"
+      tag: "25.12-alpine"
     resources:
       requests:
         cpu: 50m
