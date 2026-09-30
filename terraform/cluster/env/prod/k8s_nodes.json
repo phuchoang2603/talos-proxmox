@@ -6,7 +6,7 @@
     "address": "10.69.12.11/16",
     "cpu_cores": 6,
     "cpu_type": "host",
-    "memory_mb": 32768,
+    "memory_mb": 22528,
     "disk_size_gb": 364,
     "datastore_id": "local-lvm",
     "pci": [
