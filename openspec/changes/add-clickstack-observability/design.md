@@ -103,6 +103,7 @@ Alternative considered: ClickStack's collector image with OpAMP management by Hy
 - Adds an OTLP receiver. Its Service uses `internalTrafficPolicy: Local`, so applications everywhere send to `otel-agent.observability.svc:4317`/`4318` and reach their node's agent.
 - Tolerates all taints, so it also runs on AWS burst workers.
 - Checkpoints and the export queue use `file_storage` on a hostPath under `/var/lib/otelcol`, not a PVC.
+- Inserts `k8s.node.name` and `host.name` from the pod's node name into metrics that lack them, because `hostmetrics` carries no node identity and the nodes' series would otherwise merge.
 
 **Cluster collector** (Deployment, 1 replica):
 - Uses the presets `clusterMetrics` and `kubernetesEvents`.

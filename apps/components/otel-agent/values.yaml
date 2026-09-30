@@ -77,6 +77,15 @@ agent:
           - key: deployment.environment
             value: "{{ .Values.global.environment }}"
             action: upsert
+      # hostmetrics carries no node identity of its own.
+      resource/node:
+        attributes:
+          - key: k8s.node.name
+            value: ${env:K8S_NODE_NAME}
+            action: insert
+          - key: host.name
+            value: ${env:K8S_NODE_NAME}
+            action: insert
       batch: {}
     exporters:
       # Bearer token as a header: the bearertokenauth client refuses plaintext gRPC.
@@ -103,7 +112,7 @@ agent:
           exporters: [otlp/gateway]
         metrics:
           receivers: [otlp]
-          processors: [memory_limiter, k8s_attributes, resource/environment, batch]
+          processors: [memory_limiter, k8s_attributes, resource/environment, resource/node, batch]
           exporters: [otlp/gateway]
         traces:
           receivers: [otlp]
