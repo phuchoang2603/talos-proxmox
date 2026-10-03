@@ -1,9 +1,9 @@
 dependencies:
 - name: gpu-operator
   repository: https://helm.ngc.nvidia.com/nvidia
-  version: v26.7.0
+  version: v26.7.1
 - name: nvidia-dra-driver-gpu
   repository: https://helm.ngc.nvidia.com/nvidia
   version: 25.12.0
-digest: sha256:ee13aa071e50b57babea921e546adc5e78ad589324c93e1facfeeb289ae0fbc5
-generated: "2026-09-29T17:44:22.675952054-04:00"
+digest: sha256:c955cb0a228d8906e68fc821f487f8bcde29103f03710392be9916eb2efcdf81
+generated: "2026-10-03T14:51:37.180527466Z"
