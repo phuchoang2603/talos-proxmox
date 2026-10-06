@@ -7,15 +7,15 @@ Bring the dev and prod Talos environments from fresh state to a fully reconciled
 ## Requirements
 
 ### Requirement: Script-free environment bring-up
-The platform SHALL provision an environment from empty state to an eventually fully synced platform using only Git content, OpenTofu applies, and Argo CD reconciliation. Provisioning MUST NOT run repository bootstrap scripts, and MUST NOT create Kubernetes resources with the helm or kubectl CLIs. CI success SHALL mean the cluster and platform applies completed; full GitOps convergence SHALL be validated separately after provisioning.
+The platform SHALL provision an environment from empty state to an eventually synced platform using Git, OpenTofu applies, and Argo CD reconciliation alone. Provisioning MUST NOT run repository bootstrap scripts or create Kubernetes resources with the helm or kubectl CLIs. CI success SHALL mean the cluster and platform applies completed; full GitOps convergence SHALL be validated separately and MUST NOT require an externally assigned UI IP.
 
 #### Scenario: Fresh environment
 - **WHEN** CI applies an environment's cluster and platform roots against empty state
-- **THEN** the cluster becomes healthy and its Argo CD converges all of the environment's enabled components without any script or manual kubectl/helm step
+- **THEN** the cluster becomes healthy and Argo CD can reconcile all enabled components internally without a manually created UI route, script or kubectl/helm step
 
 #### Scenario: Provisioning completes before GitOps convergence
 - **WHEN** the cluster and platform applies succeed and the root Application is installed
-- **THEN** provisioning CI succeeds without waiting for all child Applications or SPIRE to become healthy, and full platform validation occurs later
+- **THEN** provisioning CI succeeds without waiting for all child Applications, Istio, Cloudflare or Cilium L2 IP assignment to become healthy, and full platform validation occurs later
 
 #### Scenario: Repeat apply
 - **WHEN** CI re-applies an unchanged environment
@@ -44,20 +44,24 @@ The platform SHALL consist only of the `dev` and `prod` environments. Each MUST 
 Each infrastructure resource, cluster component, and secret SHALL have exactly one declarative owner:
 - the foundation root owns account, identity, and secret-store setup;
 - the cluster root owns machines and generated credentials;
-- the platform root owns only the components required before GitOps can run;
-- the environment's Argo CD owns everything else.
+- the platform root owns Gateway API CRDs, Cilium, secret-store bootstrap credentials, Karpenter and Argo CD with its AppProject, root Application and UI LoadBalancer Service;
+- the environment's Argo CD owns Istio, the Cloudflare operator/CRDs/ClusterTunnel, the HyperDX UI LoadBalancer Service and everything else.
 
-The platform root MUST be limited to Gateway API CRDs, the CNI, the secret-store bootstrap token Secret, and Argo CD with its root Application and UI route. No component MAY be managed by both OpenTofu and Argo CD.
+No component MAY be managed by both OpenTofu and Argo CD. No UI Gateway or HTTPRoute SHALL be rendered by the bootstrap chart.
 
-Gateway API CRDs SHALL be installed from a pinned Helm chart archive committed to Git. Cilium and SPIRE SHALL share `kube-system` for their namespaced resources. Their chart/release SHALL handle any additional namespace it requires declaratively; provisioning MUST NOT create per-component namespaces through scripts. Cluster-scoped Cilium resources remain cluster-scoped.
+Gateway API CRDs SHALL be installed from a pinned Helm chart archive committed to Git. Cilium SHALL use `kube-system` for its namespaced resources. Charts and releases SHALL handle any additional namespace they require declaratively; provisioning MUST NOT create per-component namespaces through scripts. Cluster-scoped Cilium resources remain cluster-scoped.
 
 #### Scenario: Pre-GitOps components
 - **WHEN** the platform root is applied to an environment
-- **THEN** it installs only Gateway API CRDs, the CNI, the bootstrap token Secret, and Argo CD with its root Application and UI route
+- **THEN** it installs Gateway API CRDs, Cilium, the bootstrap token Secret, Karpenter and Argo CD with its root Application and UI LoadBalancer Service, without a Gateway
 
 #### Scenario: Drift on an Argo-owned component
 - **WHEN** an Argo-owned component is changed in Git
 - **THEN** only Argo CD reconciles it, and the next OpenTofu plan shows no change for it
+
+#### Scenario: UI publishing
+- **WHEN** Cilium's IPAM and L2 resources reconcile
+- **THEN** Argo CD and HyperDX Services receive their reserved LAN IPs and the Cloudflare operator remains independent
 
 ### Requirement: Platform API readiness and installation ordering
 The platform root SHALL wait for the Kubernetes API's authenticated `/readyz` endpoint to return HTTP 200 before creating Kubernetes resources or installing Helm releases. It SHALL install Gateway API CRDs before Cilium, and Cilium before Argo CD. It MUST NOT gate provisioning on Talos, etcd, or Kubernetes node health checks or require a fixed-node inventory or Talos client configuration. Helm release readiness checks MAY still fail installation when the release's own resources cannot become ready. Successful provisioning SHALL confirm platform resource installation; node health and full GitOps convergence SHALL be checked separately during operations.
