@@ -9,10 +9,23 @@ istiod:
   pilot:
     env:
       PILOT_ENABLE_AMBIENT: "true"
+      # Lets Services opt into waypoint routing from ingress with istio.io/ingress-use-waypoint.
+      ENABLE_INGRESS_WAYPOINT_ROUTING: "true"
   meshConfig:
+    # Envoy otherwise retries every route, including non-idempotent POSTs; routes opt in explicitly.
+    defaultHttpRetryPolicy:
+      attempts: 0
     defaultConfig:
       proxyMetadata:
         ISTIO_META_ENABLE_HBONE: "true"
+      # Retry, overflow, and ejection counters; applied when a proxy starts.
+      proxyStatsMatcher:
+        inclusionRegexps:
+          - ".*outlier_detection.*"
+          - ".*upstream_rq_retry.*"
+        inclusionSuffixes:
+          - upstream_rq_pending_overflow
+          - upstream_cx_overflow
     serviceScopeConfigs:
       - servicesSelector:
           matchExpressions:
