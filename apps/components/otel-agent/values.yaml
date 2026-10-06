@@ -152,6 +152,9 @@ cluster:
   fullnameOverride: otel-cluster
   mode: deployment
   replicaCount: 1
+  # Ambient lets it scrape Istio gateways in namespaces with STRICT mTLS; waypoints and ztunnel are not captured.
+  podLabels:
+    istio.io/dataplane-mode: ambient
   image:
     repository: otel/opentelemetry-collector-contrib
     tag: "0.161.0"
