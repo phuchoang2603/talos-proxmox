@@ -43,6 +43,19 @@ components:
     releaseName: istio
     clusters: [dev, prod]
     managedNamespaceMetadata: *privileged
+    ignoreDifferences:
+      - group: admissionregistration.k8s.io
+        kind: ValidatingWebhookConfiguration
+        name: istio-validator-istio-system
+        jsonPointers:
+          - /webhooks/0/clientConfig/caBundle
+          - /webhooks/0/failurePolicy
+      - group: admissionregistration.k8s.io
+        kind: ValidatingWebhookConfiguration
+        name: istiod-default-validator
+        jsonPointers:
+          - /webhooks/0/clientConfig/caBundle
+          - /webhooks/0/failurePolicy
   metrics-server:
     path: apps/components/metrics-server
     namespace: kube-system
