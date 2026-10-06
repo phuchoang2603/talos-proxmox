@@ -1,4 +1,11 @@
 argo-cd:
+  # Kubeflow, Knative, and Argo Workflows push the controller's resource cache past 768Mi.
+  controller:
+    resources:
+      requests:
+        memory: 1Gi
+      limits:
+        memory: 2Gi
   configs:
     cm:
       url: http://10.69.12.254
