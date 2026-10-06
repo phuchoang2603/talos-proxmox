@@ -6,6 +6,19 @@ argo-cd:
         memory: 1Gi
       limits:
         memory: 2Gi
+  # Rendering the 12M Kubeflow chart starves a 25m repo-server and its 1s health checks time out.
+  repoServer:
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+      limits:
+        memory: 1Gi
+    livenessProbe:
+      timeoutSeconds: 5
+      failureThreshold: 5
+    readinessProbe:
+      timeoutSeconds: 5
   configs:
     cm:
       url: http://10.69.12.254

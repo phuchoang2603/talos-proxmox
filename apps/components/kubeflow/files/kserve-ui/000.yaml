@@ -164,13 +164,13 @@ spec:
   template:
     metadata:
       annotations:
-        sidecar.istio.io/inject: "true"
+        sidecar.istio.io/inject: "false"
       labels:
         app: kserve
         app.kubernetes.io/component: kserve-models-web-application
         app.kubernetes.io/name: kserve
         kustomize.component: kserve-models-web-application
-        sidecar.istio.io/inject: "true"
+        sidecar.istio.io/inject: "false"
     spec:
       containers:
       - env:

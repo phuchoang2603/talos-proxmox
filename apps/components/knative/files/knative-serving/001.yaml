@@ -3960,7 +3960,7 @@ spec:
         app.kubernetes.io/name: knative-serving
         app.kubernetes.io/version: 1.23.0
         role: activator
-        sidecar.istio.io/inject: "true"
+        sidecar.istio.io/inject: "false"
     spec:
       affinity:
         podAntiAffinity:
@@ -4057,7 +4057,7 @@ spec:
         app.kubernetes.io/component: autoscaler
         app.kubernetes.io/name: knative-serving
         app.kubernetes.io/version: 1.23.0
-        sidecar.istio.io/inject: "true"
+        sidecar.istio.io/inject: "false"
     spec:
       affinity:
         podAntiAffinity:
@@ -4140,7 +4140,7 @@ spec:
         app.kubernetes.io/component: controller
         app.kubernetes.io/name: knative-serving
         app.kubernetes.io/version: 1.23.0
-        sidecar.istio.io/inject: "true"
+        sidecar.istio.io/inject: "false"
     spec:
       affinity:
         podAntiAffinity:
@@ -4227,7 +4227,7 @@ spec:
         app.kubernetes.io/component: net-istio
         app.kubernetes.io/name: knative-serving
         app.kubernetes.io/version: 1.23.0
-        sidecar.istio.io/inject: "true"
+        sidecar.istio.io/inject: "false"
     spec:
       containers:
       - env:
@@ -4307,7 +4307,7 @@ spec:
         app.kubernetes.io/name: knative-serving
         app.kubernetes.io/version: 1.23.0
         role: net-istio-webhook
-        sidecar.istio.io/inject: "true"
+        sidecar.istio.io/inject: "false"
     spec:
       containers:
       - env:
@@ -4386,7 +4386,7 @@ spec:
         app.kubernetes.io/name: knative-serving
         app.kubernetes.io/version: 1.23.0
         role: webhook
-        sidecar.istio.io/inject: "true"
+        sidecar.istio.io/inject: "false"
     spec:
       affinity:
         podAntiAffinity:

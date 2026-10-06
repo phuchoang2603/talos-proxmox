@@ -2743,7 +2743,7 @@ spec:
         app.kubernetes.io/component: server
         app.kubernetes.io/name: model-catalog
         app.kubernetes.io/part-of: model-catalog
-        sidecar.istio.io/inject: "true"
+        sidecar.istio.io/inject: "false"
     spec:
       containers:
       - args:

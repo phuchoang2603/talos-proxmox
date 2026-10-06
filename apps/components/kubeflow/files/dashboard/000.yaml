@@ -5589,7 +5589,7 @@ spec:
         app.kubernetes.io/managed-by: kustomize
         app.kubernetes.io/name: centraldashboard
         app.kubernetes.io/part-of: kubeflow-dashboard
-        sidecar.istio.io/inject: "true"
+        sidecar.istio.io/inject: "false"
     spec:
       containers:
       - env:
@@ -5727,7 +5727,7 @@ spec:
         app.kubernetes.io/managed-by: kustomize
         app.kubernetes.io/name: profile-controller
         app.kubernetes.io/part-of: kubeflow-dashboard
-        sidecar.istio.io/inject: "true"
+        sidecar.istio.io/inject: "false"
     spec:
       containers:
       - command:
