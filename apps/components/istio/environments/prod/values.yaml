@@ -1,0 +1,33 @@
+istiod:
+  meshConfig:
+    extensionProviders:
+      - name: oauth2-proxy
+        envoyExtAuthzHttp:
+          service: oauth2-proxy.auth.svc.cluster.local
+          port: 80
+          pathPrefix: /oauth2/auth
+          includeRequestHeadersInCheck:
+            - authorization
+            - cookie
+          headersToUpstreamOnAllow:
+            - authorization
+            - x-auth-request-email
+            - x-auth-request-groups
+            - x-auth-request-user
+          headersToDownstreamOnDeny:
+            - content-type
+            - set-cookie
+  pilot:
+    env:
+      PILOT_JWT_PUB_KEY_REFRESH_INTERVAL: 1m
+
+ingress-gateway:
+  enabled: true
+  name: istio-ingressgateway
+  labels:
+    app: istio-ingressgateway
+    istio: ingressgateway
+  service:
+    type: ClusterIP
+  autoscaling:
+    enabled: false

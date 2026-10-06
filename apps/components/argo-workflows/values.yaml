@@ -4,6 +4,7 @@ argo-workflows:
   controller:
     workflowNamespaces:
       - kubeflow
+      - fraud-ml-prod
     resources:
       requests:
         cpu: 100m

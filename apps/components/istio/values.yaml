@@ -29,3 +29,6 @@ cni:
     enabled: true
 
 ztunnel: {}
+
+ingress-gateway:
+  enabled: false

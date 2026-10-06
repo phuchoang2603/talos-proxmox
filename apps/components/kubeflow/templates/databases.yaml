@@ -1,0 +1,36 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: kubeflow-pipelines-db
+  namespace: kubeflow
+spec:
+  instances: 1
+  bootstrap:
+    initdb:
+      database: mlpipeline
+      owner: kfp
+      secret:
+        name: kubeflow-pipelines-db-credentials
+      postInitSQL:
+        - CREATE DATABASE cachedb OWNER kfp
+        - CREATE DATABASE metadb OWNER kfp
+  storage:
+    storageClass: local-path
+    size: 35Gi
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: kubeflow-katib-db
+  namespace: kubeflow
+spec:
+  instances: 1
+  bootstrap:
+    initdb:
+      database: katib
+      owner: katib
+      secret:
+        name: katib-postgres-secret
+  storage:
+    storageClass: local-path
+    size: 10Gi

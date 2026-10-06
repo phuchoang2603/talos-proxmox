@@ -1,0 +1,5 @@
+apiVersion: v2
+name: platform-knative
+description: Knative Serving and Eventing for Kubeflow
+type: application
+version: 0.1.0

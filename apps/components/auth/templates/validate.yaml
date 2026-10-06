@@ -1,0 +1,9 @@
+{{- if and .Values.dex.enabled .Values.dex.configSecret.create }}
+{{- fail "Dex configuration must come from an external Secret" }}
+{{- end }}
+{{- if and .Values.dex.enabled (not .Values.dex.configSecret.name) }}
+{{- fail "Dex requires an externally managed config Secret" }}
+{{- end }}
+{{- if and (index .Values "oauth2-proxy").enabled (not (index .Values "oauth2-proxy").config.existingSecret) }}
+{{- fail "OAuth2 Proxy requires an externally managed credential Secret" }}
+{{- end }}

@@ -1,0 +1,2489 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.16.4
+  name: pipelines.pipelines.kubeflow.org
+spec:
+  group: pipelines.kubeflow.org
+  names:
+    kind: Pipeline
+    listKind: PipelineList
+    plural: pipelines
+    singular: pipeline
+  scope: Namespaced
+  versions:
+  - name: v2beta1
+    schema:
+      openAPIV3Schema:
+        description: Pipeline is the Schema for the pipelines API.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: PipelineSpec defines the desired state of Pipeline.
+            properties:
+              description:
+                type: string
+              displayName:
+                type: string
+              tags:
+                additionalProperties:
+                  type: string
+                type: object
+            type: object
+        type: object
+    served: true
+    storage: true
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.16.4
+  name: pipelineversions.pipelines.kubeflow.org
+spec:
+  group: pipelines.kubeflow.org
+  names:
+    kind: PipelineVersion
+    listKind: PipelineVersionList
+    plural: pipelineversions
+    singular: pipelineversion
+  scope: Namespaced
+  versions:
+  - name: v2beta1
+    schema:
+      openAPIV3Schema:
+        description: PipelineVersion is the Schema for the pipelineversions API.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: PipelineVersionSpec defines the desired state of PipelineVersion.
+            properties:
+              codeSourceURL:
+                type: string
+              description:
+                type: string
+              displayName:
+                type: string
+              pipelineName:
+                type: string
+              pipelineSpec:
+                x-kubernetes-preserve-unknown-fields: true
+              pipelineSpecURI:
+                type: string
+              platformSpec:
+                x-kubernetes-preserve-unknown-fields: true
+              tags:
+                additionalProperties:
+                  type: string
+                type: object
+              versionName:
+                maxLength: 253
+                pattern: ^[a-z0-9]([a-z0-9\.\-]*[a-z0-9])?$
+                type: string
+            required:
+            - pipelineSpec
+            type: object
+          status:
+            description: PipelineVersionStatus defines the observed state of PipelineVersion.
+            properties:
+              conditions:
+                items:
+                  description: |-
+                    SimplifiedCondition is a metav1.Condition without lastTransitionTime since the database model doesn't have such
+                    a concept and it allows a default status in the CRD without a controller setting it.
+                  properties:
+                    message:
+                      maxLength: 32768
+                      type: string
+                    reason:
+                      type: string
+                    status:
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: cache-server
+    application-crd-id: kubeflow-pipelines
+  name: kubeflow-pipelines-cache
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: kubeflow-pipelines-container-builder
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: kubeflow-pipelines-metadata-writer
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: kubeflow-pipelines-viewer
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: metadata-grpc-server
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-persistenceagent
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-scheduledworkflow
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-ui
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-viewer-crd-service-account
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-visualizationserver
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: pipeline-runner
+  namespace: kubeflow
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app: cache-deployer
+    application-crd-id: kubeflow-pipelines
+  name: kubeflow-pipelines-cache-deployer-role
+  namespace: kubeflow
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+  - delete
+  - get
+  - patch
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app: cache-server
+    application-crd-id: kubeflow-pipelines
+  name: kubeflow-pipelines-cache-role
+  namespace: kubeflow
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app: kubeflow-pipelines-metadata-writer-role
+    application-crd-id: kubeflow-pipelines
+  name: kubeflow-pipelines-metadata-writer-role
+  namespace: kubeflow
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app: ml-pipeline
+    application-crd-id: kubeflow-pipelines
+  name: kubeflow-pipelines-public
+  namespace: kubeflow
+rules:
+- apiGroups:
+  - ""
+  resourceNames:
+  - kubeflow-pipelines-public
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app: ml-pipeline
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline
+  namespace: kubeflow
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/log
+  verbs:
+  - get
+  - list
+  - delete
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - scheduledworkflows
+  verbs:
+  - create
+  - get
+  - list
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - scheduledworkflows/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - pipelines
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - mlflow.kubeflow.org
+  resources:
+  - experiments
+  verbs:
+  - get
+  - list
+  - create
+  - update
+- apiGroups:
+  - ""
+  resourceNames:
+  - kfp-launcher
+  resources:
+  - configmaps
+  verbs:
+  - get
+- apiGroups:
+  - ""
+  resourceNames:
+  - kfp-mlflow-credentials
+  resources:
+  - secrets
+  verbs:
+  - get
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - pipelines
+  - pipelines/finalizers
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - pipelineversions
+  - pipelineversions/status
+  - pipelineversions/finalizers
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-persistenceagent-role
+  namespace: kubeflow
+rules:
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - scheduledworkflows
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - scheduledworkflows
+  - workflows
+  verbs:
+  - report
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - runs
+  verbs:
+  - reportMetrics
+  - readArtifact
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app: ml-pipeline-scheduledworkflow-role
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-scheduledworkflow-role
+  namespace: kubeflow
+rules:
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - scheduledworkflows
+  - scheduledworkflows/finalizers
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - runs
+  verbs:
+  - create
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app: ml-pipeline-ui
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-ui
+  namespace: kubeflow
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/log
+  verbs:
+  - get
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - list
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  - configmaps
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - viewers
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - delete
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  verbs:
+  - get
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-viewer-controller-role
+  namespace: kubeflow
+rules:
+- apiGroups:
+  - '*'
+  resources:
+  - deployments
+  - services
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - viewers
+  - viewers/finalizers
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: pipeline-runner
+  namespace: kubeflow
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - watch
+  - list
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumes
+  - persistentvolumeclaims
+  verbs:
+  - '*'
+- apiGroups:
+  - snapshot.storage.k8s.io
+  resources:
+  - volumesnapshots
+  verbs:
+  - create
+  - delete
+  - get
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/exec
+  - pods/log
+  - services
+  verbs:
+  - '*'
+- apiGroups:
+  - ""
+  - apps
+  - extensions
+  resources:
+  - deployments
+  - replicasets
+  verbs:
+  - '*'
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - '*'
+  verbs:
+  - '*'
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - '*'
+- apiGroups:
+  - machinelearning.seldon.io
+  resources:
+  - seldondeployments
+  verbs:
+  - '*'
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflowtaskresults
+  verbs:
+  - create
+  - patch
+- apiGroups:
+  - mlflow.kubeflow.org
+  resources:
+  - experiments
+  verbs:
+  - get
+  - list
+  - create
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app: cache-server
+    application-crd-id: kubeflow-pipelines
+  name: kubeflow-pipelines-cache-binding
+  namespace: kubeflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kubeflow-pipelines-cache-role
+subjects:
+- kind: ServiceAccount
+  name: kubeflow-pipelines-cache
+  namespace: kubeflow
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app: cache-deployer
+    application-crd-id: kubeflow-pipelines
+  name: kubeflow-pipelines-cache-deployer-rolebinding
+  namespace: kubeflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kubeflow-pipelines-cache-deployer-role
+subjects:
+- kind: ServiceAccount
+  name: kubeflow-pipelines-cache-deployer-sa
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: kubeflow-pipelines-metadata-writer-binding
+  namespace: kubeflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kubeflow-pipelines-metadata-writer-role
+subjects:
+- kind: ServiceAccount
+  name: kubeflow-pipelines-metadata-writer
+  namespace: kubeflow
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app: ml-pipeline
+    application-crd-id: kubeflow-pipelines
+  name: kubeflow-pipelines-public
+  namespace: kubeflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kubeflow-pipelines-public
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: system:authenticated
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app: ml-pipeline
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline
+  namespace: kubeflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ml-pipeline
+subjects:
+- kind: ServiceAccount
+  name: ml-pipeline
+  namespace: kubeflow
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-persistenceagent-binding
+  namespace: kubeflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ml-pipeline-persistenceagent-role
+subjects:
+- kind: ServiceAccount
+  name: ml-pipeline-persistenceagent
+  namespace: kubeflow
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-scheduledworkflow-binding
+  namespace: kubeflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ml-pipeline-scheduledworkflow-role
+subjects:
+- kind: ServiceAccount
+  name: ml-pipeline-scheduledworkflow
+  namespace: kubeflow
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app: ml-pipeline-ui
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-ui
+  namespace: kubeflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ml-pipeline-ui
+subjects:
+- kind: ServiceAccount
+  name: ml-pipeline-ui
+  namespace: kubeflow
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-viewer-crd-binding
+  namespace: kubeflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ml-pipeline-viewer-controller-role
+subjects:
+- kind: ServiceAccount
+  name: ml-pipeline-viewer-crd-service-account
+  namespace: kubeflow
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: pipeline-runner-binding
+  namespace: kubeflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pipeline-runner
+subjects:
+- kind: ServiceAccount
+  name: pipeline-runner
+  namespace: kubeflow
+---
+apiVersion: v1
+data:
+  defaultPipelineRoot: s3://kubeflow-prod-pipelines/artifacts
+  providers: "s3:\n  default:\n    endpoint: https://minio.home.phuchoang.sbs\n  \
+    \  disableSSL: false\n    region: us-east-1\n    forcePathStyle: true\n    credentials:\n\
+    \      fromEnv: false\n      secretRef:\n        secretName: mlpipeline-minio-artifact\n\
+    \        accessKeyKey: accesskey\n        secretKeyKey: secretkey\n"
+kind: ConfigMap
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: kfp-launcher
+  namespace: kubeflow
+---
+apiVersion: v1
+data:
+  kubeflow_pipelines_version: v2.17.2
+kind: ConfigMap
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: kubeflow-pipelines-public
+  namespace: kubeflow
+---
+apiVersion: v1
+data:
+  envoy-config.yaml: |-
+    admin:
+      access_log:
+        name: admin_access
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog
+          path: /tmp/admin_access.log
+      address:
+        socket_address: { address: 0.0.0.0, port_value: 9901 }
+
+    static_resources:
+      listeners:
+        - name: listener_0
+          address:
+            socket_address: { address: 0.0.0.0, port_value: 9090 }
+          filter_chains:
+            - filters:
+                - name: envoy.filters.network.http_connection_manager
+                  typed_config:
+                    "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                    codec_type: auto
+                    stat_prefix: ingress_http
+                    route_config:
+                      name: local_route
+                      virtual_hosts:
+                        - name: local_service
+                          domains: [ "*" ]
+                          routes:
+                            - match: { prefix: "/" }
+                              route:
+                                cluster: metadata-cluster
+                                max_stream_duration:
+                                  grpc_timeout_header_max: '0s'
+                              typed_per_filter_config:
+                                envoy.filter.http.cors:
+                                  "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.CorsPolicy
+                                  allow_origin_string_match:
+                                    - safe_regex:
+                                        regex: ".*"
+                                  allow_methods: GET, PUT, DELETE, POST, OPTIONS
+                                  allow_headers: keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,custom-header-1,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web,grpc-timeout
+                                  max_age: "1728000"
+                                  expose_headers: custom-header-1,grpc-status,grpc-message
+                    http_filters:
+                      - name: envoy.filters.http.grpc_web
+                        typed_config:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb
+                      - name: envoy.filters.http.cors
+                        typed_config:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
+                      - name: envoy.filters.http.router
+                        typed_config:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+      clusters:
+        - name: metadata-cluster
+          connect_timeout: 30.0s
+          type: logical_dns
+          typed_extension_protocol_options:
+            envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+              "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+              explicit_http_config:
+                http2_protocol_options: { }
+          lb_policy: round_robin
+          load_assignment:
+            cluster_name: metadata-grpc
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address:
+                          address: metadata-grpc-service
+                          port_value: 8080
+kind: ConfigMap
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: metadata-envoy-configmap
+  namespace: kubeflow
+---
+apiVersion: v1
+data:
+  METADATA_GRPC_SERVICE_HOST: metadata-grpc-service
+  METADATA_GRPC_SERVICE_PORT: "8080"
+kind: ConfigMap
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+    component: metadata-grpc-server
+  name: metadata-grpc-configmap
+  namespace: kubeflow
+---
+apiVersion: v1
+data:
+  POSTGRES_DBNAME: metadb
+  POSTGRES_PORT: '5432'
+kind: ConfigMap
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: metadata-postgres-db-parameters
+  namespace: kubeflow
+---
+apiVersion: v1
+data:
+  viewer-pod-template.json: |-
+    {
+        "spec": {
+            "serviceAccountName": "kubeflow-pipelines-viewer"
+        }
+    }
+kind: ConfigMap
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-ui-configmap
+  namespace: kubeflow
+---
+apiVersion: v1
+data:
+  ARTIFACTS_PROXY_ENABLED: 'false'
+  BLOCK_V1_PIPELINES: 'false'
+  ConMaxLifeTime: 120s
+  DEFAULT_CACHE_STALENESS: ''
+  LOG_LEVEL: info
+  MAXIMUM_CACHE_STALENESS: ''
+  USERID_HEADER: kubeflow-userid
+  USERID_PREFIX: ''
+  V1_ALLOWED_NAMESPACES: ''
+  appName: pipeline
+  appVersion: 2.17.2
+  autoUpdatePipelineDefaultVersion: 'true'
+  bucketName: kubeflow-prod-pipelines
+  cacheDb: cachedb
+  cacheImage: ghcr.io/containerd/busybox
+  cacheNodeRestrictions: 'false'
+  cronScheduleTimezone: UTC
+  dbType: postgres
+  defaultPipelineRoot: s3://kubeflow-prod-pipelines/artifacts
+  defaultSecurityContextHostUsers: 'false'
+  defaultSecurityContextRunAsGroup: ''
+  defaultSecurityContextRunAsNonRoot: ''
+  defaultSecurityContextRunAsUser: ''
+  mlmdDb: metadb
+  pipelineDb: mlpipeline
+  postgresHost: kubeflow-pipelines-db-rw
+  postgresPort: '5432'
+  warning: '1. Do not use kubectl to edit this configmap, because some values are
+    used
+
+    during kustomize build. Instead, change the configmap and apply the entire
+
+    kustomize manifests again.
+
+    2. After updating the configmap, some deployments may need to be restarted
+
+    until the changes take effect. A quick way to restart all deployments in a
+
+    namespace: `kubectl rollout restart deployment -n <your-namespace>`.
+
+    '
+kind: ConfigMap
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: pipeline-install-config
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: cache-server
+    application-crd-id: kubeflow-pipelines
+  name: cache-server
+  namespace: kubeflow
+spec:
+  ports:
+  - port: 443
+    targetPort: webhook-api
+  selector:
+    app: cache-server
+    application-crd-id: kubeflow-pipelines
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: metadata-envoy
+    application-crd-id: kubeflow-pipelines
+  name: metadata-envoy-service
+  namespace: kubeflow
+spec:
+  ports:
+  - name: md-envoy
+    port: 9090
+    protocol: TCP
+  selector:
+    application-crd-id: kubeflow-pipelines
+    component: metadata-envoy
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: metadata
+    application-crd-id: kubeflow-pipelines
+  name: metadata-grpc-service
+  namespace: kubeflow
+spec:
+  ports:
+  - name: grpc-api
+    port: 8080
+    protocol: TCP
+  selector:
+    application-crd-id: kubeflow-pipelines
+    component: metadata-grpc-server
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/port: "8888"
+    prometheus.io/scheme: http
+    prometheus.io/scrape: "true"
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline
+  namespace: kubeflow
+spec:
+  ports:
+  - name: http
+    port: 8888
+    protocol: TCP
+    targetPort: 8888
+  - name: grpc
+    port: 8887
+    protocol: TCP
+    targetPort: 8887
+  - name: webhook
+    port: 8443
+    protocol: TCP
+    targetPort: 8443
+  selector:
+    app: ml-pipeline
+    application-crd-id: kubeflow-pipelines
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: ml-pipeline-ui
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-ui
+  namespace: kubeflow
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    app: ml-pipeline-ui
+    application-crd-id: kubeflow-pipelines
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-visualizationserver
+  namespace: kubeflow
+spec:
+  ports:
+  - name: http
+    port: 8888
+    protocol: TCP
+    targetPort: 8888
+  selector:
+    app: ml-pipeline-visualizationserver
+    application-crd-id: kubeflow-pipelines
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: cache-deployer
+    application-crd-id: kubeflow-pipelines
+  name: cache-deployer-deployment
+  namespace: kubeflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cache-deployer
+      application-crd-id: kubeflow-pipelines
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: cache-deployer
+        application-crd-id: kubeflow-pipelines
+    spec:
+      containers:
+      - env:
+        - name: NAMESPACE_TO_WATCH
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        image: ghcr.io/kubeflow/kfp-cache-deployer:2.17.2
+        imagePullPolicy: Always
+        name: main
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 0
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+      restartPolicy: Always
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: kubeflow-pipelines-cache-deployer-sa
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: cache-server
+    application-crd-id: kubeflow-pipelines
+  name: cache-server
+  namespace: kubeflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cache-server
+      application-crd-id: kubeflow-pipelines
+  template:
+    metadata:
+      labels:
+        app: cache-server
+        application-crd-id: kubeflow-pipelines
+    spec:
+      containers:
+      - args:
+        - --db_driver=$(DBCONFIG_DRIVER)
+        - --db_host=$(DBCONFIG_HOST_NAME)
+        - --db_port=$(DBCONFIG_PORT)
+        - --db_name=$(DBCONFIG_DB_NAME)
+        - --db_user=$(DBCONFIG_USER)
+        - --db_password=$(DBCONFIG_PASSWORD)
+        - --namespace_to_watch=$(NAMESPACE_TO_WATCH)
+        - --listen_port=$(WEBHOOK_PORT)
+        env:
+        - name: DEFAULT_CACHE_STALENESS
+          valueFrom:
+            configMapKeyRef:
+              key: DEFAULT_CACHE_STALENESS
+              name: pipeline-install-config
+        - name: MAXIMUM_CACHE_STALENESS
+          valueFrom:
+            configMapKeyRef:
+              key: MAXIMUM_CACHE_STALENESS
+              name: pipeline-install-config
+        - name: CACHE_IMAGE
+          valueFrom:
+            configMapKeyRef:
+              key: cacheImage
+              name: pipeline-install-config
+        - name: CACHE_NODE_RESTRICTIONS
+          valueFrom:
+            configMapKeyRef:
+              key: cacheNodeRestrictions
+              name: pipeline-install-config
+        - name: DBCONFIG_DRIVER
+          value: pgx
+        - name: DBCONFIG_DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: cacheDb
+              name: pipeline-install-config
+        - name: DBCONFIG_HOST_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: postgresHost
+              name: pipeline-install-config
+        - name: DBCONFIG_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: postgresPort
+              name: pipeline-install-config
+        - name: DBCONFIG_USER
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: postgres-secret-extended
+        - name: DBCONFIG_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: postgres-secret-extended
+        - name: NAMESPACE_TO_WATCH
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: WEBHOOK_PORT
+          value: "8443"
+        image: ghcr.io/kubeflow/kfp-cache-server:2.17.2
+        imagePullPolicy: Always
+        name: server
+        ports:
+        - containerPort: 8443
+          name: webhook-api
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 0
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /etc/webhook/certs
+          name: webhook-tls-certs
+          readOnly: true
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: kubeflow-pipelines-cache
+      volumes:
+      - name: webhook-tls-certs
+        secret:
+          secretName: webhook-server-tls
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+    component: metadata-envoy
+  name: metadata-envoy-deployment
+  namespace: kubeflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      application-crd-id: kubeflow-pipelines
+      component: metadata-envoy
+  template:
+    metadata:
+      labels:
+        application-crd-id: kubeflow-pipelines
+        component: metadata-envoy
+        sidecar.istio.io/inject: "false"
+    spec:
+      containers:
+      - args:
+        - /etc/envoy/envoy-config.yaml
+        image: ghcr.io/kubeflow/kfp-metadata-envoy:2.17.2
+        name: container
+        ports:
+        - containerPort: 9090
+          name: md-envoy
+        - containerPort: 9901
+          name: envoy-admin
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 0
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /etc/envoy
+          name: envoy-config
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - configMap:
+          name: metadata-envoy-configmap
+        name: envoy-config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+    component: metadata-grpc-server
+  name: metadata-grpc-deployment
+  namespace: kubeflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      application-crd-id: kubeflow-pipelines
+      component: metadata-grpc-server
+  template:
+    metadata:
+      labels:
+        application-crd-id: kubeflow-pipelines
+        component: metadata-grpc-server
+    spec:
+      containers:
+      - args:
+        - --grpc_port=$(METADATA_GRPC_SERVICE_PORT)
+        - --metadata_source_config_type=postgresql
+        - --postgres_config_host=kubeflow-pipelines-db-rw
+        - --postgres_config_port=$(POSTGRES_PORT)
+        - --postgres_config_dbname=$(POSTGRES_DBNAME)
+        - --postgres_config_user=$(POSTGRES_USER)
+        - --postgres_config_password=$(POSTGRES_PASSWORD)
+        - --enable_database_upgrade=true
+        command:
+        - /bin/metadata_store_server
+        env: []
+        envFrom:
+        - configMapRef:
+            name: metadata-postgres-db-parameters
+        - secretRef:
+            name: metadata-postgres-db-secrets
+        - configMapRef:
+            name: metadata-grpc-configmap
+        image: gcr.io/tfx-oss-public/ml_metadata_store_server:1.14.0
+        livenessProbe:
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          tcpSocket:
+            port: grpc-api
+          timeoutSeconds: 2
+        name: container
+        ports:
+        - containerPort: 8080
+          name: grpc-api
+        readinessProbe:
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          tcpSocket:
+            port: grpc-api
+          timeoutSeconds: 2
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 0
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+      initContainers:
+      - args:
+        - "if [ -z \"${WAIT_HOST}\" ] || [ -z \"${WAIT_PORT}\" ]; then\n  echo \"\
+          ERROR: WAIT_HOST or WAIT_PORT is not set.\"\n  exit 1\nfi\nMAX_RETRIES=60;\
+          \ i=0\nwhile ! nc -z -w 2 \"${WAIT_HOST}\" \"${WAIT_PORT}\"; do\n  i=$((i+1))\n\
+          \  if [ \"$i\" -ge \"$MAX_RETRIES\" ]; then\n    echo \"ERROR: Timed out\
+          \ waiting for ${WAIT_HOST}:${WAIT_PORT} after ${MAX_RETRIES} attempts.\"\
+          \n    exit 1\n  fi\n  echo \"Waiting for ${WAIT_HOST}:${WAIT_PORT} (attempt\
+          \ ${i}/${MAX_RETRIES})...\"\n  sleep 5\ndone\n"
+        command:
+        - /bin/sh
+        - -ec
+        env:
+        - name: WAIT_HOST
+          value: kubeflow-pipelines-db-rw
+        - name: WAIT_PORT
+          value: '5432'
+        image: docker.io/alpine:3.23
+        name: wait-for-database
+        resources:
+          limits:
+            cpu: 100m
+            memory: 64Mi
+          requests:
+            cpu: 10m
+            memory: 16Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: metadata-grpc-server
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: metadata-writer
+    application-crd-id: kubeflow-pipelines
+  name: metadata-writer
+  namespace: kubeflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metadata-writer
+      application-crd-id: kubeflow-pipelines
+  template:
+    metadata:
+      labels:
+        app: metadata-writer
+        application-crd-id: kubeflow-pipelines
+    spec:
+      containers:
+      - env:
+        - name: NAMESPACE_TO_WATCH
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        image: ghcr.io/kubeflow/kfp-metadata-writer:2.17.2
+        name: main
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 0
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+      initContainers:
+      - args:
+        - |
+          if [ -z "${WAIT_HOST}" ] || [ -z "${WAIT_PORT}" ]; then
+            echo "ERROR: WAIT_HOST or WAIT_PORT is not set."
+            exit 1
+          fi
+          MAX_RETRIES=60; i=0
+          while ! nc -z -w 2 "${WAIT_HOST}" "${WAIT_PORT}"; do
+            i=$((i+1))
+            if [ "$i" -ge "$MAX_RETRIES" ]; then
+              echo "ERROR: Timed out waiting for ${WAIT_HOST}:${WAIT_PORT} after ${MAX_RETRIES} attempts."
+              exit 1
+            fi
+            echo "Waiting for ${WAIT_HOST}:${WAIT_PORT} (attempt ${i}/${MAX_RETRIES})..."
+            sleep 5
+          done
+        command:
+        - /bin/sh
+        - -ec
+        env:
+        - name: WAIT_HOST
+          value: metadata-grpc-service
+        - name: WAIT_PORT
+          value: "8080"
+        image: docker.io/alpine:3.23
+        name: wait-for-metadata-grpc
+        resources:
+          limits:
+            cpu: 100m
+            memory: 64Mi
+          requests:
+            cpu: 10m
+            memory: 16Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: kubeflow-pipelines-metadata-writer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ml-pipeline
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline
+  namespace: kubeflow
+spec:
+  selector:
+    matchLabels:
+      app: ml-pipeline
+      application-crd-id: kubeflow-pipelines
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: 'true'
+      labels:
+        app: ml-pipeline
+        application-crd-id: kubeflow-pipelines
+    spec:
+      containers:
+      - args:
+        - --config=/config
+        - --sampleconfig=/config/sample_config.json
+        - -logtostderr=true
+        - --webhookTLSCertPath=/etc/webhook/certs/tls.crt
+        - --webhookTLSKeyPath=/etc/webhook/certs/tls.key
+        - --pipelinesStoreKubernetes=true
+        command:
+        - /bin/apiserver
+        env:
+        - name: AUTO_UPDATE_PIPELINE_DEFAULT_VERSION
+          valueFrom:
+            configMapKeyRef:
+              key: autoUpdatePipelineDefaultVersion
+              name: pipeline-install-config
+              optional: true
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: OBJECTSTORECONFIG_SECURE
+          value: 'true'
+        - name: OBJECTSTORECONFIG_BUCKETNAME
+          valueFrom:
+            configMapKeyRef:
+              key: bucketName
+              name: pipeline-install-config
+              optional: true
+        - name: DBCONFIG_CONMAXLIFETIME
+          valueFrom:
+            configMapKeyRef:
+              key: ConMaxLifeTime
+              name: pipeline-install-config
+              optional: true
+        - name: DB_DRIVER_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: dbType
+              name: pipeline-install-config
+              optional: true
+        - name: BLOCK_V1_PIPELINES
+          valueFrom:
+            configMapKeyRef:
+              key: BLOCK_V1_PIPELINES
+              name: pipeline-install-config
+              optional: true
+        - name: V1_ALLOWED_NAMESPACES
+          valueFrom:
+            configMapKeyRef:
+              key: V1_ALLOWED_NAMESPACES
+              name: pipeline-install-config
+              optional: true
+        - name: DBCONFIG_POSTGRESQLCONFIG_USER
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: postgres-secret-extended
+        - name: DBCONFIG_POSTGRESQLCONFIG_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: postgres-secret-extended
+        - name: DBCONFIG_POSTGRESQLCONFIG_DBNAME
+          valueFrom:
+            configMapKeyRef:
+              key: pipelineDb
+              name: pipeline-install-config
+              optional: true
+        - name: DBCONFIG_POSTGRESQLCONFIG_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: postgresHost
+              name: pipeline-install-config
+              optional: true
+        - name: DBCONFIG_POSTGRESQLCONFIG_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: postgresPort
+              name: pipeline-install-config
+              optional: true
+        - name: OBJECTSTORECONFIG_ACCESSKEY
+          valueFrom:
+            secretKeyRef:
+              key: accesskey
+              name: mlpipeline-minio-artifact
+        - name: OBJECTSTORECONFIG_SECRETACCESSKEY
+          valueFrom:
+            secretKeyRef:
+              key: secretkey
+              name: mlpipeline-minio-artifact
+        - name: OBJECTSTORECONFIG_HOST
+          value: minio.home.phuchoang.sbs
+        - name: OBJECTSTORECONFIG_PORT
+          value: '443'
+        image: ghcr.io/kubeflow/kfp-api-server:2.17.2
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /apis/v1beta1/healthz
+            port: 8888
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        name: ml-pipeline-api-server
+        ports:
+        - containerPort: 8443
+          name: webhook
+        - containerPort: 8888
+          name: http
+        - containerPort: 8887
+          name: grpc
+        readinessProbe:
+          httpGet:
+            path: /apis/v1beta1/healthz
+            port: 8888
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        resources:
+          requests:
+            cpu: 250m
+            memory: 500Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 0
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+        startupProbe:
+          failureThreshold: 12
+          httpGet:
+            path: /apis/v1beta1/healthz
+            port: 8888
+          periodSeconds: 5
+          timeoutSeconds: 2
+        volumeMounts:
+        - mountPath: /etc/webhook/certs
+          name: webhook-certs
+          readOnly: true
+        - mountPath: /etc/mlflow-tracking-ca
+          name: mlflow-tracking-ca
+          readOnly: true
+      initContainers:
+      - args:
+        - "if [ -z \"${WAIT_HOST}\" ] || [ -z \"${WAIT_PORT}\" ]; then\n  echo \"\
+          ERROR: WAIT_HOST or WAIT_PORT is not set.\"\n  exit 1\nfi\nMAX_RETRIES=60;\
+          \ i=0\nwhile ! nc -z -w 2 \"${WAIT_HOST}\" \"${WAIT_PORT}\"; do\n  i=$((i+1))\n\
+          \  if [ \"$i\" -ge \"$MAX_RETRIES\" ]; then\n    echo \"ERROR: Timed out\
+          \ waiting for ${WAIT_HOST}:${WAIT_PORT} after ${MAX_RETRIES} attempts.\"\
+          \n    exit 1\n  fi\n  echo \"Waiting for ${WAIT_HOST}:${WAIT_PORT} (attempt\
+          \ ${i}/${MAX_RETRIES})...\"\n  sleep 5\ndone\n"
+        command:
+        - /bin/sh
+        - -ec
+        env:
+        - name: WAIT_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: postgresHost
+              name: pipeline-install-config
+        - name: WAIT_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: postgresPort
+              name: pipeline-install-config
+        image: docker.io/alpine:3.23
+        name: wait-for-database
+        resources:
+          limits:
+            cpu: 100m
+            memory: 64Mi
+          requests:
+            cpu: 10m
+            memory: 16Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+      - args:
+        - "if [ -z \"${WAIT_HOST}\" ] || [ -z \"${WAIT_PORT}\" ]; then\n  echo \"\
+          ERROR: WAIT_HOST or WAIT_PORT is not set.\"\n  exit 1\nfi\nMAX_RETRIES=60;\
+          \ i=0\nwhile ! nc -z -w 2 \"${WAIT_HOST}\" \"${WAIT_PORT}\"; do\n  i=$((i+1))\n\
+          \  if [ \"$i\" -ge \"$MAX_RETRIES\" ]; then\n    echo \"ERROR: Timed out\
+          \ waiting for ${WAIT_HOST}:${WAIT_PORT} after ${MAX_RETRIES} attempts.\"\
+          \n    exit 1\n  fi\n  echo \"Waiting for ${WAIT_HOST}:${WAIT_PORT} (attempt\
+          \ ${i}/${MAX_RETRIES})...\"\n  sleep 5\ndone\n"
+        command:
+        - /bin/sh
+        - -ec
+        env:
+        - name: WAIT_HOST
+          value: metadata-grpc-service
+        - name: WAIT_PORT
+          value: '8080'
+        image: docker.io/alpine:3.23
+        name: wait-for-metadata-grpc
+        resources:
+          limits:
+            cpu: 100m
+            memory: 64Mi
+          requests:
+            cpu: 10m
+            memory: 16Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: ml-pipeline
+      volumes:
+      - name: webhook-certs
+        secret:
+          secretName: kfp-api-webhook-cert
+      - configMap:
+          name: mlflow-tracking-ca
+          optional: true
+        name: mlflow-tracking-ca
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ml-pipeline-persistenceagent
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-persistenceagent
+  namespace: kubeflow
+spec:
+  selector:
+    matchLabels:
+      app: ml-pipeline-persistenceagent
+      application-crd-id: kubeflow-pipelines
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app: ml-pipeline-persistenceagent
+        application-crd-id: kubeflow-pipelines
+    spec:
+      containers:
+      - env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: TTL_SECONDS_AFTER_WORKFLOW_FINISH
+          value: "86400"
+        - name: NUM_WORKERS
+          value: "2"
+        - name: LOG_LEVEL
+          value: info
+        image: ghcr.io/kubeflow/kfp-persistence-agent:2.17.2
+        imagePullPolicy: IfNotPresent
+        name: ml-pipeline-persistenceagent
+        resources:
+          requests:
+            cpu: 120m
+            memory: 500Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 0
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /var/run/secrets/kubeflow/tokens
+          name: persistenceagent-sa-token
+      initContainers:
+      - args:
+        - |
+          if [ -z "${WAIT_HOST}" ] || [ -z "${WAIT_PORT}" ]; then
+            echo "ERROR: WAIT_HOST or WAIT_PORT is not set."
+            exit 1
+          fi
+          MAX_RETRIES=60; i=0
+          while ! nc -z -w 2 "${WAIT_HOST}" "${WAIT_PORT}"; do
+            i=$((i+1))
+            if [ "$i" -ge "$MAX_RETRIES" ]; then
+              echo "ERROR: Timed out waiting for ${WAIT_HOST}:${WAIT_PORT} after ${MAX_RETRIES} attempts."
+              exit 1
+            fi
+            echo "Waiting for ${WAIT_HOST}:${WAIT_PORT} (attempt ${i}/${MAX_RETRIES})..."
+            sleep 5
+          done
+        command:
+        - /bin/sh
+        - -ec
+        env:
+        - name: WAIT_HOST
+          value: ml-pipeline
+        - name: WAIT_PORT
+          value: "8888"
+        image: docker.io/alpine:3.23
+        name: wait-for-ml-pipeline
+        resources:
+          limits:
+            cpu: 100m
+            memory: 64Mi
+          requests:
+            cpu: 10m
+            memory: 16Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: ml-pipeline-persistenceagent
+      volumes:
+      - name: persistenceagent-sa-token
+        projected:
+          sources:
+          - serviceAccountToken:
+              audience: pipelines.kubeflow.org
+              expirationSeconds: 3600
+              path: persistenceagent-sa-token
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ml-pipeline-scheduledworkflow
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-scheduledworkflow
+  namespace: kubeflow
+spec:
+  selector:
+    matchLabels:
+      app: ml-pipeline-scheduledworkflow
+      application-crd-id: kubeflow-pipelines
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app: ml-pipeline-scheduledworkflow
+        application-crd-id: kubeflow-pipelines
+    spec:
+      containers:
+      - env:
+        - name: METRICS_PORT
+          value: "9090"
+        - name: CLIENT_QPS
+          value: "10"
+        - name: RESYNC_INTERVAL_SECONDS
+          value: "30"
+        - name: CLIENT_BURST
+          value: "20"
+        - name: LOG_LEVEL
+          value: info
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: CRON_SCHEDULE_TIMEZONE
+          valueFrom:
+            configMapKeyRef:
+              key: cronScheduleTimezone
+              name: pipeline-install-config
+        image: ghcr.io/kubeflow/kfp-scheduled-workflow-controller:2.17.2
+        imagePullPolicy: IfNotPresent
+        name: ml-pipeline-scheduledworkflow
+        ports:
+        - containerPort: 9090
+          name: http
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 0
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /var/run/secrets/kubeflow/tokens
+          name: scheduledworkflow-sa-token
+      initContainers:
+      - args:
+        - |
+          if [ -z "${WAIT_HOST}" ] || [ -z "${WAIT_PORT}" ]; then
+            echo "ERROR: WAIT_HOST or WAIT_PORT is not set."
+            exit 1
+          fi
+          MAX_RETRIES=60; i=0
+          while ! nc -z -w 2 "${WAIT_HOST}" "${WAIT_PORT}"; do
+            i=$((i+1))
+            if [ "$i" -ge "$MAX_RETRIES" ]; then
+              echo "ERROR: Timed out waiting for ${WAIT_HOST}:${WAIT_PORT} after ${MAX_RETRIES} attempts."
+              exit 1
+            fi
+            echo "Waiting for ${WAIT_HOST}:${WAIT_PORT} (attempt ${i}/${MAX_RETRIES})..."
+            sleep 5
+          done
+        command:
+        - /bin/sh
+        - -ec
+        env:
+        - name: WAIT_HOST
+          value: ml-pipeline
+        - name: WAIT_PORT
+          value: "8888"
+        image: docker.io/alpine:3.23
+        name: wait-for-ml-pipeline
+        resources:
+          limits:
+            cpu: 100m
+            memory: 64Mi
+          requests:
+            cpu: 10m
+            memory: 16Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: ml-pipeline-scheduledworkflow
+      volumes:
+      - name: scheduledworkflow-sa-token
+        projected:
+          sources:
+          - serviceAccountToken:
+              audience: pipelines.kubeflow.org
+              expirationSeconds: 3600
+              path: scheduledworkflow-sa-token
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ml-pipeline-ui
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-ui
+  namespace: kubeflow
+spec:
+  selector:
+    matchLabels:
+      app: ml-pipeline-ui
+      application-crd-id: kubeflow-pipelines
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app: ml-pipeline-ui
+        application-crd-id: kubeflow-pipelines
+    spec:
+      containers:
+      - env:
+        - name: VIEWER_TENSORBOARD_POD_TEMPLATE_SPEC_PATH
+          value: /etc/config/viewer-pod-template.json
+        - name: MINIO_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: MINIO_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              key: accesskey
+              name: mlpipeline-minio-artifact
+        - name: MINIO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              key: secretkey
+              name: mlpipeline-minio-artifact
+        - name: ALLOW_CUSTOM_VISUALIZATIONS
+          value: "true"
+        - name: FRONTEND_SERVER_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: ARGO_ARCHIVE_LOGS
+          value: "true"
+        - name: DISABLE_GKE_METADATA
+          value: "true"
+        - name: ARTIFACT_NAMESPACE_OWNERSHIP_MODE
+          valueFrom:
+            configMapKeyRef:
+              key: ARTIFACT_NAMESPACE_OWNERSHIP_MODE
+              name: pipeline-install-config
+              optional: true
+        - name: ARTIFACT_NAMESPACE_KEY_PREFIX
+          valueFrom:
+            configMapKeyRef:
+              key: ARTIFACT_NAMESPACE_KEY_PREFIX
+              name: pipeline-install-config
+              optional: true
+        - name: CLUSTER_DOMAIN
+          valueFrom:
+            configMapKeyRef:
+              key: CLUSTER_DOMAIN
+              name: pipeline-install-config
+              optional: true
+        - name: ARTIFACTS_SERVICE_PROXY_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              key: ARTIFACTS_PROXY_ENABLED
+              name: pipeline-install-config
+              optional: true
+        image: ghcr.io/kubeflow/kfp-frontend:2.17.2
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /apis/v1beta1/healthz
+            port: 3000
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        name: ml-pipeline-ui
+        ports:
+        - containerPort: 3000
+        readinessProbe:
+          httpGet:
+            path: /apis/v1beta1/healthz
+            port: 3000
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        resources:
+          requests:
+            cpu: 10m
+            memory: 70Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 0
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+          readOnly: true
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: ml-pipeline-ui
+      volumes:
+      - configMap:
+          name: ml-pipeline-ui-configmap
+        name: config-volume
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ml-pipeline-viewer-crd
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-viewer-crd
+  namespace: kubeflow
+spec:
+  selector:
+    matchLabels:
+      app: ml-pipeline-viewer-crd
+      application-crd-id: kubeflow-pipelines
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app: ml-pipeline-viewer-crd
+        application-crd-id: kubeflow-pipelines
+    spec:
+      containers:
+      - env:
+        - name: MAX_NUM_VIEWERS
+          value: "50"
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        image: ghcr.io/kubeflow/kfp-viewer-crd-controller:2.17.2
+        imagePullPolicy: Always
+        name: ml-pipeline-viewer-crd
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 0
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: ml-pipeline-viewer-crd-service-account
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ml-pipeline-visualizationserver
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-visualizationserver
+  namespace: kubeflow
+spec:
+  selector:
+    matchLabels:
+      app: ml-pipeline-visualizationserver
+      application-crd-id: kubeflow-pipelines
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app: ml-pipeline-visualizationserver
+        application-crd-id: kubeflow-pipelines
+    spec:
+      containers:
+      - image: ghcr.io/kubeflow/kfp-visualization-server:2.17.2
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8888
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        name: ml-pipeline-visualizationserver
+        ports:
+        - containerPort: 8888
+          name: http
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8888
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        resources:
+          requests:
+            cpu: 30m
+            memory: 500Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 0
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: ml-pipeline-visualizationserver
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: kfp-api-webhook-cert
+  namespace: kubeflow
+spec:
+  commonName: kfp-api-webhook-cert
+  dnsNames:
+  - ml-pipeline
+  - ml-pipeline.kubeflow
+  - ml-pipeline.kubeflow.svc
+  - ml-pipeline.kubeflow.svc.cluster.local
+  isCA: true
+  issuerRef:
+    kind: Issuer
+    name: kfp-api-webhook-selfsigned-issuer
+  secretName: kfp-api-webhook-cert
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: kfp-api-webhook-selfsigned-issuer
+  namespace: kubeflow
+spec:
+  selfSigned: {}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  annotations:
+    cert-manager.io/inject-ca-from: kubeflow/kfp-api-webhook-cert
+  name: pipelineversions.pipelines.kubeflow.org
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: ml-pipeline
+      namespace: kubeflow
+      path: /webhooks/mutate-pipelineversion
+      port: 8443
+  failurePolicy: Fail
+  name: pipelineversions.pipelines.kubeflow.org
+  rules:
+  - apiGroups:
+    - pipelines.kubeflow.org
+    apiVersions:
+    - v2beta1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - pipelineversions
+    scope: Namespaced
+  sideEffects: None
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  annotations:
+    cert-manager.io/inject-ca-from: kubeflow/kfp-api-webhook-cert
+  name: pipelineversions.pipelines.kubeflow.org
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: ml-pipeline
+      namespace: kubeflow
+      path: /webhooks/validate-pipelineversion
+      port: 8443
+  failurePolicy: Fail
+  name: pipelineversions.pipelines.kubeflow.org
+  rules:
+  - apiGroups:
+    - pipelines.kubeflow.org
+    apiVersions:
+    - v2beta1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - pipelineversions
+    scope: Namespaced
+  sideEffects: None
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: metadata-grpc
+  namespace: kubeflow
+spec:
+  gateways:
+  - kubeflow-gateway
+  hosts:
+  - '*'
+  http:
+  - match:
+    - uri:
+        prefix: /ml_metadata
+    rewrite:
+      uri: /ml_metadata
+    route:
+    - destination:
+        host: metadata-envoy-service.kubeflow.svc.cluster.local
+        port:
+          number: 9090
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  labels:
+    app.kubernetes.io/component: ml-pipeline
+    app.kubernetes.io/name: kubeflow-pipelines
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-ui
+  namespace: kubeflow
+spec:
+  gateways:
+  - kubeflow-gateway
+  hosts:
+  - '*'
+  http:
+  - match:
+    - uri:
+        prefix: /pipeline
+    rewrite:
+      uri: /pipeline
+    route:
+    - destination:
+        host: ml-pipeline-ui.kubeflow.svc.cluster.local
+        port:
+          number: 80
+    timeout: 300s

@@ -1,0 +1,92 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: auth
+  namespace: {{ .Release.Namespace }}
+spec:
+  gateways:
+    - kubeflow/kubeflow-gateway
+  hosts:
+    - "*"
+  http:
+    - match:
+        - uri:
+            prefix: /dex/
+      route:
+        - destination:
+            host: dex.{{ .Release.Namespace }}.svc.cluster.local
+            port:
+              number: 5556
+    - match:
+        - uri:
+            prefix: /oauth2/
+      route:
+        - destination:
+            host: oauth2-proxy.{{ .Release.Namespace }}.svc.cluster.local
+            port:
+              number: 80
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: kubeflow-oauth2-proxy
+  namespace: istio-system
+spec:
+  action: CUSTOM
+  provider:
+    name: oauth2-proxy
+  selector:
+    matchLabels:
+      app: istio-ingressgateway
+  rules:
+    - to:
+        - operation:
+            notPaths:
+              - /dex/*
+              - /dex/**
+              - /oauth2/*
+      when:
+        - key: request.headers[authorization]
+          notValues: ["*"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: kubeflow-require-jwt
+  namespace: istio-system
+spec:
+  action: DENY
+  selector:
+    matchLabels:
+      app: istio-ingressgateway
+  rules:
+    - from:
+        - source:
+            notRequestPrincipals: ["*"]
+      to:
+        - operation:
+            notPaths:
+              - /dex/*
+              - /dex/**
+              - /oauth2/*
+---
+apiVersion: security.istio.io/v1
+kind: RequestAuthentication
+metadata:
+  name: kubeflow-dex-jwt
+  namespace: istio-system
+spec:
+  selector:
+    matchLabels:
+      app: istio-ingressgateway
+  jwtRules:
+    - issuer: {{ .Values.identity.issuer }}
+      fromHeaders:
+        - name: Authorization
+          prefix: "Bearer "
+      forwardOriginalToken: true
+      outputClaimToHeaders:
+        - claim: email
+          header: kubeflow-userid
+        - claim: groups
+          header: kubeflow-groups

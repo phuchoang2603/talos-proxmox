@@ -44,6 +44,9 @@ components:
     releaseName: istio
     clusters: [dev, prod]
     managedNamespaceMetadata: *privileged
+    valueFilesByCluster:
+      prod:
+        - environments/prod/values.yaml
     ignoreDifferences:
       - group: admissionregistration.k8s.io
         kind: ValidatingWebhookConfiguration
@@ -62,6 +65,24 @@ components:
     namespace: argo-workflows
     syncWave: "-1"
     releaseName: argo-workflows
+    clusters: [prod]
+  auth:
+    path: apps/components/auth
+    namespace: auth
+    syncWave: "0"
+    releaseName: auth
+    clusters: [prod]
+  knative:
+    path: apps/components/knative
+    namespace: knative-serving
+    syncWave: "1"
+    releaseName: knative
+    clusters: [prod]
+  kubeflow:
+    path: apps/components/kubeflow
+    namespace: kubeflow
+    syncWave: "2"
+    releaseName: kubeflow
     clusters: [prod]
   metrics-server:
     path: apps/components/metrics-server

@@ -1,0 +1,288 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: kserve
+    app.kubernetes.io/component: kserve-models-web-application
+    app.kubernetes.io/name: kserve
+    kustomize.component: kserve-models-web-application
+  name: kserve-models-web-application
+  namespace: kserve
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app: kserve
+    app.kubernetes.io/component: kserve-models-web-application
+    app.kubernetes.io/name: kserve
+    kustomize.component: kserve-models-web-application
+  name: kserve-models-web-application-cluster-role
+rules:
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  - pods
+  - pods/log
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - serving.kserve.io
+  resources:
+  - inferenceservices
+  - inferenceservices/status
+  - inferencegraphs
+  - inferencegraphs/status
+  - trainedmodels
+  - trainedmodels/status
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - delete
+  - deletecollection
+  - patch
+  - update
+- apiGroups:
+  - serving.kserve.io
+  resources:
+  - llminferenceservices
+  - llminferenceservices/status
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - serving.knative.dev
+  resources:
+  - services
+  - services/status
+  - routes
+  - routes/status
+  - configurations
+  - configurations/status
+  - revisions
+  - revisions/status
+  verbs:
+  - get
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app: kserve
+    app.kubernetes.io/component: kserve-models-web-application
+    app.kubernetes.io/name: kserve
+    kustomize.component: kserve-models-web-application
+  name: kserve-models-web-application-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kserve-models-web-application-cluster-role
+subjects:
+- kind: ServiceAccount
+  name: kserve-models-web-application
+  namespace: kserve
+---
+apiVersion: v1
+data:
+  APP_PREFIX: /kserve-endpoints
+  GRAFANA_CPU_MEMORY_DB: db/knative-serving-revision-cpu-and-memory-usage
+  GRAFANA_HTTP_REQUESTS_DB: db/knative-serving-revision-http-requests
+  GRAFANA_PREFIX: /grafana
+  USERID_HEADER: kubeflow-userid
+  USERID_PREFIX: ""
+kind: ConfigMap
+metadata:
+  labels:
+    app: kserve
+    app.kubernetes.io/component: kserve-models-web-application
+    app.kubernetes.io/name: kserve
+    kustomize.component: kserve-models-web-application
+  name: kserve-models-web-application-config
+  namespace: kserve
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: kserve
+    app.kubernetes.io/component: kserve-models-web-application
+    app.kubernetes.io/name: kserve
+    kustomize.component: kserve-models-web-application
+  name: kserve-models-web-application
+  namespace: kserve
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    app: kserve
+    app.kubernetes.io/component: kserve-models-web-application
+    app.kubernetes.io/name: kserve
+    kustomize.component: kserve-models-web-application
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: kserve
+    app.kubernetes.io/component: kserve-models-web-application
+    app.kubernetes.io/name: kserve
+    kustomize.component: kserve-models-web-application
+  name: kserve-models-web-application
+  namespace: kserve
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kserve
+      app.kubernetes.io/component: kserve-models-web-application
+      app.kubernetes.io/name: kserve
+      kustomize.component: kserve-models-web-application
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "true"
+      labels:
+        app: kserve
+        app.kubernetes.io/component: kserve-models-web-application
+        app.kubernetes.io/name: kserve
+        kustomize.component: kserve-models-web-application
+        sidecar.istio.io/inject: "true"
+    spec:
+      containers:
+      - env:
+        - name: GUNICORN_CMD_ARGS
+          value: --limit-request-field_size 32000
+        envFrom:
+        - configMapRef:
+            name: kserve-models-web-application-config
+        image: ghcr.io/kserve/models-web-app:1.0.5
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz/liveness
+            port: http
+          initialDelaySeconds: 0
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: kserve-models-web-application
+        ports:
+        - containerPort: 5000
+          name: http
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz/readiness
+            port: http
+          initialDelaySeconds: 0
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsUser: 1000
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: kserve-models-web-application
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  labels:
+    app: kserve
+    app.kubernetes.io/name: kserve
+  name: kserve-models-web-application
+  namespace: kserve
+spec:
+  gateways:
+  - kubeflow/kubeflow-gateway
+  hosts:
+  - '*'
+  http:
+  - match:
+    - uri:
+        prefix: /kserve-endpoints/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: kserve-models-web-application.kserve.svc.cluster.local
+        port:
+          number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: kserve-models-web-application
+  namespace: kserve
+spec:
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: In
+          values:
+          - istio-system
+  podSelector:
+    matchExpressions:
+    - key: app.kubernetes.io/component
+      operator: In
+      values:
+      - kserve-models-web-application
+  policyTypes:
+  - Ingress
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  labels:
+    app: kserve
+    app.kubernetes.io/component: kserve-models-web-application
+    app.kubernetes.io/name: kserve
+    kustomize.component: kserve-models-web-application
+  name: kserve-models-web-application
+  namespace: kserve
+spec:
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals:
+        - cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account
+  selector:
+    matchLabels:
+      app: kserve
+      app.kubernetes.io/component: kserve-models-web-application
+      app.kubernetes.io/name: kserve
+      kustomize.component: kserve-models-web-application

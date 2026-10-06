@@ -16,3 +16,8 @@ dependencies:
   - name: ztunnel
     version: 1.30.5
     repository: https://istio-release.storage.googleapis.com/charts
+  - name: gateway
+    alias: ingress-gateway
+    version: 1.30.5
+    repository: https://istio-release.storage.googleapis.com/charts
+    condition: ingress-gateway.enabled

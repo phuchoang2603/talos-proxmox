@@ -1,0 +1,8 @@
+{{- range $component, $enabled := .Values.components }}
+{{- if $enabled }}
+{{- range $path, $_ := $.Files.Glob (printf "files/%s/*.yaml" $component) }}
+---
+{{ $.Files.Get $path }}
+{{- end }}
+{{- end }}
+{{- end }}

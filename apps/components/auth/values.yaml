@@ -1,0 +1,31 @@
+dex:
+  enabled: true
+  fullnameOverride: dex
+  configSecret:
+    create: false
+    name: dex-config
+
+oauth2-proxy:
+  enabled: true
+  fullnameOverride: oauth2-proxy
+  extraArgs:
+    provider: oidc
+    oidc-issuer-url: http://dex.auth.svc.cluster.local:5556/dex
+    redirect-url: http://localhost:8080/oauth2/callback
+    login-url: http://localhost:8080/dex/auth
+    redeem-url: http://dex.auth.svc.cluster.local:5556/dex/token
+    reverse-proxy: "true"
+    set-xauthrequest: "true"
+    cookie-secure: "false"
+    cookie-samesite: lax
+    pass-authorization-header: "true"
+  config:
+    existingSecret: oauth2-proxy-credentials
+
+identity:
+  email: xuanphuc.a1gv@gmail.com
+  issuer: http://dex.auth.svc.cluster.local:5556/dex
+  redirectURI: http://localhost:8080/oauth2/callback
+
+secrets:
+  refreshInterval: 1h

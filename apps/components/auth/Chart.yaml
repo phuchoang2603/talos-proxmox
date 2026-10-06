@@ -1,0 +1,14 @@
+apiVersion: v2
+name: platform-auth
+description: Shared Dex and OAuth2 Proxy authentication services
+type: application
+version: 0.1.0
+dependencies:
+  - name: dex
+    version: 0.25.2
+    repository: https://charts.dexidp.io
+    condition: dex.enabled
+  - name: oauth2-proxy
+    version: 10.7.1
+    repository: https://oauth2-proxy.github.io/manifests
+    condition: oauth2-proxy.enabled

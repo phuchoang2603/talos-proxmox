@@ -1,0 +1,20 @@
+components:
+  namespace: true
+  roles: true
+  istio-resources: true
+  pipeline: true
+  katib: true
+  dashboard: true
+  notebooks: true
+  trainer: true
+  kserve: true
+  kserve-ui: true
+  hub-catalog: true
+
+spark-operator:
+  enabled: true
+  spark:
+    jobNamespaces:
+      - kubeflow
+  certManager:
+    enable: true
