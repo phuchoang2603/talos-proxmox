@@ -1,0 +1,4 @@
+argo-cd:
+  configs:
+    cm:
+      url: http://10.69.12.254

@@ -18,7 +18,7 @@ Set these directly in the matching Doppler config before deployment. They are no
 | `CLOUDFLARE_API_TOKEN` | Cloudflare operator, through the `cloudflare-credentials` ExternalSecret | Both |
 | `CLOUDFLARE_TUNNEL_TOKEN` | `cloudflared`, through the same ExternalSecret | Both |
 
-`CLOUDFLARE_API_TOKEN` is a custom Cloudflare API token with **Account > Cloudflare Tunnel > Read**, **Account > Account Settings > Read**, and **Zone > DNS > Edit**, limited to the account and the `phuchoang.sbs` zone. `CLOUDFLARE_TUNNEL_TOKEN` is the token of the environment's locally-managed tunnel (`cloudflared tunnel token dev-talos`); the ExternalSecret extracts the tunnel secret from it.
+`CLOUDFLARE_API_TOKEN` is a custom Cloudflare API token with **Account > Cloudflare Tunnel > Read**, **Account > Account Settings > Read**, and **Zone > DNS > Edit**, limited to the account and the `phuchoang.sbs` zone. `CLOUDFLARE_TUNNEL_TOKEN` is the token of the environment's tunnel (`dev-talos` or `prod-talos`); the ExternalSecret extracts the tunnel secret from it.
 
 ## Generated secrets
 

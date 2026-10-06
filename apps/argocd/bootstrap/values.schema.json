@@ -21,21 +21,6 @@
     "targetRevision": {
       "type": "string",
       "minLength": 1
-    },
-    "gateway": {
-      "type": "object",
-      "properties": {
-        "address": {
-          "type": "string"
-        },
-        "backendService": {
-          "type": "string",
-          "minLength": 1
-        },
-        "backendPort": {
-          "type": "integer"
-        }
-      }
     }
   }
 }

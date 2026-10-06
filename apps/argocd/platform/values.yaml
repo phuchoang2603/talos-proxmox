@@ -36,6 +36,13 @@ components:
         - environments/dev/values.yaml
       prod:
         - environments/prod/values.yaml
+  istio:
+    path: apps/components/istio
+    namespace: istio-system
+    syncWave: "-2"
+    releaseName: istio
+    clusters: [dev, prod]
+    managedNamespaceMetadata: *privileged
   metrics-server:
     path: apps/components/metrics-server
     namespace: kube-system

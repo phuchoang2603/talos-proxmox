@@ -34,8 +34,8 @@ cilium:
       enabled: false
     hostRoot: /sys/fs/cgroup
   devices: eth0
-  # AWS NICs report MTU 9001, but cross-site pod traffic over KubeSpan fits only a 1500-byte underlay.
-  MTU: 1500
+  # KubeSpan MTU 1420 minus VXLAN overhead for cross-site pod traffic.
+  MTU: 1370
   l2announcements:
     enabled: true
   k8sClientRateLimit:
@@ -43,48 +43,24 @@ cilium:
     burst: 40
   loadBalancer:
     acceleration: best-effort
+  cni:
+    exclusive: false
+  socketLB:
+    hostNamespaceOnly: true
   encryption:
-    enabled: true
-    type: wireguard
+    enabled: false
   authentication:
+    enabled: false
     mutual:
       spire:
-        enabled: true
-        install:
-          enabled: true
-          namespace: kube-system
-          existingNamespace: true
-          server:
-            podSecurityContext:
-              runAsUser: 1000
-              runAsGroup: 1000
-              fsGroup: 1000
-            securityContext:
-              runAsUser: 1000
-              runAsGroup: 1000
-            initContainers:
-              - name: fix-permissions
-                image: docker.io/library/busybox:1.37.0
-                command: ["sh", "-c"]
-                args:
-                  - chown -R 1000:1000 /run/spire/data /tmp/spire-server
-                securityContext:
-                  runAsUser: 0
-                  runAsGroup: 0
-                volumeMounts:
-                  - name: spire-data
-                    mountPath: /run/spire/data
-                  - name: spire-server-socket
-                    mountPath: /tmp/spire-server
-  l7Proxy: true
+        enabled: false
+  l7Proxy: false
   envoy:
-    enabled: true
+    enabled: false
   cluster:
     name: talos
     id: 1
   gatewayAPI:
-    enabled: true
-    enableAlpn: true
-    enableAppProtocol: true
+    enabled: false
   hubble:
     enabled: false

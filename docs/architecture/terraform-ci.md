@@ -81,7 +81,7 @@ The configured HCP operator token is shared across environments and can access t
 
 The platform first probes the API's authenticated `/readyz` endpoint, installs Gateway API CRDs, and installs Cilium. Argo CD depends directly on the Cilium release. The platform does not enumerate nodes or run Talos, etcd, or Kubernetes node health checks.
 
-Cilium does not wait for SPIRE because SPIRE needs storage installed later by Argo CD. Argo CD's Helm release still waits for its own resources and can fail if they cannot become ready. CI finishes after the root Application is installed, without waiting for all child Applications or SPIRE.
+Cilium no longer installs SPIRE. The bootstrap chart creates an Argo CD UI LoadBalancer Service; Cilium assigns its reserved IP after the GitOps-managed pool and L2 policy converge. Istio and the Cloudflare operator reconcile independently of the UI. Argo CD's Helm release still waits for its own resources and can fail if they cannot become ready. CI finishes after the root Application is installed, without waiting for all child Applications or Istio.
 
 A successful apply confirms installation of platform resources, not the health of every node. Node health and application convergence are operational checks; use the [convergence checks](../operations/cluster-access.md#check-convergence) afterward. A stale NotReady burst node does not independently block a platform apply.
 

@@ -35,7 +35,6 @@ secrets:
   refreshInterval: 1h
 
 global:
-  # HyperDX UI Gateway address from prod's Cilium pool; .254 is the Argo CD UI.
   hyperdxAddress: 10.69.12.128
 
 clickstack:

@@ -49,6 +49,8 @@ Talos discovery provides peer information. **KubeSpan** builds the encrypted Wir
 
 The private LAN VIP stays private. AWS workers do not require public TCP 6443 or a route to the VIP. The worker security group permits inbound UDP 51820 for KubeSpan and outbound traffic; the public subnets have an internet gateway. Discovery and mesh reachability must work before a worker can join.
 
+Disabling Cilium's optional WireGuard encryption does not disable Talos KubeSpan: both on-premises nodes and AWS worker machine configurations explicitly enable it, and the security group still admits UDP 51820. Cilium remains in VXLAN tunneling mode, so no native-routing KubeSpan overrides are needed. The Cilium pod MTU is capped at 1370 to allow VXLAN overhead within KubeSpan's 1420-byte MTU; check cross-site pod traffic and MTU after provisioning. Istio CNI chains with Cilium and does not replace the host network or KubePrism.
+
 Tailscale has a different role: it connects CI runners to the private management APIs. It is not the AWS workers' cluster network.
 
 ## Scale from zero, then return to zero

@@ -11,7 +11,7 @@ flowchart TD
     TF["Platform OpenTofu root"] --> CNI["Gateway API CRDs + Cilium"]
     CNI --> Argo["Argo CD Helm release"]
     TF --> Auth["ESO bootstrap authentication Secret"]
-    Argo --> Bootstrap["Bootstrap chart: AppProject + root Application + UI Gateway"]
+    Argo --> Bootstrap["Bootstrap chart: AppProject + root Application + Argo CD UI LoadBalancer"]
     Bootstrap --> Root["platform Application: cluster=dev or prod"]
     Root --> Shared["apps/argocd/platform"]
     Shared --> Apps["One Application per enabled component"]
@@ -19,18 +19,18 @@ flowchart TD
     Components --> Local["Local Kubernetes cluster"]
 ```
 
-The [bootstrap chart](../../apps/argocd/bootstrap/) creates the `talos-proxmox` AppProject, the `platform` root Application, and the Gateway and HTTPRoute for the Argo CD UI, whose address comes from its per-environment overlay. The [platform chart](../../apps/argocd/platform/) creates child Applications from its component table. Every destination is `https://kubernetes.default.svc`; there are no remote-cluster registrations or cross-environment kubeconfigs.
+The [bootstrap chart](../../apps/argocd/bootstrap/) creates the `talos-proxmox` AppProject, the `platform` root Application and an Argo CD UI LoadBalancer Service. Cilium assigns and announces the reserved address once its GitOps-managed IP pool and L2 policy converge. The [platform chart](../../apps/argocd/platform/) creates child Applications from its component table. Every destination is `https://kubernetes.default.svc`; there are no remote-cluster registrations or cross-environment kubeconfigs.
 
 ## One owner per resource
 
 | Owner | Components |
 | --- | --- |
-| Platform OpenTofu root | Gateway API CRDs, Cilium/SPIRE, ESO token namespace/Secret, Karpenter (CRDs, controller, `EC2NodeClass`, `NodePool`, and its AWS key Secret), Argo CD, bootstrap AppProject/root Application/UI route |
-| Argo CD | ESO/store, Cilium address pools/L2 policies, storage, metrics, cloud controller, GPU components, routes, operators, observability, telemetry agents, Cloudflare operator and `ClusterTunnel` |
+| Platform OpenTofu root | Gateway API CRDs, Cilium, ESO token namespace/Secret, Karpenter (CRDs, controller, `EC2NodeClass`, `NodePool`, and its AWS key Secret), Argo CD and bootstrap AppProject/root Application/UI LoadBalancer Service |
+| Argo CD | ESO/store, Cilium address pools/L2 policies, storage, metrics, cloud controller, GPU components, Istio, operators, observability, telemetry agents, Cloudflare operator/CRDs and `ClusterTunnel`, and the HyperDX UI LoadBalancer Service |
 
 Cilium and Argo CD remain OpenTofu-owned after bring-up. Changes to them go through a platform apply. Application changes go through Git and Argo CD.
 
-An environment destroy removes the cluster and empties the platform root's state; it does not uninstall anything from the cluster. The platform root and Argo CD components must therefore not create resources outside the cluster that need removing on destroy, such as DNS records, tailnet devices, or cloud resources. When a component does need one, the cluster or foundation root owns its removal, as the cluster root does for Karpenter's EC2 instances and launch templates. The Cloudflare tunnels are created once outside the cluster and outlive destroys; see [public hostnames](#public-hostnames).
+An environment destroy removes the cluster and empties the platform root's state; it does not uninstall anything from the cluster. The platform root and Argo CD components must therefore not create external resources requiring removal on destroy, such as tailnet devices or unmanaged cloud resources. The cluster or foundation root owns the removal of external infrastructure, as the cluster root does for Karpenter's EC2 instances and launch templates. Existing Cloudflare tunnels may outlive destroys; see [public hostnames](#public-hostnames).
 
 The `cilium-network` chart contains cluster-scoped networking resources; it does not install a second Cilium release.
 
@@ -41,7 +41,7 @@ The source of truth is [`apps/argocd/platform/values.yaml`](../../apps/argocd/pl
 | Wave | Components | Environments |
 | --- | --- | --- |
 | -3 | External Secrets Operator | dev, prod |
-| -2 | Doppler ClusterSecretStore | dev, prod |
+| -2 | Doppler ClusterSecretStore, Istio ambient (base, istiod, CNI, ztunnel) | dev, prod |
 | -1 | Burst admission policy, Cilium network resources, metrics-server | dev, prod |
 | 0 | local-path, Talos CCM, cert-manager, CNPG, Strimzi, MongoDB operator | dev, prod |
 | 0 | ClickHouse operator | prod |
@@ -53,7 +53,7 @@ Dev's telemetry agents are its only dependency on prod: they send to prod's OTLP
 
 Waves order submission of child Applications; they do not wait for each child's resources to become healthy. Children converge asynchronously. Unlimited retries with backoff and `SkipDryRunOnMissingResource` handle dependencies such as CRDs arriving later. Automated prune removes resources deleted from Git, and self-heal repairs drift.
 
-Argo CD uses server-side apply and server-side diff. Privileged component namespaces get labels through `managedNamespaceMetadata`. Cilium and SPIRE share `kube-system`.
+Argo CD uses server-side apply and server-side diff. Privileged component namespaces get labels through `managedNamespaceMetadata`. Cilium runs in `kube-system`; Istio runs in privileged `istio-system`.
 
 ## Secret delivery
 
@@ -78,20 +78,20 @@ Application Secrets refresh hourly. Workloads that read credentials only at star
 
 ## Public hostnames
 
-Each environment has one locally-managed Cloudflare tunnel, created once outside the cluster and named after it (`dev-talos`, `prod-talos`). The [`cloudflare-tunnel`](../../apps/components/cloudflare-tunnel/) chart installs the [Cloudflare operator](https://github.com/adyanth/cloudflare-operator) and a `ClusterTunnel` named `talos-proxmox` that runs that tunnel (`existingTunnel`) with a `cloudflared` Deployment in `cloudflare-operator-system`. The operator's manifests are vendored from its kustomize output, since upstream ships no Helm chart. A dashboard-managed tunnel does not work here: Cloudflare pushes the dashboard configuration to `cloudflared`, replacing the ingress rules the operator writes.
+Each environment has one Cloudflare tunnel, created once outside the cluster and named after it (`dev-talos`, `prod-talos`). The [`cloudflare-tunnel`](../../apps/components/cloudflare-tunnel/) chart installs the [Cloudflare operator](https://github.com/adyanth/cloudflare-operator) and a `ClusterTunnel` named `talos-proxmox` that runs that tunnel (`existingTunnel`) with a `cloudflared` Deployment in `cloudflare-operator-system`. The operator manifests and CRDs are vendored together from upstream kustomize output, since upstream ships no Helm chart. Never add public hostnames or other configuration to these tunnels in the Cloudflare dashboard: Cloudflare pushes dashboard configuration to `cloudflared`, replacing the ingress rules the operator writes.
 
-Application repositories publish hostnames by rendering a `TunnelBinding` next to their origin Service. For each subject, the operator adds an ingress rule to the tunnel's configuration, restarts `cloudflared`, and creates a proxied CNAME plus a `_managed.<hostname>` TXT ownership record in the `phuchoang.sbs` zone. Deleting the binding removes both records.
+Argo CD and HyperDX are exposed on LAN-only LoadBalancer Services, not through Cloudflare tunnels or Istio Gateways. Argo CD uses `10.69.11.254` (dev) and `10.69.12.254` (prod); HyperDX uses `10.69.12.128` (prod). Their original ClusterIP Services stay internal, and each UI LoadBalancer exposes only HTTP port 80. Application repositories can still publish their own hostnames by rendering bindings next to their origin Services. For each subject, the operator adds an ingress rule to the tunnel's configuration, restarts `cloudflared`, and creates a proxied CNAME plus a `_managed.<hostname>` TXT ownership record in the `phuchoang.sbs` zone. Deleting the binding removes both records.
 
 ```yaml
 apiVersion: networking.cfargotunnel.com/v1alpha1
 kind: TunnelBinding
 metadata:
   name: web
-  namespace: ecommerce
+  namespace: example
 subjects:
-  - name: cilium-gateway-ecommerce-ingress # Service in the binding's namespace
+  - name: web
     spec:
-      fqdn: shop-dev.phuchoang.sbs
+      fqdn: web-dev.phuchoang.sbs
 tunnelRef:
   kind: ClusterTunnel
   name: talos-proxmox

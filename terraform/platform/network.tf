@@ -8,7 +8,6 @@ resource "helm_release" "gateway_api" {
   depends_on = [data.http.apiserver_ready]
 }
 
-# SPIRE needs a StorageClass that Argo CD installs later, so Helm must not wait for it.
 resource "helm_release" "cilium" {
   name            = "cilium"
   namespace       = "kube-system"

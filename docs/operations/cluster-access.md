@@ -48,7 +48,7 @@ The Kubernetes VIP depends on the control plane and etcd. Node-level Talos acces
 
 ## Open Argo CD
 
-Open the selected environment's UI above. Each uses its own `argo-cd` namespace and manages only its local cluster. For an initial deployment, retrieve the initial admin password locally:
+Open the selected environment's UI above after Cilium assigns and announces its LoadBalancer IP. The UI does not depend on Istio or Cloudflare. For initial bootstrap, use `kubectl -n argo-cd port-forward svc/argo-cd-argocd-server 8080:80` and open `http://localhost:8080` until the IP is available. Each environment manages only its local cluster. Retrieve the initial admin password locally:
 
 ```bash
 kubectl -n argo-cd get secret argocd-initial-admin-secret \
@@ -64,11 +64,13 @@ kubectl -n argo-cd get applications
 kubectl get clustersecretstore doppler
 kubectl get externalsecrets -A
 kubectl get storageclass
-kubectl -n kube-system get pods -l app=spire-server
-kubectl -n kube-system get pods -l app=spire-agent
+kubectl -n istio-system get deploy istiod
+kubectl -n istio-system get daemonset istio-cni-node ztunnel
+kubectl -n argo-cd get svc argocd-ui
+# Prod only: kubectl -n observability get svc hyperdx-ui
 ```
 
-Expected results: the root and child Applications are Synced/Healthy; the Doppler store and ExternalSecrets are Ready; SPIRE pods are ready; and there is exactly one default StorageClass, `local-path`. `kubectl get nodes` lists only the Proxmox control-plane nodes (one in dev, `prod-server1` through `prod-server3` in prod) plus any AWS workers; the control-plane nodes also run workloads, and `prod-server1` is prod's SSD-backed node for write-heavy volumes.
+Expected results: the root and child Applications are Synced/Healthy; the Doppler store and ExternalSecrets are Ready; Istio control plane and node agents are ready; and there is exactly one default StorageClass, `local-path`. `kubectl get nodes` lists only the Proxmox control-plane nodes (one in dev, `prod-server1` through `prod-server3` in prod) plus any AWS workers; the control-plane nodes also run workloads, and `prod-server1` is prod's SSD-backed node for write-heavy volumes.
 
 ## Observability
 
@@ -92,7 +94,7 @@ HyperDX's first sign-up creates the first account, and anyone on the LAN who rea
 | Platform apply fails API readiness or times out installing Argo CD | API `/readyz`, connectivity, and Argo CD pod events; see [apply behavior](../architecture/terraform-ci.md#what-a-successful-apply-means) |
 | Application OutOfSync or Degraded | Application sync result and resource events in the local Argo CD UI |
 | ExternalSecret not Ready | `kubectl describe externalsecret <name> -n <namespace>` and Doppler store status |
-| SPIRE Pending | Default StorageClass, PVC binding, and the storage Application |
+| Istio node agents Pending | Privileged istio-system namespace, host CNI paths, and node events |
 | AWS workload stays Pending | [AWS worker operations](aws-burst-workers.md#observe-scaling) |
 
 ## Recover configs from an initialized cluster root

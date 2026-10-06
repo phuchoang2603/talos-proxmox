@@ -1,0 +1,31 @@
+base:
+  global:
+    istioNamespace: istio-system
+
+istiod:
+  profile: ambient
+  global:
+    variant: distroless
+  pilot:
+    env:
+      PILOT_ENABLE_AMBIENT: "true"
+  meshConfig:
+    defaultConfig:
+      proxyMetadata:
+        ISTIO_META_ENABLE_HBONE: "true"
+    serviceScopeConfigs:
+      - servicesSelector:
+          matchExpressions:
+            - key: istio.io/global
+              operator: In
+              values: ["true"]
+        scope: GLOBAL
+
+cni:
+  profile: ambient
+  cniBinDir: /opt/cni/bin
+  cniConfDir: /etc/cni/net.d
+  ambient:
+    enabled: true
+
+ztunnel: {}

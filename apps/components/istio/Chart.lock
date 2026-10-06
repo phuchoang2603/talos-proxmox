@@ -1,0 +1,15 @@
+dependencies:
+- name: base
+  repository: https://istio-release.storage.googleapis.com/charts
+  version: 1.30.5
+- name: istiod
+  repository: https://istio-release.storage.googleapis.com/charts
+  version: 1.30.5
+- name: cni
+  repository: https://istio-release.storage.googleapis.com/charts
+  version: 1.30.5
+- name: ztunnel
+  repository: https://istio-release.storage.googleapis.com/charts
+  version: 1.30.5
+digest: sha256:c45d3b4850b5a7828b73c9a047ecfd739d6c2d046eb2a2bc4d71d05dbf416f87
+generated: "2026-10-06T04:09:43.67566264-04:00"
