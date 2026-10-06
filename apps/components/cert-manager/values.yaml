@@ -1,0 +1,7 @@
+cert-manager:
+  crds:
+    enabled: true
+    keep: true
+  # Its post-install hook Job only waits for the webhook; Argo CD's retries already cover that.
+  startupapicheck:
+    enabled: false

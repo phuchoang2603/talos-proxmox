@@ -61,6 +61,12 @@ components:
     syncWave: "0"
     releaseName: cnpg
     clusters: [dev, prod]
+  cert-manager:
+    path: apps/components/cert-manager
+    namespace: operators
+    syncWave: "0"
+    releaseName: cert-manager
+    clusters: [dev, prod]
   strimzi:
     path: apps/components/strimzi
     namespace: operators
@@ -109,9 +115,11 @@ components:
   cloudflare-tunnel:
     path: apps/components/cloudflare-tunnel
     releaseName: cloudflare-tunnel
-    namespace: cloudflare-tunnel
+    namespace: cloudflare-operator-system
     syncWave: "2"
     clusters: [dev, prod]
     valueFilesByCluster:
+      dev:
+        - environments/dev/values.yaml
       prod:
         - environments/prod/values.yaml

@@ -1,17 +1,24 @@
-# Chart defaults: in-cluster Cloudflare Tunnel to the Cilium Gateway origin.
+# Chart defaults: the cloudflare-operator and a ClusterTunnel that runs this environment's existing
+# tunnel. Application repositories add hostnames and their DNS records with TunnelBindings whose
+# tunnelRef names `clusterTunnel`.
+clusterTunnel: talos-proxmox
+
+cloudflare:
+  accountId: 8a253dc844b35e546f5c0a8ef2f0e89f
+  domain: phuchoang.sbs
+  # Built from Doppler's CLOUDFLARE_API_TOKEN and CLOUDFLARE_TUNNEL_TOKEN.
+  secret: cloudflare-credentials
+  refreshInterval: 1h
+
+# Name of the existing tunnel in Cloudflare; CLOUDFLARE_TUNNEL_TOKEN must belong to it.
+tunnel:
+  name: ""
+
 replicaCount: 1
 
 image:
   repository: cloudflare/cloudflared
   tag: "2026.5.0"
-  pullPolicy: IfNotPresent
-
-# cloudflared reads the token only at startup; restart it from Argo CD after a rotation.
-tunnel:
-  existingSecret: cloudflare-tunnel-token
-  existingSecretKey: token
-  dopplerKey: CLOUDFLARE_TUNNEL_TOKEN
-  refreshInterval: 1h
 
 resources:
   requests:

@@ -1,1 +1,4 @@
+tunnel:
+  name: prod-talos
+
 replicaCount: 2

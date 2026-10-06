@@ -15,7 +15,10 @@ Set these directly in the matching Doppler config before deployment. They are no
 | `HCP_TERRAFORM_TOKEN` | CI state access, exported as `TF_TOKEN_app_terraform_io` | Both |
 | `PROXMOX_ENDPOINT`, `PROXMOX_USERNAME`, `PROXMOX_PASSWORD` | Cluster root's Proxmox provider | Both |
 | `TS_OAUTH_CLIENT_ID`, `TS_OAUTH_SECRET` | GitHub runner's Tailscale connection | Both |
-| `CLOUDFLARE_TUNNEL_TOKEN` | Tunnel ExternalSecret | Both |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare operator, through the `cloudflare-credentials` ExternalSecret | Both |
+| `CLOUDFLARE_TUNNEL_TOKEN` | `cloudflared`, through the same ExternalSecret | Both |
+
+`CLOUDFLARE_API_TOKEN` is a custom Cloudflare API token with **Account > Cloudflare Tunnel > Read**, **Account > Account Settings > Read**, and **Zone > DNS > Edit**, limited to the account and the `phuchoang.sbs` zone. `CLOUDFLARE_TUNNEL_TOKEN` is the token of the environment's locally-managed tunnel (`cloudflared tunnel token dev-talos`); the ExternalSecret extracts the tunnel secret from it.
 
 ## Generated secrets
 
@@ -45,6 +48,7 @@ Foundation also creates a read/write CI service token per config and publishes i
 | ESO Doppler token | Read one environment config; only Doppler credential installed in the cluster |
 | CI AWS session | GitHub OIDC provisioning role |
 | Karpenter AWS key | Launch, tag, and terminate the environment's tagged instances; regional Describe access |
+| Cloudflare API token | Read tunnels in the account; edit DNS in the `phuchoang.sbs` zone. Dev and prod hold the same scope; ownership TXT records keep each operator to its own hostnames |
 | HCP operator token | State access across the configured workspaces |
 
 HCP state holds generated credentials and Talos bootstrap material. Doppler provider reads also bring secret data into the planning/state flow. Keep state and saved plans restricted to operators; sensitive plan rendering is not encryption of state.
@@ -53,7 +57,7 @@ HCP state holds generated credentials and Talos bootstrap material. Doppler prov
 
 | Kubernetes Secret | Namespace | Refresh |
 | --- | --- | --- |
-| `cloudflare-tunnel-token` | `cloudflare-tunnel` | 1 hour |
+| `cloudflare-credentials` | `cloudflare-operator-system` | 1 hour |
 | `otel-agent-token` | `observability` (dev, prod) | 1 hour |
 | `otel-gateway-token`, `clickhouse-credentials`, `hyperdx-mongodb-password`, `hyperdx` | `observability` (prod) | 1 hour |
 
@@ -66,4 +70,4 @@ kubectl get externalsecrets -A
 
 Select your cluster first using [cluster access](../operations/cluster-access.md).
 
-For Cloudflare, change `CLOUDFLARE_TUNNEL_TOKEN` in Doppler, wait for the ExternalSecret to refresh successfully, then use Argo CD's **Restart** action on `cloudflared`. Updating a Kubernetes Secret does not restart these Deployments automatically. The same applies to the telemetry credentials: after changing one, restart the collectors and HyperDX that read it. ClickHouse and MongoDB read their user passwords when they start. The Karpenter key is not delivered by ESO: rotate it with the [OpenTofu procedure](../operations/aws-burst-workers.md#rotate-the-karpenter-key), where the platform apply restarts the controller.
+For Cloudflare, change the key in Doppler and wait for the ExternalSecret to refresh. The operator reads `CLOUDFLARE_API_TOKEN` on each reconcile. The operator does not watch that Secret, so after changing `CLOUDFLARE_TUNNEL_TOKEN`, use Argo CD's **Restart** action on `cloudflare-operator-controller-manager` (it rewrites the tunnel credentials on startup), then on the `talos-proxmox` `cloudflared` Deployment. Updating a Kubernetes Secret does not restart Deployments automatically. The same applies to the telemetry credentials: after changing one, restart the collectors and HyperDX that read it. ClickHouse and MongoDB read their user passwords when they start. The Karpenter key is not delivered by ESO: rotate it with the [OpenTofu procedure](../operations/aws-burst-workers.md#rotate-the-karpenter-key), where the platform apply restarts the controller.

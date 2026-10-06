@@ -1,0 +1,25 @@
+apiVersion: networking.cfargotunnel.com/v1alpha2
+kind: ClusterTunnel
+metadata:
+  name: {{ .Values.clusterTunnel }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  existingTunnel:
+    name: {{ required "tunnel.name is required" .Values.tunnel.name }}
+  cloudflare:
+    accountId: {{ .Values.cloudflare.accountId }}
+    domain: {{ .Values.cloudflare.domain }}
+    secret: {{ .Values.cloudflare.secret }}
+  deployPatch: |
+    spec:
+      replicas: {{ .Values.replicaCount }}
+      template:
+        spec:
+          containers:
+            - name: cloudflared
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+{{- with .Values.resources }}
+              resources:
+{{- toYaml . | nindent 16 }}
+{{- end }}

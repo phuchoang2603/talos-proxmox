@@ -1,0 +1,6 @@
+{{- /*
+Upstream ships no Helm chart, so its kustomize output is vendored and pins the namespace to
+cloudflare-operator-system. Regenerate after changing the tag:
+kubectl kustomize 'https://github.com/adyanth/cloudflare-operator.git/config/default?ref=v0.13.1' > files/cloudflare-operator.yaml
+*/}}
+{{ .Files.Get "files/cloudflare-operator.yaml" }}

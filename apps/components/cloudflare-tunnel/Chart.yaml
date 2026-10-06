@@ -1,6 +1,6 @@
 apiVersion: v2
 name: cloudflare-tunnel
-description: In-cluster Cloudflare Tunnel connector for the marketplace edge
+description: cloudflare-operator and the ClusterTunnel that application repositories bind hostnames to
 type: application
-version: 0.1.0
-appVersion: "2026.5.0"
+version: 0.2.0
+appVersion: "0.13.1"
