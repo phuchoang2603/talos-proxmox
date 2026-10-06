@@ -17,11 +17,15 @@ spec:
     repoURL: {{ $.Values.repoURL | quote }}
     targetRevision: {{ $.Values.targetRevision | quote }}
     path: {{ $app.path }}
+{{- if eq ($app.sourceType | default "helm") "kustomize" }}
+    kustomize: {}
+{{- else }}
     helm:
-      releaseName: {{ $app.releaseName }}
+      releaseName: {{ required (printf "releaseName is required for Helm component %s" $name) $app.releaseName }}
 {{- with index ($app.valueFilesByCluster | default dict) $cluster }}
       valueFiles:
 {{- toYaml . | nindent 8 }}
+{{- end }}
 {{- end }}
   destination:
     server: https://kubernetes.default.svc

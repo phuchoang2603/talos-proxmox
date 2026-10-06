@@ -1,0 +1,9 @@
+apiVersion: v2
+name: platform-argo-workflows
+description: Shared Argo Workflows controller for Kubeflow and future data workflows
+type: application
+version: 0.1.0
+dependencies:
+  - name: argo-workflows
+    version: 1.0.24
+    repository: https://argoproj.github.io/argo-helm

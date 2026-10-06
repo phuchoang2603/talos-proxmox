@@ -36,13 +36,14 @@ The `cilium-network` chart contains cluster-scoped networking resources; it does
 
 ## Membership, overlays, and ordering
 
-The source of truth is [`apps/argocd/platform/values.yaml`](../../apps/argocd/platform/values.yaml). Each component declares its `clusters`, destination namespace, release name, chart path, and sync wave. `valueFilesByCluster` selects optional environment overrides.
+The source of truth is [`apps/argocd/platform/values.yaml`](../../apps/argocd/platform/values.yaml). Each component declares its `clusters`, destination namespace, source path, and sync wave. Helm is the default source and requires a release name; `valueFilesByCluster` selects optional environment overrides. Set `sourceType: kustomize` for a Git-owned Kustomization path instead of a Helm chart.
 
 | Wave | Components | Environments |
 | --- | --- | --- |
 | -3 | External Secrets Operator | dev, prod |
 | -2 | Doppler ClusterSecretStore, Istio ambient (base, istiod, CNI, ztunnel) | dev, prod |
 | -1 | Burst admission policy, Cilium network resources, metrics-server | dev, prod |
+| -1 | Shared Argo Workflows controller and CRDs (Kubeflow workflows namespace) | prod |
 | 0 | local-path, Talos CCM, cert-manager, CNPG, Strimzi, MongoDB operator | dev, prod |
 | 0 | ClickHouse operator | prod |
 | 1 | GPU operator, NVIDIA DRA | dev, prod |

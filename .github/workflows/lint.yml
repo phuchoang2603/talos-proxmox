@@ -57,3 +57,12 @@ jobs:
               helm lint "${chart}" --kube-version "${KUBE_VERSION}" --set cluster="${cluster}"
             done
           done
+
+      - name: Check platform source types
+        run: |
+          for cluster in dev prod; do
+            helm template platform apps/argocd/platform --set cluster="${cluster}" --show-only templates/applications.yaml > /tmp/platform-helm.yaml
+            grep -q 'releaseName: istio' /tmp/platform-helm.yaml
+          done
+          helm template platform apps/argocd/platform --set cluster=prod --set components.istio.sourceType=kustomize --set components.istio.releaseName='' --show-only templates/applications.yaml > /tmp/platform-kustomize.yaml
+          grep -q 'kustomize: {}' /tmp/platform-kustomize.yaml

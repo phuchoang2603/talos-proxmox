@@ -1,0 +1,14 @@
+argo-workflows:
+  crds:
+    full: false
+  controller:
+    workflowNamespaces:
+      - kubeflow
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 1Gi
+  server:
+    enabled: false

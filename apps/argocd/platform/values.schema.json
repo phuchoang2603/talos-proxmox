@@ -44,7 +44,6 @@
           "path",
           "namespace",
           "syncWave",
-          "releaseName",
           "clusters"
         ],
         "additionalProperties": false,
@@ -61,6 +60,10 @@
           },
           "releaseName": {
             "type": "string"
+          },
+          "sourceType": {
+            "type": "string",
+            "enum": ["helm", "kustomize"]
           },
           "clusters": {
             "type": "array",

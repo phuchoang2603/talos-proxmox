@@ -18,6 +18,7 @@ privilegedNamespace: &privileged
     pod-security.kubernetes.io/audit: privileged
     pod-security.kubernetes.io/warn: privileged
 
+# Components use Helm by default; set sourceType: kustomize for a Git-owned Kustomization path.
 components:
   external-secrets:
     path: apps/components/external-secrets
@@ -56,6 +57,12 @@ components:
         jsonPointers:
           - /webhooks/0/clientConfig/caBundle
           - /webhooks/0/failurePolicy
+  argo-workflows:
+    path: apps/components/argo-workflows
+    namespace: argo-workflows
+    syncWave: "-1"
+    releaseName: argo-workflows
+    clusters: [prod]
   metrics-server:
     path: apps/components/metrics-server
     namespace: kube-system
