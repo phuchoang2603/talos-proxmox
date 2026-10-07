@@ -152,7 +152,8 @@ cluster:
   fullnameOverride: otel-cluster
   mode: deployment
   replicaCount: 1
-  # Ambient lets it scrape Istio gateways in namespaces with STRICT mTLS; waypoints and ztunnel are not captured.
+  # Ambient lets it scrape enrolled pods in namespaces with STRICT mTLS; Istio gateways, waypoints,
+  # and ztunnel are not captured and stay reachable either way.
   podLabels:
     istio.io/dataplane-mode: ambient
   image:
