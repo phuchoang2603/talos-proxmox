@@ -22,6 +22,10 @@ oauth2-proxy:
     skip-provider-button: "true"
     approval-prompt: auto
     reverse-proxy: "true"
+    # Istio checks /oauth2/auth/<path>, which OAuth2 Proxy serves as a proxied request:
+    # answer 200 and return the ID token for the gateway's JWT policy.
+    upstream: static://200
+    set-authorization-header: "true"
     set-xauthrequest: "true"
     cookie-secure: "true"
     cookie-domain: kubeflow.phuchoang.sbs
