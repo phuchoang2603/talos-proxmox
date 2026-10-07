@@ -1,0 +1,84 @@
+$patch: delete
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: argo, namespace: kubeflow}
+---
+$patch: delete
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: mysql, namespace: kubeflow}
+---
+$patch: delete
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: seaweedfs, namespace: kubeflow}
+---
+$patch: delete
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: {name: argo-role, namespace: kubeflow}
+---
+$patch: delete
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: {name: argo-binding, namespace: kubeflow}
+---
+$patch: delete
+apiVersion: v1
+kind: ConfigMap
+metadata: {name: workflow-controller-configmap, namespace: kubeflow}
+---
+$patch: delete
+apiVersion: v1
+kind: Secret
+metadata: {name: mlpipeline-minio-artifact, namespace: kubeflow}
+---
+$patch: delete
+apiVersion: v1
+kind: Secret
+metadata: {name: mysql-secret, namespace: kubeflow}
+---
+$patch: delete
+apiVersion: v1
+kind: Service
+metadata: {name: mysql, namespace: kubeflow}
+---
+$patch: delete
+apiVersion: v1
+kind: Service
+metadata: {name: seaweedfs, namespace: kubeflow}
+---
+$patch: delete
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata: {name: workflow-controller}
+---
+$patch: delete
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata: {name: mysql-pv-claim, namespace: kubeflow}
+---
+$patch: delete
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata: {name: seaweedfs-pvc, namespace: kubeflow}
+---
+$patch: delete
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: mysql, namespace: kubeflow}
+---
+$patch: delete
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: seaweedfs, namespace: kubeflow}
+---
+$patch: delete
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: workflow-controller, namespace: kubeflow}
+---
+$patch: delete
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: seaweedfs, namespace: kubeflow}

@@ -5929,6 +5929,9 @@ spec:
           values:
           - istio-system
     - podSelector: {}
+  - from:
+    - ipBlock:
+        cidr: 169.254.7.127/32
   podSelector:
     matchLabels:
       app: kubeflow-dashboard
@@ -5954,6 +5957,9 @@ spec:
     ports:
     - port: https-webhook
       protocol: TCP
+  - from:
+    - ipBlock:
+        cidr: 169.254.7.127/32
   podSelector:
     matchLabels:
       app: poddefaults
@@ -5991,6 +5997,11 @@ spec:
     ports:
     - port: http-kfam
       protocol: TCP
+    - port: 15008
+      protocol: TCP
+  - from:
+    - ipBlock:
+        cidr: 169.254.7.127/32
   podSelector:
     matchLabels:
       app: profile-controller

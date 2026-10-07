@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pipeline-install-config
+  namespace: kubeflow
+data:
+  ALLOWED_ARTIFACT_ENDPOINTS: https://minio.home.phuchoang.sbs
+  DBDriverName: pgx
+  bucketName: kubeflow-prod-pipelines
+  dbType: postgres
+  defaultPipelineRoot: s3://kubeflow-prod-pipelines/artifacts
+  defaultSecurityContextHostUsers: "false"
+  mlmdDb: null
+  mysqlHost: null
+  mysqlPort: null
+  pipelineDb: mlpipeline
+  postgresHost: kubeflow-pipelines-db-rw
+  postgresPort: "5432"
+  postgresExtraParams: '{"sslmode":"verify-full","sslrootcert":"/etc/kfp-db-ca/ca.crt"}'
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kfp-launcher
+  namespace: kubeflow
+data:
+  defaultPipelineRoot: s3://kubeflow-prod-pipelines/artifacts
+  providers: |
+    s3:
+      default:
+        endpoint: https://minio.home.phuchoang.sbs
+        disableSSL: false
+        region: us-east-1
+        forcePathStyle: true
+        credentials:
+          fromEnv: false
+          secretRef:
+            secretName: mlpipeline-minio-artifact
+            accessKeyKey: accesskey
+            secretKeyKey: secretkey

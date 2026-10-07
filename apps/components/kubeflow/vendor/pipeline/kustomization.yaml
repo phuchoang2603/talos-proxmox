@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - https://github.com/kubeflow/pipelines//manifests/kustomize/env/cert-manager/platform-agnostic-k8s-native?ref=ceb76061bf268f3ca10d6611b4daf8e8c78e64b7
+  - https://github.com/kubeflow/pipelines//manifests/kustomize/base/pipeline/cluster-scoped?ref=ceb76061bf268f3ca10d6611b4daf8e8c78e64b7
+  - virtualservice.yaml
+
+images:
+  - name: ghcr.io/kubeflow/kfp-api-server
+    newTag: run-37518086931-1
+  - name: ghcr.io/kubeflow/kfp-frontend
+    newTag: run-37518086931-1
+  - name: ghcr.io/kubeflow/kfp-persistence-agent
+    newTag: run-37518086931-1
+  - name: ghcr.io/kubeflow/kfp-scheduled-workflow-controller
+    newTag: run-37518086931-1
+  - name: ghcr.io/kubeflow/kfp-viewer-crd-controller
+    newTag: run-37518086931-1
+
+patches:
+  - path: delete.yaml
+  - path: apiserver.yaml
+  - path: config.yaml

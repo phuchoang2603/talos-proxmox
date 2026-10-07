@@ -23,6 +23,10 @@ argo-cd:
         memory: 384Mi
 
   configs:
+    cm:
+      # The aggregation controller fills in rules on aggregated ClusterRoles (Kubeflow RBAC).
+      resource.compareoptions: |
+        ignoreAggregatedRoles: true
     params:
       server.insecure: true
       # Compare against a server-side dry run so API defaults (ExternalSecret, HTTPRoute) are not drift.

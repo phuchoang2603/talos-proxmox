@@ -4614,6 +4614,8 @@ spec:
     ports:
     - port: 8012
       protocol: TCP
+    - port: 15008
+      protocol: TCP
   podSelector:
     matchExpressions:
     - key: app
@@ -4632,6 +4634,9 @@ spec:
   ingress:
   - from:
     - podSelector: {}
+  - from:
+    - ipBlock:
+        cidr: 169.254.7.127/32
   podSelector: {}
   policyTypes:
   - Ingress

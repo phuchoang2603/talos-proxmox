@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-pipeline
+  namespace: kubeflow
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: wait-for-database
+          env:
+            - name: WAIT_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: pipeline-install-config
+                  key: postgresHost
+            - name: WAIT_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: pipeline-install-config
+                  key: postgresPort
+      containers:
+        - name: ml-pipeline-api-server
+          env:
+            - name: DBCONFIG_USER
+              $patch: delete
+            - name: DBCONFIG_PASSWORD
+              $patch: delete
+            - name: DBCONFIG_DBNAME
+              $patch: delete
+            - name: DBCONFIG_HOST
+              $patch: delete
+            - name: DBCONFIG_PORT
+              $patch: delete
+            - name: DB_DRIVER_NAME
+              $patch: delete
+            - name: DBCONFIG_MYSQLCONFIG_USER
+              $patch: delete
+            - name: DBCONFIG_MYSQLCONFIG_PASSWORD
+              $patch: delete
+            - name: DBCONFIG_MYSQLCONFIG_DBNAME
+              $patch: delete
+            - name: DBCONFIG_MYSQLCONFIG_HOST
+              $patch: delete
+            - name: DBCONFIG_MYSQLCONFIG_PORT
+              $patch: delete
+            - name: OBJECTSTORECONFIG_SECURE
+              value: "true"
+            - name: OBJECTSTORECONFIG_HOST
+              value: minio.home.phuchoang.sbs
+            - name: OBJECTSTORECONFIG_PORT
+              value: "443"
+            - name: DBDRIVERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: pipeline-install-config
+                  key: DBDriverName
+            - name: DBCONFIG_POSTGRESQLCONFIG_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret-extended
+                  key: username
+            - name: DBCONFIG_POSTGRESQLCONFIG_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret-extended
+                  key: password
+            - name: DBCONFIG_POSTGRESQLCONFIG_DBNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: pipeline-install-config
+                  key: pipelineDb
+            - name: DBCONFIG_POSTGRESQLCONFIG_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: pipeline-install-config
+                  key: postgresHost
+            - name: DBCONFIG_POSTGRESQLCONFIG_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: pipeline-install-config
+                  key: postgresPort
+            - name: DBCONFIG_POSTGRESQLCONFIG_EXTRAPARAMS
+              valueFrom:
+                configMapKeyRef:
+                  name: pipeline-install-config
+                  key: postgresExtraParams
+            - name: V2_DRIVER_IMAGE
+              value: ghcr.io/kubeflow/kfp-driver:run-37518086931-1
+            - name: V2_LAUNCHER_IMAGE
+              value: ghcr.io/kubeflow/kfp-launcher:run-37518086931-1
+          volumeMounts:
+            - name: db-ca
+              mountPath: /etc/kfp-db-ca
+              readOnly: true
+      volumes:
+        - name: db-ca
+          secret:
+            secretName: kubeflow-pipelines-db-ca
+            items:
+              - key: ca.crt
+                path: ca.crt
