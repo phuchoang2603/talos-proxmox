@@ -110,8 +110,10 @@ spec:
           password:
             "@from_env": CLICKHOUSE_APP_PASSWORD
           profile: grafana
+          # The bundled monitoring dashboard reads clusterAllReplicas(default, ...). The cluster's
+          # interserver secret keeps those reads under this user's grants and profile.
           grants:
-            - query: "GRANT SHOW ON *.*, SELECT ON system.*, SELECT ON default.*"
+            - query: "GRANT SHOW ON *.*, SELECT ON system.*, SELECT ON default.*, READ ON REMOTE"
     extraConfig:
       max_connections: 4096
       keep_alive_timeout: 64

@@ -80,7 +80,7 @@ The plugin's OTel mode uses the column names that the gateway's `clickhouse` exp
 
 ### Bounded UI queries
 
-`extraUsersConfig` gains a `profiles.grafana` entry with `max_memory_usage` of 512 MiB and `max_execution_time` of 60 seconds. The `app` user switches from profile `default` to `grafana`. Its grants are unchanged and already read-only. `readonly` is not set, because the plugin sends query settings. With these limits a heavy dashboard fails its own query instead of pushing ClickHouse toward its 2 GiB limit.
+`extraUsersConfig` gains a `profiles.grafana` entry with `max_memory_usage` of 512 MiB and `max_execution_time` of 60 seconds. The `app` user switches from profile `default` to `grafana`. Its grants stay read-only, adding only `READ ON REMOTE`, because the Advanced ClickHouse Monitoring dashboard reads `clusterAllReplicas(default, ...)`. The `default` cluster has an interserver secret, so those reads run as `app`, with its grants and profile. `WRITE ON REMOTE` is not granted. `readonly` is not set, because the plugin sends query settings. With these limits a heavy dashboard fails its own query instead of pushing ClickHouse toward its 2 GiB limit.
 
 ### Login
 

@@ -25,7 +25,7 @@
 
 ## 5. Bound UI queries
 
-- [x] 5.1 In `templates/clickhouse.yaml`, add `profiles.grafana` to `extraUsersConfig` with `max_memory_usage` 536870912 and `max_execution_time` 60, and switch the `app` user to profile `grafana` without changing its grants; verify `helm template` renders the profile and the `ClickHouseCluster` passes `kubectl apply --dry-run=server` on prod
+- [x] 5.1 In `templates/clickhouse.yaml`, add `profiles.grafana` to `extraUsersConfig` with `max_memory_usage` 536870912 and `max_execution_time` 60, switch the `app` user to profile `grafana`, and add only `READ ON REMOTE` to its grants for the monitoring dashboard's `clusterAllReplicas` panels; verify `helm template` renders the profile and the `ClickHouseCluster` passes `kubectl apply --dry-run=server` on prod
 
 ## 6. Documentation
 
