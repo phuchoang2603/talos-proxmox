@@ -50,7 +50,7 @@ Dex's issuer becomes `https://auth.phuchoang.sbs/dex`, so its discovery document
 
 | Client | Browser-facing | Server-side (in-cluster `http://dex.auth.svc.cluster.local:5556/dex`) |
 |---|---|---|
-| OAuth2 Proxy | `login-url` public `/auth` | `skip-oidc-discovery: true`, `redeem-url` `/token`, `oidc-jwks-url` `/keys`; `oidc-issuer-url` public (matched against `iss`) |
+| OAuth2 Proxy | `login-url` public `/auth`; `skip-provider-button`, `approval-prompt: auto` | `skip-oidc-discovery: true`, `redeem-url` `/token`, `oidc-jwks-url` `/keys`; `oidc-issuer-url` public (matched against `iss`) |
 | Istio `RequestAuthentication` | — | `issuer` public, `jwksUri` `/keys` |
 | Grafana `generic_oauth` | `auth_url` public `/auth` | `token_url` `/token`, `api_url` `/userinfo` |
 
@@ -59,6 +59,8 @@ Alternative considered: keep the internal issuer and only change the browser URL
 ### Kubeflow over HTTPS
 
 OAuth2 Proxy switches to `redirect-url: https://kubeflow.phuchoang.sbs/oauth2/callback`, `cookie-secure: "true"`, and `cookie-domain` limited to `kubeflow.phuchoang.sbs`. The Kubeflow client's `redirectURIs` changes to the same callback. The `localhost:8080` redirect is dropped: with secure cookies and a public issuer, the port-forward login can no longer finish.
+
+Three settings found during rollout make the public path work. OAuth2 Proxy's default `approval_prompt=force` makes Dex show its consent screen despite `skipApprovalScreen`, so the proxy sends `auto`, and `skip-provider-button` sends anonymous requests straight to Dex. Istio checks `/oauth2/auth/<path>`, which OAuth2 Proxy serves as a proxied request, so it uses a `static://200` upstream and `set-authorization-header` to return the ID token for the gateway's JWT policy. Kubeflow's vendored `AuthorizationPolicy` resources admit only `istio-ingressgateway-service-account`, so the prod ingress gateway runs as that service account.
 
 The `auth` chart's `validate.yaml` gains checks that fail rendering if the issuer or redirect is not `https://`. That enforces the documented rule that this HTTP configuration must never be exposed.
 
