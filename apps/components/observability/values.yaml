@@ -8,12 +8,14 @@ store:
     image:
       repository: clickhouse/clickhouse-server
       tag: "25.7-alpine"
+    # Sized from observed use: ingest and merges hold ~1-1.5 cores. ClickHouse caps itself at
+    # 90% of the memory limit and sizes its caches from it.
     resources:
       requests:
-        cpu: 500m
-        memory: 2Gi
+        cpu: 1500m
+        memory: 4Gi
       limits:
-        memory: 2Gi
+        memory: 4Gi
     # local-path does not enforce claim sizes; keep_free_space_bytes is the real bound.
     storage: 50Gi
     keepFreeSpaceBytes: 21474836480
@@ -24,7 +26,7 @@ store:
     resources:
       requests:
         cpu: 50m
-        memory: 256Mi
+        memory: 384Mi
       limits:
         memory: 512Mi
     storage: 5Gi
@@ -58,16 +60,22 @@ grafana:
   # Sidecars are off, so Grafana needs no Kubernetes API access.
   rbac:
     create: false
+  # The database and downloaded plugin (~100Mi) live in memory: on prod-server1's SSD, shared
+  # with etcd and ClickHouse, SQLite stalls long enough to fail health checks.
   persistence:
     enabled: false
+    inMemory:
+      enabled: true
+      sizeLimit: 256Mi
+  # The memory limit also covers the in-memory data directory. No CPU limit: page loads burst
+  # to about one core.
   resources:
     requests:
-      cpu: 100m
-      memory: 256Mi
-    limits:
+      cpu: 250m
       memory: 512Mi
-  # Every new pod migrates an empty database first, which takes minutes on prod-server1's
-  # shared SSD; liveness checks start only once this succeeds.
+    limits:
+      memory: 1Gi
+  # Liveness checks start only once the first database migration succeeds.
   startupProbe:
     httpGet:
       path: /api/health
@@ -112,6 +120,9 @@ grafana:
     users:
       allow_sign_up: false
     auth.anonymous:
+      enabled: false
+    # Nothing scrapes Grafana, and /metrics would be unauthenticated on the public hostname.
+    metrics:
       enabled: false
     analytics:
       reporting_enabled: false
@@ -168,7 +179,7 @@ otel-gateway:
     tag: "0.161.0"
   resources:
     requests:
-      cpu: 100m
+      cpu: 150m
       memory: 256Mi
     limits:
       memory: 1Gi
@@ -260,8 +271,8 @@ otel-agent:
     - operator: Exists
   resources:
     requests:
-      cpu: 50m
-      memory: 128Mi
+      cpu: 150m
+      memory: 192Mi
     limits:
       memory: 512Mi
   ports:
@@ -391,8 +402,8 @@ otel-cluster:
         verbs: [get, list, watch]
   resources:
     requests:
-      cpu: 50m
-      memory: 128Mi
+      cpu: 25m
+      memory: 160Mi
     limits:
       memory: 512Mi
   service:
