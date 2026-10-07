@@ -24,6 +24,9 @@ istiod:
 ingress-gateway:
   enabled: true
   name: istio-ingressgateway
+  # Kubeflow's vendored AuthorizationPolicies admit only this upstream principal.
+  serviceAccount:
+    name: istio-ingressgateway-service-account
   labels:
     app: istio-ingressgateway
     istio: ingressgateway
