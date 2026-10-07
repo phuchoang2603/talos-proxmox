@@ -67,7 +67,7 @@ kubectl get storageclass
 kubectl -n istio-system get deploy istiod
 kubectl -n istio-system get daemonset istio-cni-node ztunnel
 kubectl -n argo-cd get svc argocd-ui
-# Prod only: kubectl -n observability get svc hyperdx-ui
+# Prod only: kubectl -n observability get svc grafana-ui
 ```
 
 Expected results: the root and child Applications are Synced/Healthy; the Doppler store and ExternalSecrets are Ready; Istio control plane and node agents are ready; and there is exactly one default StorageClass, `local-path`. `kubectl get nodes` lists only the Proxmox control-plane nodes (one in dev, `prod-server1` through `prod-server3` in prod) plus any AWS workers; the control-plane nodes also run workloads, and `prod-server1` is prod's SSD-backed node for write-heavy volumes.
@@ -78,13 +78,19 @@ Prod holds the only telemetry store; both environments' agents send to it.
 
 | Endpoint | Address |
 | --- | --- |
-| HyperDX UI (prod) | <http://10.69.12.128> |
+| Grafana (prod) | <http://10.69.12.128> |
 | OTLP from workloads, in either cluster | `otel-agent.observability.svc:4317` (gRPC) or `:4318` (HTTP) |
 | OTLP gateway on the LAN (prod) | `10.69.12.129:4317` / `:4318`, requires `Authorization: Bearer <OTEL_INGEST_TOKEN>` |
 
-Workloads send OTLP to their node's agent without credentials; the agent adds `k8s.cluster.name` and `deployment.environment` and forwards to the gateway. Filter by `deployment.environment` in HyperDX to separate dev and prod. Telemetry is kept for 7 days.
+Workloads send OTLP to their node's agent without credentials; the agent adds `k8s.cluster.name` and `deployment.environment` and forwards to the gateway. Filter by `deployment.environment` in Grafana to separate dev and prod. Telemetry is kept for 7 days.
 
-HyperDX's first sign-up creates the first account, and anyone on the LAN who reaches the UI first can take it. After a new prod rollout, open the UI and create the operator account immediately.
+Log in to Grafana as `admin` with the generated password; sign-up and anonymous access are disabled:
+
+```bash
+doppler secrets get GRAFANA_ADMIN_PASSWORD --plain --project talos-proxmox --config prod
+```
+
+Grafana keeps no state of its own. The ClickHouse data source and the dashboards in the `ClickHouse` folder are provisioned from [`apps/components/observability`](../../apps/components/observability/) on every start, and a restart discards sessions and anything edited in the UI. Change dashboards by editing their JSON in `dashboards/` and merging. Queries run as the read-only ClickHouse `app` user, limited to 512 MiB and 60 seconds each.
 
 ## Find the failing layer
 

@@ -67,20 +67,15 @@ resource "random_password" "observability" {
     "CLICKHOUSE_DEFAULT_PASSWORD",
     "CLICKHOUSE_OTEL_PASSWORD",
     "CLICKHOUSE_APP_PASSWORD",
-    "HYPERDX_MONGODB_PASSWORD",
+    "GRAFANA_ADMIN_PASSWORD",
   ])
 
   length  = 32
   special = false
 }
 
-resource "random_uuid" "hyperdx_api_key" {}
-
 resource "doppler_secret" "observability" {
-  for_each = merge(
-    { for name, password in random_password.observability : name => password.result },
-    { HYPERDX_API_KEY = random_uuid.hyperdx_api_key.result },
-  )
+  for_each = { for name, password in random_password.observability : name => password.result }
 
   project = doppler_project.this.name
   config  = doppler_environment.this["prod"].slug

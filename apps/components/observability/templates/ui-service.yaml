@@ -1,17 +1,16 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: hyperdx-ui
+  name: grafana-ui
   namespace: {{ .Release.Namespace }}
   annotations:
-    lbipam.cilium.io/ips: {{ .Values.global.hyperdxAddress | quote }}
+    lbipam.cilium.io/ips: {{ .Values.global.grafanaAddress | quote }}
 spec:
   type: LoadBalancer
   ports:
     - name: http
       port: 80
-      targetPort: {{ .Values.clickstack.hyperdx.ports.app | default 3000 }}
+      targetPort: grafana
   selector:
-    app.kubernetes.io/name: clickstack
+    app.kubernetes.io/name: grafana
     app.kubernetes.io/instance: {{ .Release.Name }}
-    app: {{ .Values.clickstack.fullnameOverride }}

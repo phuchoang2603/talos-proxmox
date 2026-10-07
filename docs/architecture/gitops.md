@@ -26,7 +26,7 @@ The [bootstrap chart](../../apps/argocd/bootstrap/) creates the `talos-proxmox` 
 | Owner | Components |
 | --- | --- |
 | Platform OpenTofu root | Gateway API CRDs, Cilium, ESO token namespace/Secret, Karpenter (CRDs, controller, `EC2NodeClass`, `NodePool`, and its AWS key Secret), Argo CD and bootstrap AppProject/root Application/UI LoadBalancer Service |
-| Argo CD | ESO/store, Cilium address pools/L2 policies, storage, metrics, cloud controller, GPU components, Istio, operators, observability, telemetry agents, Cloudflare operator/CRDs and `ClusterTunnel`, and the HyperDX UI LoadBalancer Service |
+| Argo CD | ESO/store, Cilium address pools/L2 policies, storage, metrics, cloud controller, GPU components, Istio, operators, observability, telemetry agents, Cloudflare operator/CRDs and `ClusterTunnel`, and the Grafana UI LoadBalancer Service |
 
 Cilium and Argo CD remain OpenTofu-owned after bring-up. Changes to them go through a platform apply. Application changes go through Git and Argo CD.
 
@@ -47,7 +47,7 @@ The source of truth is [`apps/argocd/platform/values.yaml`](../../apps/argocd/pl
 | 0 | local-path, Talos CCM, cert-manager, CNPG, Strimzi, MongoDB operator | dev, prod |
 | 0 | ClickHouse operator | prod |
 | 1 | GPU operator, NVIDIA DRA | dev, prod |
-| 1 | Observability store: ClickHouse, HyperDX, OTLP gateway | prod |
+| 1 | Observability store: ClickHouse, Grafana, OTLP gateway | prod |
 | 2 | Telemetry agents, Cloudflare operator and tunnel | dev, prod |
 
 Dev's telemetry agents are its only dependency on prod: they send to prod's OTLP gateway at `10.69.12.129` with the shared ingest token. Dev converges without prod; only its telemetry export fails.
@@ -81,7 +81,7 @@ Application Secrets refresh hourly. Workloads that read credentials only at star
 
 Each environment has one Cloudflare tunnel, created once outside the cluster and named after it (`dev-talos`, `prod-talos`). The [`cloudflare-tunnel`](../../apps/components/cloudflare-tunnel/) chart installs the [Cloudflare operator](https://github.com/adyanth/cloudflare-operator) and a `ClusterTunnel` named `talos-proxmox` that runs that tunnel (`existingTunnel`) with a `cloudflared` Deployment in `cloudflare-operator-system`. The operator manifests and CRDs are vendored together from upstream kustomize output, since upstream ships no Helm chart. Never add public hostnames or other configuration to these tunnels in the Cloudflare dashboard: Cloudflare pushes dashboard configuration to `cloudflared`, replacing the ingress rules the operator writes.
 
-Argo CD and HyperDX are exposed on LAN-only LoadBalancer Services, not through Cloudflare tunnels or Istio Gateways. Argo CD uses `10.69.11.254` (dev) and `10.69.12.254` (prod); HyperDX uses `10.69.12.128` (prod). Their original ClusterIP Services stay internal, and each UI LoadBalancer exposes only HTTP port 80. Application repositories can still publish their own hostnames by rendering bindings next to their origin Services. For each subject, the operator adds an ingress rule to the tunnel's configuration, restarts `cloudflared`, and creates a proxied CNAME plus a `_managed.<hostname>` TXT ownership record in the `phuchoang.sbs` zone. Deleting the binding removes both records.
+Argo CD and Grafana are exposed on LAN-only LoadBalancer Services, not through Cloudflare tunnels or Istio Gateways. Argo CD uses `10.69.11.254` (dev) and `10.69.12.254` (prod); Grafana uses `10.69.12.128` (prod). Their original ClusterIP Services stay internal, and each UI LoadBalancer exposes only HTTP port 80. Application repositories can still publish their own hostnames by rendering bindings next to their origin Services. For each subject, the operator adds an ingress rule to the tunnel's configuration, restarts `cloudflared`, and creates a proxied CNAME plus a `_managed.<hostname>` TXT ownership record in the `phuchoang.sbs` zone. Deleting the binding removes both records.
 
 ```yaml
 apiVersion: networking.cfargotunnel.com/v1alpha1

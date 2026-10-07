@@ -95,6 +95,10 @@ spec:
       count: 10
     # Passwords are substituted from the container environment when the server loads users.
     extraUsersConfig:
+      profiles:
+        grafana:
+          max_memory_usage: {{ int64 $store.uiQueryLimits.maxMemoryUsage }}
+          max_execution_time: {{ $store.uiQueryLimits.maxExecutionTime }}
       users:
         otelcollector:
           password:
@@ -105,7 +109,7 @@ spec:
         app:
           password:
             "@from_env": CLICKHOUSE_APP_PASSWORD
-          profile: default
+          profile: grafana
           grants:
             - query: "GRANT SHOW ON *.*, SELECT ON system.*, SELECT ON default.*"
     extraConfig:

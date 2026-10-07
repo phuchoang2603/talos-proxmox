@@ -1,5 +1,5 @@
 # Wrapper-owned resources. Names feed the operator-generated Services
-# (<name>-clickhouse-headless, <name>-svc) that HyperDX and the gateway use.
+# (<name>-clickhouse-headless, <name>-svc) that Grafana and the gateway use.
 store:
   # The only SSD-backed prod node; keeps ClickHouse merges off the HDD etcd nodes.
   nodeName: prod-server1
@@ -28,57 +28,98 @@ store:
       limits:
         memory: 512Mi
     storage: 5Gi
-  mongodb:
-    name: hyperdx-mongodb
+  # Applied to the app user that Grafana queries as; exceeding either fails only that query.
+  uiQueryLimits:
+    maxMemoryUsage: 536870912
+    maxExecutionTime: 60
 
 secrets:
   refreshInterval: 1h
 
 global:
-  hyperdxAddress: 10.69.12.128
+  grafanaAddress: 10.69.12.128
 
-clickstack:
-  fullnameOverride: hyperdx
-  # Credentials come from ExternalSecrets, so the chart's secret-bearing pieces stay off.
-  clickhouse:
+# Stateless: the data source, dashboards, and admin account are provisioned on every start.
+grafana:
+  fullnameOverride: grafana
+  replicas: 1
+  testFramework:
     enabled: false
-  mongodb:
+  # Sidecars are off, so Grafana needs no Kubernetes API access.
+  rbac:
+    create: false
+  persistence:
     enabled: false
-  otel-collector:
-    enabled: false
-  hyperdx:
-    # Blanked rather than null: Helm 4 keeps a subchart's map defaults when the parent sets null.
-    # The real values reach HyperDX through deployment.env, which overrides the chart's envFrom.
-    secrets:
-      HYPERDX_API_KEY: ""
-      CLICKHOUSE_PASSWORD: ""
-      CLICKHOUSE_APP_PASSWORD: ""
-      MONGODB_PASSWORD: ""
-    config:
-      FRONTEND_URL: 'http://{{ .Values.global.hyperdxAddress }}'
-      USAGE_STATS_ENABLED: "false"
-      # Set from the hyperdx Secret below; the chart default embeds the password.
-      MONGO_URI: ""
-    deployment:
-      useExistingConfigSecret: true
-      existingConfigSecret: hyperdx
-      env:
-        - name: MONGO_URI
-          valueFrom:
-            secretKeyRef:
-              name: hyperdx
-              key: MONGO_URI
-        - name: HYPERDX_API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: hyperdx
-              key: HYPERDX_API_KEY
-      resources:
-        requests:
-          cpu: 100m
-          memory: 512Mi
-        limits:
-          memory: 1Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+  admin:
+    existingSecret: grafana-admin
+  envValueFrom:
+    CLICKHOUSE_APP_PASSWORD:
+      secretKeyRef:
+        name: clickhouse-credentials
+        key: app-password
+  # Downloaded from grafana.com on every start. The files in dashboards/ were copied from
+  # grafana/clickhouse-datasource tag v4.22.1; update both together.
+  plugins:
+    - grafana-clickhouse-datasource@4.22.1
+  grafana.ini:
+    server:
+      root_url: 'http://{{ .Values.global.grafanaAddress }}'
+    users:
+      allow_sign_up: false
+    auth.anonymous:
+      enabled: false
+    analytics:
+      reporting_enabled: false
+      check_for_updates: false
+      check_for_plugin_updates: false
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: ClickHouse
+          uid: clickhouse
+          type: grafana-clickhouse-datasource
+          isDefault: true
+          editable: false
+          jsonData:
+            host: clickstack-clickhouse-headless
+            port: 9000
+            protocol: native
+            username: app
+            defaultDatabase: default
+            logs:
+              defaultDatabase: default
+              defaultTable: otel_logs
+              otelEnabled: true
+              otelVersion: latest
+              showLogLinks: true
+            traces:
+              defaultDatabase: default
+              defaultTable: otel_traces
+              otelEnabled: true
+              otelVersion: latest
+              showTraceLinks: true
+          secureJsonData:
+            password: $__env{CLICKHOUSE_APP_PASSWORD}
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: clickhouse
+          folder: ClickHouse
+          type: file
+          disableDeletion: true
+          allowUiUpdates: false
+          options:
+            path: /var/lib/grafana/dashboards/clickhouse
+  dashboardsConfigMaps:
+    clickhouse: grafana-dashboards
 
 otel-gateway:
   fullnameOverride: otel-gateway

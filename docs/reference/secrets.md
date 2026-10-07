@@ -32,9 +32,8 @@ Set these directly in the matching Doppler config before deployment. They are no
 | `OTEL_INGEST_TOKEN` (dev and prod, same value) | Foundation | Prod's OTLP gateway authenticator; both environments' telemetry agents |
 | `CLICKHOUSE_DEFAULT_PASSWORD` (prod) | Foundation | ClickHouse `default` user |
 | `CLICKHOUSE_OTEL_PASSWORD` (prod) | Foundation | ClickHouse `otelcollector` user; OTLP gateway's ClickHouse exporter |
-| `CLICKHOUSE_APP_PASSWORD` (prod) | Foundation | ClickHouse `app` user; HyperDX's ClickHouse connection |
-| `HYPERDX_MONGODB_PASSWORD` (prod) | Foundation | HyperDX's MongoDB user and `MONGO_URI` |
-| `HYPERDX_API_KEY` (prod) | Foundation | HyperDX |
+| `CLICKHOUSE_APP_PASSWORD` (prod) | Foundation | ClickHouse `app` user; Grafana's ClickHouse data source |
+| `GRAFANA_ADMIN_PASSWORD` (prod) | Foundation | Grafana's `admin` login |
 
 Foundation generates the telemetry credentials, so they survive environment destroys. `OTEL_INGEST_TOKEN` is write-only ingest access to prod and is the only prod credential dev holds.
 
@@ -59,7 +58,7 @@ HCP state holds generated credentials and Talos bootstrap material. Doppler prov
 | --- | --- | --- |
 | `cloudflare-credentials` | `cloudflare-operator-system` | 1 hour |
 | `otel-agent-token` | `observability` (dev, prod) | 1 hour |
-| `otel-gateway-token`, `clickhouse-credentials`, `hyperdx-mongodb-password`, `hyperdx` | `observability` (prod) | 1 hour |
+| `otel-gateway-token`, `clickhouse-credentials`, `grafana-admin` | `observability` (prod) | 1 hour |
 
 Each is produced by an ExternalSecret using the `doppler` ClusterSecretStore. If Doppler is unreachable, existing Secrets are retained and refresh failures are exposed through ESO status. Inspect status without printing secret values:
 
@@ -70,4 +69,4 @@ kubectl get externalsecrets -A
 
 Select your cluster first using [cluster access](../operations/cluster-access.md).
 
-For Cloudflare, change the key in Doppler and wait for the ExternalSecret to refresh. The operator reads `CLOUDFLARE_API_TOKEN` on each reconcile. The operator does not watch that Secret, so after changing `CLOUDFLARE_TUNNEL_TOKEN`, use Argo CD's **Restart** action on `cloudflare-operator-controller-manager` (it rewrites the tunnel credentials on startup), then on the `talos-proxmox` `cloudflared` Deployment. Updating a Kubernetes Secret does not restart Deployments automatically. The same applies to the telemetry credentials: after changing one, restart the collectors and HyperDX that read it. ClickHouse and MongoDB read their user passwords when they start. The Karpenter key is not delivered by ESO: rotate it with the [OpenTofu procedure](../operations/aws-burst-workers.md#rotate-the-karpenter-key), where the platform apply restarts the controller.
+For Cloudflare, change the key in Doppler and wait for the ExternalSecret to refresh. The operator reads `CLOUDFLARE_API_TOKEN` on each reconcile. The operator does not watch that Secret, so after changing `CLOUDFLARE_TUNNEL_TOKEN`, use Argo CD's **Restart** action on `cloudflare-operator-controller-manager` (it rewrites the tunnel credentials on startup), then on the `talos-proxmox` `cloudflared` Deployment. Updating a Kubernetes Secret does not restart Deployments automatically. The same applies to the telemetry credentials: after changing one, restart the collectors and Grafana that read it. ClickHouse reads its user passwords when it starts. The Karpenter key is not delivered by ESO: rotate it with the [OpenTofu procedure](../operations/aws-burst-workers.md#rotate-the-karpenter-key), where the platform apply restarts the controller.

@@ -1,12 +1,12 @@
 apiVersion: v2
 name: observability
-description: ClickStack (HyperDX, ClickHouse, MongoDB) and the OTLP gateway collector
+description: ClickHouse telemetry store, Grafana, and the OTLP gateway collector
 type: application
 version: 0.1.0
 dependencies:
-  - name: clickstack
-    version: 3.4.0
-    repository: https://clickhouse.github.io/ClickStack-helm-charts
+  - name: grafana
+    version: 13.2.7
+    repository: https://grafana-community.github.io/helm-charts
   - name: opentelemetry-collector
     alias: otel-gateway
     version: 0.174.0
