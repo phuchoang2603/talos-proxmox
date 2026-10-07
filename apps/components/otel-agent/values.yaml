@@ -1,11 +1,8 @@
-# Set per environment in environments/<env>/values.yaml; read by both collectors' configs.
+# Read by both collectors' configs.
 global:
-  clusterName: ""
-  environment: ""
-  gatewayEndpoint: ""
-
-secrets:
-  refreshInterval: 1h
+  clusterName: prod-talos
+  environment: prod
+  gatewayEndpoint: otel-gateway.observability.svc:4317
 
 agent:
   fullnameOverride: otel-agent
@@ -35,12 +32,6 @@ agent:
       memory: 128Mi
     limits:
       memory: 512Mi
-  extraEnvs:
-    - name: OTEL_INGEST_TOKEN
-      valueFrom:
-        secretKeyRef:
-          name: otel-agent-token
-          key: token
   ports:
     jaeger-compact:
       enabled: false
@@ -117,13 +108,10 @@ agent:
             action: insert
       batch: {}
     exporters:
-      # Bearer token as a header: the bearertokenauth client refuses plaintext gRPC.
       otlp/gateway:
         endpoint: "{{ .Values.global.gatewayEndpoint }}"
         tls:
           insecure: true
-        headers:
-          authorization: Bearer ${env:OTEL_INGEST_TOKEN}
         retry_on_failure:
           enabled: true
           max_elapsed_time: 15m
@@ -175,12 +163,6 @@ cluster:
       memory: 128Mi
     limits:
       memory: 512Mi
-  extraEnvs:
-    - name: OTEL_INGEST_TOKEN
-      valueFrom:
-        secretKeyRef:
-          name: otel-agent-token
-          key: token
   service:
     enabled: false
   ports:
@@ -243,8 +225,6 @@ cluster:
         endpoint: "{{ .Values.global.gatewayEndpoint }}"
         tls:
           insecure: true
-        headers:
-          authorization: Bearer ${env:OTEL_INGEST_TOKEN}
         retry_on_failure:
           enabled: true
           max_elapsed_time: 15m

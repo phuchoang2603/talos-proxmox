@@ -74,15 +74,14 @@ Expected results: the root and child Applications are Synced/Healthy; the Dopple
 
 ## Observability
 
-Prod holds the only telemetry store; both environments' agents send to it.
+Only prod collects telemetry; dev runs no telemetry components.
 
 | Endpoint | Address |
 | --- | --- |
 | Grafana (prod) | <http://10.69.12.128> |
-| OTLP from workloads, in either cluster | `otel-agent.observability.svc:4317` (gRPC) or `:4318` (HTTP) |
-| OTLP gateway on the LAN (prod) | `10.69.12.129:4317` / `:4318`, requires `Authorization: Bearer <OTEL_INGEST_TOKEN>` |
+| OTLP from prod workloads | `otel-agent.observability.svc:4317` (gRPC) or `:4318` (HTTP) |
 
-Workloads send OTLP to their node's agent without credentials; the agent adds `k8s.cluster.name` and `deployment.environment` and forwards to the gateway. Filter by `deployment.environment` in Grafana to separate dev and prod. Telemetry is kept for 7 days.
+Workloads send OTLP to their node's agent without credentials; the agent adds `k8s.cluster.name` and `deployment.environment` and forwards to the in-cluster gateway, which has no LAN address. Telemetry is kept for 7 days.
 
 Log in to Grafana as `admin` with the generated password; sign-up and anonymous access are disabled:
 

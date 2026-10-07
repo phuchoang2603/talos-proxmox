@@ -1,5 +1,0 @@
-global:
-  clusterName: dev-talos
-  environment: dev
-  # Prod's gateway LoadBalancer address on the shared LAN.
-  gatewayEndpoint: 10.69.12.129:4317

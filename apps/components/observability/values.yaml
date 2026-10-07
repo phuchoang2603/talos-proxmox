@@ -142,11 +142,6 @@ otel-gateway:
     limits:
       memory: 1Gi
   extraEnvs:
-    - name: OTEL_INGEST_TOKEN
-      valueFrom:
-        secretKeyRef:
-          name: otel-gateway-token
-          key: token
     - name: CLICKHOUSE_OTEL_PASSWORD
       valueFrom:
         secretKeyRef:
@@ -161,28 +156,18 @@ otel-gateway:
       enabled: false
     zipkin:
       enabled: false
-  # Prod's agents reach this Service in-cluster; dev reaches its LAN address.
-  service:
-    type: LoadBalancer
-    annotations:
-      lbipam.cilium.io/ips: 10.69.12.129
+  # Only prod's own collectors send here, through the in-cluster Service.
   alternateConfig:
     extensions:
       health_check:
         endpoint: ${env:MY_POD_IP}:13133
-      bearertokenauth:
-        token: ${env:OTEL_INGEST_TOKEN}
     receivers:
       otlp:
         protocols:
           grpc:
             endpoint: ${env:MY_POD_IP}:4317
-            auth:
-              authenticator: bearertokenauth
           http:
             endpoint: ${env:MY_POD_IP}:4318
-            auth:
-              authenticator: bearertokenauth
     processors:
       memory_limiter:
         check_interval: 5s
@@ -206,7 +191,6 @@ otel-gateway:
     service:
       extensions:
         - health_check
-        - bearertokenauth
       pipelines:
         logs:
           receivers: [otlp]

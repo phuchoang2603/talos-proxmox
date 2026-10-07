@@ -165,12 +165,7 @@ components:
     namespace: observability
     syncWave: "2"
     releaseName: otel-agent
-    clusters: [dev, prod]
-    valueFilesByCluster:
-      dev:
-        - environments/dev/values.yaml
-      prod:
-        - environments/prod/values.yaml
+    clusters: [prod]
     managedNamespaceMetadata: *privileged
   cloudflare-tunnel:
     path: apps/components/cloudflare-tunnel

@@ -14,7 +14,7 @@
 - prod-server1 gets 8 vCPUs and 32 GiB.
 
 **Non-Goals:**
-- Removing dev's definitions, overlays, Doppler config, or telemetry path. A rebuilt dev still ships telemetry to prod.
+- Removing dev's definitions, overlays, or Doppler config.
 - Raising ClickHouse's own memory limit. That is a separate change once the node has room.
 - A local development cluster for microservices.
 
@@ -30,7 +30,13 @@ A dispatched dev apply builds from the current `main`. Nothing reconciles dev be
 
 Dev is destroyed by dispatching Manual Provision with `dev` and `destroy`, which removes dev's Proxmox VM, AWS resources, and the generated credentials the cluster root wrote to Doppler, then resets dev's platform state. Doing it in CI keeps the same credentials and ordering as a normal destroy. Before dispatching, the stale lock on `talos-cluster-dev` is force-unlocked through the HCP Terraform API. The run that left it found no changes, so no state is lost.
 
-Foundation-owned dev keys in Doppler (the telemetry ingest token and secret-store tokens) stay. A rebuild needs them, and the foundation root, not the cluster root, owns them.
+Foundation-owned dev keys in Doppler (the secret-store tokens) stay. A rebuild needs them, and the foundation root, not the cluster root, owns them.
+
+### No telemetry link between environments
+
+Dev's telemetry agents were its only dependency on prod. They sent to the gateway's LAN LoadBalancer with a shared bearer token. Dev now exists only for short rehearsals, so its telemetry is not worth that link. `otel-agent` targets prod only, with prod's cluster name, environment, and in-cluster gateway address as chart defaults, and its environment overlays go away.
+
+Prod's agents reach the gateway through its in-cluster Service, so the gateway becomes ClusterIP and drops `bearertokenauth`. Prod's in-cluster agents already accept OTLP from any pod without credentials, so a token on the gateway alone added nothing inside the cluster. The foundation root stops generating `OTEL_INGEST_TOKEN`, which deletes it from both Doppler configs. That apply runs after Argo CD removes the ExternalSecrets that read it, so no ExternalSecret reports a missing key.
 
 ### Resize after dev is gone
 
@@ -52,5 +58,6 @@ The apply reboots prod-server1. It is one of three control-plane nodes, so etcd 
 1. Merge the workflow change. The push apply runs for prod only and changes nothing.
 2. Force-unlock `talos-cluster-dev`, dispatch Manual Provision `dev`/`destroy`, and confirm VM 1111 and dev's AWS resources are gone.
 3. Merge the resize. The push apply reboots prod-server1 with 8 vCPUs and 32 GiB.
+4. Merge the telemetry decoupling. Argo CD removes dev's `otel-agent` Application, the gateway's LoadBalancer, and both token ExternalSecrets. Then apply the foundation root locally to delete `OTEL_INGEST_TOKEN`.
 
 Rollback: dispatch Manual Provision `dev`/`apply` to rebuild dev, after reverting the resize if `pve` lacks memory for both.

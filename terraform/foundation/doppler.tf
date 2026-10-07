@@ -48,20 +48,6 @@ resource "doppler_secret" "eso_token" {
   value   = each.value.key
 }
 
-resource "random_password" "otel_ingest_token" {
-  length  = 48
-  special = false
-}
-
-resource "doppler_secret" "otel_ingest_token" {
-  for_each = doppler_environment.this
-
-  project = doppler_project.this.name
-  config  = each.value.slug
-  name    = "OTEL_INGEST_TOKEN"
-  value   = random_password.otel_ingest_token.result
-}
-
 resource "random_password" "observability" {
   for_each = toset([
     "CLICKHOUSE_DEFAULT_PASSWORD",

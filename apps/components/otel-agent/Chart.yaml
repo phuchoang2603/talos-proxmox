@@ -1,6 +1,6 @@
 apiVersion: v2
 name: otel-agent
-description: OpenTelemetry node agents and cluster collector shipping to prod's gateway
+description: OpenTelemetry node agents and cluster collector shipping to the in-cluster gateway
 type: application
 version: 0.1.0
 dependencies:

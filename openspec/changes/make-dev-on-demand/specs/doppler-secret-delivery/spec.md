@@ -2,7 +2,7 @@
 
 ### Requirement: Doppler as the single secret source
 The platform SHALL store every secret consumed by CI or clusters in the Doppler project `talos-proxmox`, in the config for the matching environment (`dev` or `prod`):
-- **Generated credentials** (kubeconfig, talosconfig, autoscaler AWS access keys, AWS worker bootstrap configuration, secret-store read tokens, telemetry store credentials, the telemetry UI admin credential, and the telemetry UI single sign-on client secret) MUST be written by OpenTofu. The foundation root SHALL generate the telemetry store credentials, the telemetry UI admin credential, and the telemetry UI single sign-on client secret into the `prod` config only.
+- **Generated credentials** (kubeconfig, talosconfig, autoscaler AWS access keys, AWS worker bootstrap configuration, secret-store read tokens, telemetry store credentials, and the telemetry UI admin credential) MUST be written by OpenTofu. The foundation root SHALL generate the telemetry store credentials and the telemetry UI admin credential into the `prod` config only.
 - **Externally issued credentials** (Proxmox, HCP Terraform, Tailscale, and Cloudflare tunnel credentials) MUST be entered in Doppler by an operator.
 
 No CI step MAY write secrets to Doppler with the Doppler CLI. A Doppler config MUST NOT keep keys that no CI step or cluster component consumes.
@@ -17,7 +17,7 @@ No CI step MAY write secrets to Doppler with the Doppler CLI. A Doppler config M
 
 #### Scenario: Telemetry credential generation
 - **WHEN** an operator applies the foundation root
-- **THEN** the `prod` config holds the telemetry store credentials, the telemetry UI admin credential, and the telemetry UI single sign-on client secret, the `dev` config holds no telemetry credential, and no operator typed any of those values
+- **THEN** the `prod` config holds the telemetry store credentials and the telemetry UI admin credential, the `dev` config holds no telemetry credential, and no operator typed any of those values
 
 #### Scenario: Environment rebuild keeps telemetry credentials
 - **WHEN** an environment is destroyed and re-provisioned

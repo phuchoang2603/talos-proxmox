@@ -48,9 +48,10 @@ The source of truth is [`apps/argocd/platform/values.yaml`](../../apps/argocd/pl
 | 0 | ClickHouse operator | prod |
 | 1 | GPU operator, NVIDIA DRA | dev, prod |
 | 1 | Observability store: ClickHouse, Grafana, OTLP gateway | prod |
-| 2 | Telemetry agents, Cloudflare operator and tunnel | dev, prod |
+| 2 | Telemetry agents | prod |
+| 2 | Cloudflare operator and tunnel | dev, prod |
 
-Dev's telemetry agents are its only dependency on prod: they send to prod's OTLP gateway at `10.69.12.129` with the shared ingest token. Dev converges without prod; only its telemetry export fails.
+Dev runs no telemetry components and has no dependency on prod.
 
 Waves order submission of child Applications; they do not wait for each child's resources to become healthy. Children converge asynchronously. Unlimited retries with backoff and `SkipDryRunOnMissingResource` handle dependencies such as CRDs arriving later. Automated prune removes resources deleted from Git, and self-heal repairs drift.
 

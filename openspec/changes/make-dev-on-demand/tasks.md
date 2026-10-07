@@ -11,5 +11,13 @@
 
 ## 3. Resize prod-server1
 
-- [ ] 3.1 In `terraform/cluster/env/prod/k8s_nodes.json`, set prod-server1's `cpu_cores` to 8 and `memory_mb` to 32768; merge only after 2.3 succeeds
-- [ ] 3.2 Verify the push run reboots prod-server1, the node reports 8 CPUs and about 32 GiB, it is Ready, and the ClickHouse, Grafana, and GPU workloads on it are running again
+- [x] 3.1 In `terraform/cluster/env/prod/k8s_nodes.json`, set prod-server1's `cpu_cores` to 8 and `memory_mb` to 32768; merge only after 2.3 succeeds
+- [x] 3.2 Verify the push run reboots prod-server1, the node reports 8 CPUs and about 32 GiB, it is Ready, and the ClickHouse, Grafana, and GPU workloads on it are running again
+
+## 4. Remove the telemetry link between environments
+
+- [x] 4.1 Make `otel-agent` prod-only: set `clusters: [prod]`, move prod's globals into `values.yaml`, delete `environments/` and the token ExternalSecret, and drop the agents' token header; verify `helm template` renders no token and the platform chart renders `otel-agent` only for prod
+- [x] 4.2 In `observability`, remove the gateway's LoadBalancer, `bearertokenauth`, token env, and `otel-gateway-token` ExternalSecret; verify the gateway Service renders as ClusterIP
+- [x] 4.3 Remove `OTEL_INGEST_TOKEN` from `terraform/foundation/doppler.tf` and update docs that describe dev telemetry, the LAN gateway, or the token
+- [ ] 4.4 Merge; verify Argo CD prunes the gateway LoadBalancer and both token Secrets, prod agents keep delivering telemetry, and `10.69.12.129` no longer answers
+- [ ] 4.5 Apply the foundation root locally; verify `OTEL_INGEST_TOKEN` is gone from both Doppler configs
