@@ -61,3 +61,12 @@ The ingest collector SHALL be reachable only from inside prod's cluster. It MUST
 #### Scenario: Client on the LAN
 - **WHEN** a host outside prod's cluster looks for an OTLP endpoint on prod
 - **THEN** no LAN address accepts OTLP
+
+## MODIFIED Requirements
+
+### Requirement: Store credentials from the secret store
+Every credential used by the store and its UI SHALL be delivered through the cluster's Doppler secret store. No such credential MAY appear in Git or in Helm values.
+
+#### Scenario: Inspect the repository
+- **WHEN** a user reads the observability components in Git
+- **THEN** no ClickHouse or Grafana credential value appears

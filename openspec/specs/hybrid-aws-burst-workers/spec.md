@@ -129,7 +129,7 @@ The platform SHALL lint all OpenTofu roots and platform charts on pull requests 
 
 #### Scenario: Push to main
 - **WHEN** reviewed changes are pushed to `main`
-- **THEN** dev and prod generate fresh plans and apply through their main-only deployment environments
+- **THEN** prod generates a fresh plan and applies through its main-only deployment environment, and dev is applied only when an operator dispatches it
 
 #### Scenario: Manual run from another branch
 - **WHEN** a manual workflow dispatch targets a ref other than `main`

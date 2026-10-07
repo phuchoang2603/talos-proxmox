@@ -2,57 +2,53 @@
 
 ## Purpose
 
-Collect logs, metrics, traces, and Kubernetes events from the dev and prod clusters into one ClickHouse store on prod, and make them searchable from an internal-only UI.
+Collect logs, metrics, traces, and Kubernetes events from the prod cluster into one ClickHouse store on prod, and make them searchable from an internal-only UI.
 
 ## Requirements
 
-### Requirement: Single telemetry store on prod
-The platform SHALL run exactly one telemetry store, on prod, backed by ClickHouse, holding logs, metrics, and traces from both environments. Grafana on prod SHALL be the only telemetry UI. Dev MUST NOT run a telemetry store or UI. The platform MUST NOT run VictoriaMetrics, VictoriaLogs, VictoriaTraces, Prometheus, HyperDX, or another parallel telemetry store or UI in either environment.
+### Requirement: Single telemetry store in prod
+The platform SHALL run exactly one telemetry store, on prod, backed by ClickHouse, holding prod's logs, metrics, and traces. Grafana on prod SHALL be the only telemetry UI. Dev MUST NOT run any telemetry component. The platform MUST NOT run VictoriaMetrics, VictoriaLogs, VictoriaTraces, Prometheus, HyperDX, or another parallel telemetry store or UI in either environment.
 
 #### Scenario: Reconcile the platform definition
 - **WHEN** both environments' Argo CD instances converge
-- **THEN** prod runs the ClickHouse store, Grafana, and its ingest collector, dev runs only telemetry agents, and neither runs a Victoria component, Prometheus, or HyperDX
+- **THEN** prod runs the ClickHouse store, Grafana, its ingest collector, and its telemetry agents, dev runs no telemetry component, and neither runs a Victoria component, Prometheus, or HyperDX
 
-#### Scenario: Query across environments
+#### Scenario: Search telemetry
 - **WHEN** an operator searches logs, metrics, or traces in Grafana
-- **THEN** results from dev and prod come from the same store and can be filtered by environment
+- **THEN** results come from prod's store
 
-### Requirement: Telemetry collection in every environment
-Each environment SHALL collect container logs from every node, node and kubelet resource metrics, cluster object metrics, and Kubernetes events, and SHALL accept OTLP traces, metrics, and logs from applications at a stable in-cluster endpoint. Collection MUST include AWS burst workers while they exist. Collectors MUST NOT use PersistentVolumeClaims.
+### Requirement: Telemetry collection in prod
+Prod SHALL collect container logs from every node, node and kubelet resource metrics, cluster object metrics, and Kubernetes events, and SHALL accept OTLP traces, metrics, and logs from applications at a stable in-cluster endpoint. Collection MUST include AWS burst workers while they exist. Collectors MUST NOT use PersistentVolumeClaims.
 
 #### Scenario: Application sends OTLP
-- **WHEN** a workload in dev or prod exports OTLP over gRPC or HTTP to the in-cluster telemetry endpoint
-- **THEN** its traces, metrics, and logs appear in the prod store
+- **WHEN** a prod workload exports OTLP over gRPC or HTTP to the in-cluster telemetry endpoint
+- **THEN** its traces, metrics, and logs appear in the store
 
 #### Scenario: Pod writes to stdout
 - **WHEN** a container on any fixed Proxmox node or AWS burst worker writes a log line
-- **THEN** the line appears in the prod store with its namespace, pod, and container
+- **THEN** the line appears in the store with its namespace, pod, and container
 
 #### Scenario: Cluster events and state
 - **WHEN** a Kubernetes event is emitted or a node's resource usage changes
-- **THEN** the event and the node, pod, and container metrics appear in the prod store
+- **THEN** the event and the node, pod, and container metrics appear in the store
 
-### Requirement: Source identification
-Every stored log, metric, and span SHALL carry the Kubernetes cluster name and the environment (`dev` or `prod`) it came from, set by the collecting environment rather than by applications.
+### Requirement: Telemetry source labels
+Every stored log, metric, and span SHALL carry the Kubernetes cluster name and environment it came from, set by the collector rather than by applications.
 
-#### Scenario: Same workload name in both environments
-- **WHEN** dev and prod both run a workload with the same namespace and name
-- **THEN** their telemetry can be told apart by cluster name and environment
+#### Scenario: Collector labels telemetry
+- **WHEN** a workload emits telemetry without cluster or environment attributes
+- **THEN** it is stored with prod's cluster name and environment
 
-### Requirement: Authenticated cross-environment ingest
-Prod SHALL expose an OTLP ingest endpoint on an internal LAN address from its LoadBalancer pool, reachable from dev nodes. The endpoint MUST reject requests that do not present the ingest credential, and MUST NOT be exposed through the Cloudflare tunnel or any public address. Dev MUST send telemetry only through this endpoint and MUST hold no other credential for prod.
+### Requirement: In-cluster ingest only
+The ingest collector SHALL be reachable only from inside prod's cluster. It MUST NOT have a LoadBalancer or LAN address, a public hostname, or a Cloudflare tunnel route. No ingest credential SHALL exist, and no other environment MAY send telemetry to it.
 
-#### Scenario: Dev agent sends telemetry
-- **WHEN** a dev agent exports telemetry to prod's ingest endpoint with the ingest credential
-- **THEN** prod accepts it and stores it
+#### Scenario: Prod agent sends telemetry
+- **WHEN** a prod agent exports telemetry to the ingest collector's in-cluster Service
+- **THEN** the telemetry is stored
 
-#### Scenario: Unauthenticated request
-- **WHEN** a client sends OTLP to prod's ingest endpoint without the ingest credential or with a wrong one
-- **THEN** the request is rejected and nothing is stored
-
-#### Scenario: Prod ingest is unavailable
-- **WHEN** prod's ingest endpoint or store is unreachable
-- **THEN** dev keeps running and converging, dev agents buffer telemetry for a bounded period, and data beyond that buffer is dropped rather than exhausting dev resources
+#### Scenario: Client on the LAN
+- **WHEN** a host outside prod's cluster looks for an OTLP endpoint on prod
+- **THEN** no LAN address accepts OTLP
 
 ### Requirement: Seven-day retention with bounded disk use
 The store SHALL keep logs, metrics, and traces for 7 days and delete older data automatically. ClickHouse's own server logs and system log tables MUST also be bounded to 7 days or less. The store MUST stop accepting writes before its disk is completely full.
@@ -92,11 +88,11 @@ The ClickHouse server and its coordination service SHALL each run as a single re
 - **THEN** the store starts empty and ingest resumes without manual steps
 
 ### Requirement: Store credentials from the secret store
-Every credential used by the store, its UI, and the ingest endpoint SHALL be delivered through the cluster's Doppler secret store. No such credential MAY appear in Git or in Helm values.
+Every credential used by the store and its UI SHALL be delivered through the cluster's Doppler secret store. No such credential MAY appear in Git or in Helm values.
 
 #### Scenario: Inspect the repository
 - **WHEN** a user reads the observability components in Git
-- **THEN** no ClickHouse, Grafana, or ingest credential value appears
+- **THEN** no ClickHouse or Grafana credential value appears
 
 ### Requirement: Stateless UI provisioned from Git
 The UI SHALL keep no state that is not defined in Git or the secret store. Its data source, dashboards, and admin account MUST be provisioned when it starts, and it MUST NOT use a PersistentVolumeClaim. Restarting or rescheduling the UI SHALL lose only login sessions and edits made in the UI.

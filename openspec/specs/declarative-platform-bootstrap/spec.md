@@ -22,7 +22,7 @@ The platform SHALL provision an environment from empty state to an eventually sy
 - **THEN** OpenTofu reports no changes to cluster components or secrets, and Argo CD applications stay Synced
 
 ### Requirement: Self-contained environments
-The platform SHALL consist only of the `dev` and `prod` environments. Each MUST run its own Argo CD, which manages only its own cluster. An environment MUST NOT hold credentials for, depend on, or be ordered after another environment or a separate management cluster, with one exception: dev MAY hold the write-only telemetry ingest credential for prod's ingest endpoint. That credential MUST NOT grant read access to prod telemetry or any other access to prod, and dev MUST converge whether or not prod is reachable.
+The platform SHALL consist only of the `dev` and `prod` environments. Each MUST run its own Argo CD, which manages only its own cluster. An environment MUST NOT hold credentials for, depend on, send data to, or be ordered after another environment or a separate management cluster.
 
 #### Scenario: Provision one environment alone
 - **WHEN** only prod is provisioned from fresh state
@@ -30,7 +30,7 @@ The platform SHALL consist only of the `dev` and `prod` environments. Each MUST 
 
 #### Scenario: Provision dev without prod
 - **WHEN** dev is provisioned while prod does not exist or is unreachable
-- **THEN** dev reaches a fully synced platform, and only its telemetry export fails
+- **THEN** dev reaches a fully synced platform with no failing component
 
 #### Scenario: Lose one environment
 - **WHEN** the dev cluster is destroyed
@@ -38,7 +38,7 @@ The platform SHALL consist only of the `dev` and `prod` environments. Each MUST 
 
 #### Scenario: Cross-environment access
 - **WHEN** a cluster's Argo CD or secret store is inspected
-- **THEN** it holds no credentials for the other environment, except dev's write-only telemetry ingest credential for prod
+- **THEN** it holds no credentials for the other environment
 
 ### Requirement: Single declarative owner per component
 Each infrastructure resource, cluster component, and secret SHALL have exactly one declarative owner:
@@ -94,15 +94,19 @@ Each environment's Argo CD SHALL reconcile its components from one shared Git pl
 - **THEN** that environment's Argo CD has no Application for it
 
 ### Requirement: Layered roots in CI
-PR checks SHALL lint all OpenTofu roots and platform charts without accessing state or secrets. Static validation logic SHALL live directly in `.github/workflows/lint.yml`, without a separate repository validation script or duplicate devenv chart-validation hook. Only `main` pushes or explicitly dispatched `main` runs SHALL apply the cluster and platform roots, for dev and prod independently. The foundation root MUST NOT be applied by CI.
+PR checks SHALL lint all OpenTofu roots and platform charts without accessing state or secrets. Static validation logic SHALL live directly in `.github/workflows/lint.yml`, without a separate repository validation script or duplicate devenv chart-validation hook. Pushes to `main` SHALL apply the cluster and platform roots for prod only. Dev SHALL be applied or destroyed only by an explicitly dispatched `main` run; no push MAY create, update, or destroy dev. The foundation root MUST NOT be applied by CI.
 
 #### Scenario: Pull request
 - **WHEN** a pull request targets `main`
-- **THEN** the foundation, cluster, and platform roots and the platform charts are linted without state or deployment secrets
+- **THEN** the foundation, cluster, and platform roots and the platform charts, including dev overlays, are linted without state or deployment secrets
 
 #### Scenario: Push to main
 - **WHEN** changes are pushed to `main`
-- **THEN** dev and prod each apply their cluster root, then their platform root, in parallel, with no repository scripts
+- **THEN** prod applies its cluster root, then its platform root, with no repository scripts, and no dev job runs
+
+#### Scenario: Dev on demand
+- **WHEN** an operator dispatches the manual provisioning workflow on `main` for dev with `apply` or `destroy`
+- **THEN** dev is built from the current `main` or torn down, and prod is unaffected
 
 #### Scenario: Foundation change
 - **WHEN** a foundation root file changes
