@@ -21,7 +21,7 @@ Each environment SHALL run one GitOps-owned umbrella Istio chart containing pinn
 - **THEN** its traffic is not assumed to have Istio mTLS
 
 ### Requirement: Platform UIs use direct LoadBalancer Services
-Dev/prod Argo CD and prod HyperDX SHALL each expose only their HTTP UI port through dedicated Cilium LB IPAM/L2-backed LoadBalancer Services. Their original ClusterIP Services SHALL remain internal. UI access MUST NOT depend on Gateway, HTTPRoute or Cloudflare TunnelBinding resources. Cloudflare operator CRDs MUST remain owned by its GitOps chart, not by OpenTofu.
+Dev/prod Argo CD and prod Grafana SHALL each expose only their HTTP UI port through dedicated Cilium LB IPAM/L2-backed LoadBalancer Services. Their original ClusterIP Services SHALL remain internal. UI access MUST NOT depend on Gateway, HTTPRoute or Cloudflare TunnelBinding resources. Cloudflare operator CRDs MUST remain owned by its GitOps chart, not by OpenTofu.
 
 #### Scenario: Bootstrap before the LB pool
 - **WHEN** OpenTofu installs Argo CD and its UI Service before the Cilium IP pool and L2 policy converge
@@ -29,7 +29,7 @@ Dev/prod Argo CD and prod HyperDX SHALL each expose only their HTTP UI port thro
 
 #### Scenario: Prod observability
 - **WHEN** prod observability reconciles
-- **THEN** HyperDX is available at its reserved LAN IP through UI port 80 without exposing OpAMP
+- **THEN** Grafana is available at its reserved LAN IP through UI port 80, and no other Grafana port is exposed on that address
 
 ### Requirement: AWS KubeSpan remains operational
 The Talos KubeSpan and KubePrism configuration for on-premises nodes and AWS Karpenter workers SHALL remain enabled and independent of Cilium's WireGuard setting. Cilium's pod MTU SHALL account for VXLAN traffic crossing the KubeSpan overlay.

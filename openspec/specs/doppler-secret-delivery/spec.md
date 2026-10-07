@@ -8,7 +8,7 @@ Make Doppler the single source for platform secrets. OpenTofu writes generated c
 
 ### Requirement: Doppler as the single secret source
 The platform SHALL store every secret consumed by CI or clusters in the Doppler project `talos-proxmox`, in the config for the matching environment (`dev` or `prod`):
-- **Generated credentials** (kubeconfig, talosconfig, autoscaler AWS access keys, AWS worker bootstrap configuration, secret-store read tokens, telemetry store credentials, and the telemetry ingest token) MUST be written by OpenTofu. The foundation root SHALL generate the telemetry store credentials into the `prod` config only, and one telemetry ingest token into both configs.
+- **Generated credentials** (kubeconfig, talosconfig, autoscaler AWS access keys, AWS worker bootstrap configuration, secret-store read tokens, telemetry store credentials, the telemetry UI admin credential, and the telemetry ingest token) MUST be written by OpenTofu. The foundation root SHALL generate the telemetry store credentials and the telemetry UI admin credential into the `prod` config only, and one telemetry ingest token into both configs.
 - **Externally issued credentials** (Proxmox, HCP Terraform, Tailscale, and Cloudflare tunnel credentials) MUST be entered in Doppler by an operator.
 
 No CI step MAY write secrets to Doppler with the Doppler CLI. A Doppler config MUST NOT keep keys that no CI step or cluster component consumes.
@@ -23,7 +23,7 @@ No CI step MAY write secrets to Doppler with the Doppler CLI. A Doppler config M
 
 #### Scenario: Telemetry credential generation
 - **WHEN** an operator applies the foundation root
-- **THEN** the `prod` config holds the telemetry store credentials, both configs hold the same telemetry ingest token, and no operator typed any of those values
+- **THEN** the `prod` config holds the telemetry store credentials and the telemetry UI admin credential, both configs hold the same telemetry ingest token, and no operator typed any of those values
 
 #### Scenario: Environment rebuild keeps telemetry credentials
 - **WHEN** an environment is destroyed and re-provisioned
@@ -32,6 +32,10 @@ No CI step MAY write secrets to Doppler with the Doppler CLI. A Doppler config M
 #### Scenario: Retired component credentials
 - **WHEN** a component that consumed an operator-entered secret is removed from the platform
 - **THEN** its keys are deleted from the Doppler configs that held them
+
+#### Scenario: Retired generated credentials
+- **WHEN** the foundation root stops generating a telemetry credential and is applied
+- **THEN** that key is deleted from the Doppler configs that held it
 
 ### Requirement: Clusters receive secrets only through the secret store
 Every Kubernetes Secret derived from Doppler SHALL be produced by External Secrets Operator from the cluster's Doppler store, except the bootstrap authentication Secret required by that store and the autoscaler's AWS credential Secret. The platform root SHALL create and own those two Secrets; ESO MUST NOT also manage them. The store's credential MUST be a read-only Doppler token scoped to that environment's config, and MUST be the only Doppler credential placed in the cluster. No provisioning step MAY create other application Secrets from secret values.

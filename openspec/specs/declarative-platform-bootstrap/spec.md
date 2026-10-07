@@ -45,7 +45,7 @@ Each infrastructure resource, cluster component, and secret SHALL have exactly o
 - the foundation root owns account, identity, and secret-store setup;
 - the cluster root owns machines and generated credentials;
 - the platform root owns Gateway API CRDs, Cilium, secret-store bootstrap credentials, Karpenter and Argo CD with its AppProject, root Application and UI LoadBalancer Service;
-- the environment's Argo CD owns Istio, the Cloudflare operator/CRDs/ClusterTunnel, the HyperDX UI LoadBalancer Service and everything else.
+- the environment's Argo CD owns Istio, the Cloudflare operator/CRDs/ClusterTunnel, the Grafana UI LoadBalancer Service and everything else.
 
 No component MAY be managed by both OpenTofu and Argo CD. No UI Gateway or HTTPRoute SHALL be rendered by the bootstrap chart.
 
@@ -61,7 +61,7 @@ Gateway API CRDs SHALL be installed from a pinned Helm chart archive committed t
 
 #### Scenario: UI publishing
 - **WHEN** Cilium's IPAM and L2 resources reconcile
-- **THEN** Argo CD and HyperDX Services receive their reserved LAN IPs and the Cloudflare operator remains independent
+- **THEN** Argo CD and Grafana Services receive their reserved LAN IPs and the Cloudflare operator remains independent
 
 ### Requirement: Platform API readiness and installation ordering
 The platform root SHALL wait for the Kubernetes API's authenticated `/readyz` endpoint to return HTTP 200 before creating Kubernetes resources or installing Helm releases. It SHALL install Gateway API CRDs before Cilium, and Cilium before Argo CD. It MUST NOT gate provisioning on Talos, etcd, or Kubernetes node health checks or require a fixed-node inventory or Talos client configuration. Helm release readiness checks MAY still fail installation when the release's own resources cannot become ready. Successful provisioning SHALL confirm platform resource installation; node health and full GitOps convergence SHALL be checked separately during operations.

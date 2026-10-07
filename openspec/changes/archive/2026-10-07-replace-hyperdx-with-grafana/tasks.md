@@ -42,4 +42,4 @@
 - [x] 7.4 Open all eight provisioned dashboards and verify every panel loads data or an empty result without a data source error (`otel-logs-explorer-json` finds no JSON-typed `otel_logs` table, as expected)
 - [x] 7.5 Verify the query limits: as user `app`, a query exceeding 512 MiB fails with a memory-limit error while `otel_logs` inserts continue, and an `INSERT` is refused
 - [x] 7.6 Replace the Grafana pod and verify the replacement shows the same data source and dashboards and the admin login still works
-- [ ] 7.7 Delete the orphaned `hyperdx-mongodb` PVCs in `observability` on prod; verify `kubectl get pvc -n observability` lists only the ClickHouse and Keeper claims
+- [x] 7.7 Delete the orphaned `hyperdx-mongodb` PVCs in `observability` on prod; verify `kubectl get pvc -n observability` lists only the ClickHouse and Keeper claims
