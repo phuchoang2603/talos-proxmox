@@ -37,9 +37,9 @@
 ## 7. Validation
 
 - [x] 7.1 Run the lint workflow's chart and OpenTofu checks locally in `devenv shell`; verify they pass
-- [ ] 7.2 After merge, verify on prod that Argo CD pruned the HyperDX Deployment, `hyperdx-mongodb`, and its RBAC, that the MongoDB operator is still running in `operators` on both clusters, and that the ClickHouse pod restarted and is ready
-- [ ] 7.3 Verify Grafana at `http://10.69.12.128`: the admin login works, sign-up and anonymous access are refused, the ClickHouse data source tests successfully, and Explore shows dev and prod logs filtered by `deployment.environment` and a trace that links to its logs
-- [ ] 7.4 Open all eight provisioned dashboards and verify every panel loads data or an empty result without a data source error
-- [ ] 7.5 Verify the query limits: as user `app`, a query exceeding 512 MiB fails with a memory-limit error while `otel_logs` inserts continue, and an `INSERT` is refused
-- [ ] 7.6 Delete the Grafana pod and verify the replacement shows the same data source and dashboards and the admin login still works
+- [x] 7.2 After merge, verify on prod that Argo CD pruned the HyperDX Deployment, `hyperdx-mongodb`, and its RBAC, that the MongoDB operator is still running in `operators` on both clusters, and that ClickHouse loaded the new user profile (it reloaded `users.d` without restarting)
+- [x] 7.3 Verify Grafana at `http://10.69.12.128`: the admin login works, sign-up and anonymous access are refused, the ClickHouse data source tests successfully, and Explore shows dev and prod logs filtered by `deployment.environment` and a trace that links to its logs
+- [x] 7.4 Open all eight provisioned dashboards and verify every panel loads data or an empty result without a data source error (`otel-logs-explorer-json` finds no JSON-typed `otel_logs` table, as expected)
+- [x] 7.5 Verify the query limits: as user `app`, a query exceeding 512 MiB fails with a memory-limit error while `otel_logs` inserts continue, and an `INSERT` is refused
+- [x] 7.6 Replace the Grafana pod and verify the replacement shows the same data source and dashboards and the admin login still works
 - [ ] 7.7 Delete the orphaned `hyperdx-mongodb` PVCs in `observability` on prod; verify `kubectl get pvc -n observability` lists only the ClickHouse and Keeper claims
