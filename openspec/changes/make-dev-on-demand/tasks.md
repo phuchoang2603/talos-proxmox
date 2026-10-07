@@ -19,5 +19,5 @@
 - [x] 4.1 Make `otel-agent` prod-only: set `clusters: [prod]`, move prod's globals into `values.yaml`, delete `environments/` and the token ExternalSecret, and drop the agents' token header; verify `helm template` renders no token and the platform chart renders `otel-agent` only for prod
 - [x] 4.2 In `observability`, remove the gateway's LoadBalancer, `bearertokenauth`, token env, and `otel-gateway-token` ExternalSecret; verify the gateway Service renders as ClusterIP
 - [x] 4.3 Remove `OTEL_INGEST_TOKEN` from `terraform/foundation/doppler.tf` and update docs that describe dev telemetry, the LAN gateway, or the token
-- [ ] 4.4 Merge; verify Argo CD prunes the gateway LoadBalancer and both token Secrets, prod agents keep delivering telemetry, and `10.69.12.129` no longer answers
-- [ ] 4.5 Apply the foundation root locally; verify `OTEL_INGEST_TOKEN` is gone from both Doppler configs
+- [x] 4.4 Merge; verify Argo CD prunes the gateway LoadBalancer and both token Secrets, prod agents keep delivering telemetry, and `10.69.12.129` no longer answers
+- [x] 4.5 Apply the foundation root locally; verify `OTEL_INGEST_TOKEN` is gone from both Doppler configs
