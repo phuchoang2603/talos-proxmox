@@ -54,6 +54,7 @@ resource "random_password" "observability" {
     "CLICKHOUSE_OTEL_PASSWORD",
     "CLICKHOUSE_APP_PASSWORD",
     "GRAFANA_ADMIN_PASSWORD",
+    "GRAFANA_OIDC_CLIENT_SECRET",
   ])
 
   length  = 32

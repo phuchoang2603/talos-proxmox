@@ -33,8 +33,9 @@ Set these directly in the matching Doppler config before deployment. They are no
 | `CLICKHOUSE_OTEL_PASSWORD` (prod) | Foundation | ClickHouse `otelcollector` user; OTLP gateway's ClickHouse exporter |
 | `CLICKHOUSE_APP_PASSWORD` (prod) | Foundation | ClickHouse `app` user; Grafana's ClickHouse data source |
 | `GRAFANA_ADMIN_PASSWORD` (prod) | Foundation | Grafana's `admin` login |
+| `GRAFANA_OIDC_CLIENT_SECRET` (prod) | Foundation | Dex's `grafana` client in `dex-config`; Grafana's Dex login through `grafana-oidc` |
 
-Foundation generates the telemetry credentials, so they survive environment destroys. Neither environment holds a credential for the other.
+Foundation generates the telemetry and Grafana credentials, so they survive environment destroys. Neither environment holds a credential for the other.
 
 Foundation also creates a read/write CI service token per config and publishes it as that GitHub Environment's `DOPPLER_TOKEN` secret. This differs from the read-only ESO token. A local foundation apply uses a workspace-level Doppler login token to manage these service tokens.
 
@@ -56,7 +57,8 @@ HCP state holds generated credentials and Talos bootstrap material. Doppler prov
 | Kubernetes Secret | Namespace | Refresh |
 | --- | --- | --- |
 | `cloudflare-credentials` | `cloudflare-operator-system` | 1 hour |
-| `clickhouse-credentials`, `grafana-admin` | `observability` (prod) | 1 hour |
+| `clickhouse-credentials`, `grafana-admin`, `grafana-oidc` | `observability` (prod) | 1 hour |
+| `dex-config`, `oauth2-proxy-credentials` | `auth` (prod) | 1 hour |
 
 Each is produced by an ExternalSecret using the `doppler` ClusterSecretStore. If Doppler is unreachable, existing Secrets are retained and refresh failures are exposed through ESO status. Inspect status without printing secret values:
 
@@ -67,4 +69,4 @@ kubectl get externalsecrets -A
 
 Select your cluster first using [cluster access](../operations/cluster-access.md).
 
-For Cloudflare, change the key in Doppler and wait for the ExternalSecret to refresh. The operator reads `CLOUDFLARE_API_TOKEN` on each reconcile. The operator does not watch that Secret, so after changing `CLOUDFLARE_TUNNEL_TOKEN`, use Argo CD's **Restart** action on `cloudflare-operator-controller-manager` (it rewrites the tunnel credentials on startup), then on the `talos-proxmox` `cloudflared` Deployment. Updating a Kubernetes Secret does not restart Deployments automatically. The same applies to the telemetry credentials: after changing one, restart the collectors and Grafana that read it. ClickHouse reads its user passwords when it starts. The Karpenter key is not delivered by ESO: rotate it with the [OpenTofu procedure](../operations/aws-burst-workers.md#rotate-the-karpenter-key), where the platform apply restarts the controller.
+For Cloudflare, change the key in Doppler and wait for the ExternalSecret to refresh. The operator reads `CLOUDFLARE_API_TOKEN` on each reconcile. The operator does not watch that Secret, so after changing `CLOUDFLARE_TUNNEL_TOKEN`, use Argo CD's **Restart** action on `cloudflare-operator-controller-manager` (it rewrites the tunnel credentials on startup), then on the `talos-proxmox` `cloudflared` Deployment. Updating a Kubernetes Secret does not restart Deployments automatically. The same applies to the telemetry credentials: after changing one, restart the collectors and Grafana that read it. ClickHouse reads its user passwords when it starts. Dex reads `dex-config` only at startup, so after rotating `GRAFANA_OIDC_CLIENT_SECRET` or an `AUTH_*` key, wait for the refresh and restart both Dex and Grafana. Restart Dex after the first sync of a config change too. The Karpenter key is not delivered by ESO: rotate it with the [OpenTofu procedure](../operations/aws-burst-workers.md#rotate-the-karpenter-key), where the platform apply restarts the controller.

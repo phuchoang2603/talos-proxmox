@@ -1,0 +1,14 @@
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: grafana
+  namespace: {{ .Release.Namespace }}
+subjects:
+  - kind: Service
+    name: {{ .Values.grafana.fullnameOverride }}
+    spec:
+      fqdn: {{ .Values.global.grafanaHostname }}
+      target: http://{{ .Values.grafana.fullnameOverride }}.{{ .Release.Namespace }}.svc.cluster.local:80
+tunnelRef:
+  kind: ClusterTunnel
+  name: {{ .Values.tunnel.clusterTunnel }}

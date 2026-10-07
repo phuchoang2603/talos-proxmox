@@ -5,18 +5,22 @@ dex:
     create: false
     name: dex-config
 
+# Browsers use the public issuer; server-side calls stay on Dex's in-cluster address.
 oauth2-proxy:
   enabled: true
   fullnameOverride: oauth2-proxy
   extraArgs:
     provider: oidc
-    oidc-issuer-url: http://dex.auth.svc.cluster.local:5556/dex
-    redirect-url: http://localhost:8080/oauth2/callback
-    login-url: http://localhost:8080/dex/auth
+    oidc-issuer-url: https://auth.phuchoang.sbs/dex
+    skip-oidc-discovery: "true"
+    login-url: https://auth.phuchoang.sbs/dex/auth
     redeem-url: http://dex.auth.svc.cluster.local:5556/dex/token
+    oidc-jwks-url: http://dex.auth.svc.cluster.local:5556/dex/keys
+    redirect-url: https://kubeflow.phuchoang.sbs/oauth2/callback
     reverse-proxy: "true"
     set-xauthrequest: "true"
-    cookie-secure: "false"
+    cookie-secure: "true"
+    cookie-domain: kubeflow.phuchoang.sbs
     cookie-samesite: lax
     pass-authorization-header: "true"
   config:
@@ -24,8 +28,14 @@ oauth2-proxy:
 
 identity:
   email: xuanphuc.a1gv@gmail.com
-  issuer: http://dex.auth.svc.cluster.local:5556/dex
-  redirectURI: http://localhost:8080/oauth2/callback
+  issuer: https://auth.phuchoang.sbs/dex
+  internalIssuer: http://dex.auth.svc.cluster.local:5556/dex
+  redirectURI: https://kubeflow.phuchoang.sbs/oauth2/callback
+  grafanaRedirectURI: https://grafana.phuchoang.sbs/login/generic_oauth
+
+tunnel:
+  clusterTunnel: talos-proxmox
+  hostname: auth.phuchoang.sbs
 
 secrets:
   refreshInterval: 1h

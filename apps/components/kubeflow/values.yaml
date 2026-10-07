@@ -11,6 +11,10 @@ components:
   kserve-ui: true
   hub-catalog: true
 
+tunnel:
+  clusterTunnel: talos-proxmox
+  hostname: kubeflow.phuchoang.sbs
+
 spark-operator:
   enabled: true
   spark:

@@ -58,3 +58,12 @@ jobs:
               helm lint "${chart}" --kube-version "${KUBE_VERSION}" --set cluster="${cluster}"
             done
           done
+
+      - name: Check Grafana's operator email matches the Dex user
+        run: |
+          dex=$(yq '.identity.email' apps/components/auth/values.yaml)
+          grafana=$(yq '.global.operatorEmail' apps/components/observability/values.yaml)
+          if [ "${dex}" != "${grafana}" ]; then
+            echo "::error::observability global.operatorEmail (${grafana}) must equal auth identity.email (${dex})"
+            exit 1
+          fi

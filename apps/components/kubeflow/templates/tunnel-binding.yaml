@@ -1,0 +1,15 @@
+# The gateway's first port is the 15021 status port, so the target is explicit.
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: kubeflow
+  namespace: istio-system
+subjects:
+  - kind: Service
+    name: istio-ingressgateway
+    spec:
+      fqdn: {{ .Values.tunnel.hostname }}
+      target: http://istio-ingressgateway.istio-system.svc.cluster.local:80
+tunnelRef:
+  kind: ClusterTunnel
+  name: {{ .Values.tunnel.clusterTunnel }}

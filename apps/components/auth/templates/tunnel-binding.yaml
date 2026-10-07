@@ -1,0 +1,14 @@
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: dex
+  namespace: {{ .Release.Namespace }}
+subjects:
+  - kind: Service
+    name: dex
+    spec:
+      fqdn: {{ .Values.tunnel.hostname }}
+      target: http://dex.{{ .Release.Namespace }}.svc.cluster.local:5556
+tunnelRef:
+  kind: ClusterTunnel
+  name: {{ .Values.tunnel.clusterTunnel }}

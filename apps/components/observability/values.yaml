@@ -36,8 +36,14 @@ store:
 secrets:
   refreshInterval: 1h
 
+tunnel:
+  clusterTunnel: talos-proxmox
+
 global:
   grafanaAddress: 10.69.12.128
+  grafanaHostname: grafana.phuchoang.sbs
+  # The only identity granted a Grafana role; lint checks it against auth's identity.email.
+  operatorEmail: xuanphuc.a1gv@gmail.com
   # Read by the agent and cluster collectors' configs.
   clusterName: prod-talos
   environment: prod
@@ -75,13 +81,34 @@ grafana:
       secretKeyRef:
         name: clickhouse-credentials
         key: app-password
+    GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET:
+      secretKeyRef:
+        name: grafana-oidc
+        key: client-secret
   # Downloaded from grafana.com on every start. The files in dashboards/ were copied from
   # grafana/clickhouse-datasource tag v4.22.1; update both together.
   plugins:
     - grafana-clickhouse-datasource@4.22.1
   grafana.ini:
     server:
-      root_url: 'http://{{ .Values.global.grafanaAddress }}'
+      root_url: 'https://{{ .Values.global.grafanaHostname }}'
+    # Browsers reach Dex publicly; token and userinfo calls stay in-cluster. The login form
+    # remains as the LAN fallback, so session cookies cannot be secure-only.
+    auth.generic_oauth:
+      enabled: true
+      name: Dex
+      client_id: grafana
+      scopes: openid email profile
+      use_pkce: true
+      auth_url: https://auth.phuchoang.sbs/dex/auth
+      token_url: http://dex.auth.svc.cluster.local:5556/dex/token
+      api_url: http://dex.auth.svc.cluster.local:5556/dex/userinfo
+      # Stateless Grafana recreates the OAuth user on every fresh login.
+      allow_sign_up: true
+      role_attribute_path: "email == '{{ .Values.global.operatorEmail }}' && 'Admin' || ''"
+      role_attribute_strict: true
+    security:
+      cookie_secure: false
     users:
       allow_sign_up: false
     auth.anonymous:

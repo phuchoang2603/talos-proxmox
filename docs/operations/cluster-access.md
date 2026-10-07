@@ -78,12 +78,24 @@ Only prod collects telemetry; dev runs no telemetry components.
 
 | Endpoint | Address |
 | --- | --- |
-| Grafana (prod) | <http://10.69.12.128> |
+| Grafana (prod) | <https://grafana.phuchoang.sbs>, or <http://10.69.12.128> on the LAN |
 | OTLP from prod workloads | `otel-agent.observability.svc:4317` (gRPC) or `:4318` (HTTP) |
 
 Workloads send OTLP to their node's agent without credentials; the agent adds `k8s.cluster.name` and `deployment.environment` and forwards to the in-cluster gateway, which has no LAN address. Telemetry is kept for 7 days.
 
-Log in to Grafana as `admin` with the generated password; sign-up and anonymous access are disabled:
+## Public URLs (prod)
+
+The prod Cloudflare tunnel publishes three hostnames. Cloudflare terminates TLS and redirects `http://` to HTTPS.
+
+| URL | Service | Login |
+| --- | --- | --- |
+| <https://auth.phuchoang.sbs/dex> | Dex, the shared login | The Dex user (`identity.email` in [`apps/components/auth/values.yaml`](../../apps/components/auth/values.yaml)) and `AUTH_DEX_PASSWORD` |
+| <https://kubeflow.phuchoang.sbs> | Kubeflow Dashboard, through the Istio ingress gateway | Redirects to Dex; see [Kubeflow](kubeflow.md) |
+| <https://grafana.phuchoang.sbs> | Grafana | **Sign in with Dex**, or the admin form |
+
+Grafana's Dex login gives only the operator email the `Admin` role; Grafana rejects any other identity. Anonymous access and username sign-up stay disabled.
+
+If Dex or Cloudflare is down, log in at <http://10.69.12.128> from the LAN as `admin` with the generated password. The same form also works on the public hostname:
 
 ```bash
 doppler secrets get GRAFANA_ADMIN_PASSWORD --plain --project talos-proxmox --config prod

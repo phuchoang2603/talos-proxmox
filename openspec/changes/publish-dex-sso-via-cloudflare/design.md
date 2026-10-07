@@ -35,12 +35,12 @@ See proposal.md for motivation. The current state that shapes the approach:
                                                                      │ plain HTTP, in-cluster
    auth.phuchoang.sbs      ──▶ dex.auth.svc:5556                     ◀┤ TunnelBinding (auth)
    kubeflow.phuchoang.sbs  ──▶ istio-ingressgateway.istio-system:80  ◀┤ TunnelBinding (istio-system)
-   grafana.phuchoang.sbs   ──▶ observability-grafana.observability:80◀┘ TunnelBinding (observability)
+   grafana.phuchoang.sbs   ──▶ grafana.observability:80              ◀┘ TunnelBinding (observability)
 
    LAN only:  http://10.69.12.128 ──▶ Grafana (admin password fallback)
 ```
 
-Each binding sets an explicit `target`. The ingress gateway's first port is the 15021 status port, and Grafana's Service name follows its release name, which is confirmed when templating. The Dex binding belongs to `auth`, the gateway binding to `kubeflow` (rendered into `istio-system`), and the Grafana binding to `observability`. Each binding has the same owner as the routing it exposes.
+Each binding sets an explicit `target`. The ingress gateway's first port is the 15021 status port. Grafana's Service is `grafana`, from the chart's `fullnameOverride`. The Dex binding belongs to `auth`, the gateway binding to `kubeflow` (rendered into `istio-system`), and the Grafana binding to `observability`. Each binding has the same owner as the routing it exposes.
 
 Dex gets its own hostname instead of staying under `kubeflow.phuchoang.sbs/dex/`. That way Grafana login does not depend on the Kubeflow ingress gateway, the OAuth2 Proxy authorization policy, or Kubeflow being healthy. The `/dex/` route and its exclusions in the two `AuthorizationPolicy` resources are removed.
 
@@ -75,7 +75,7 @@ The `auth` chart's `validate.yaml` gains checks that fail rendering if the issue
 - The username/password form stays enabled, and `users.allow_sign_up` stays `false`, so the admin password works on the LAN and the public hostname when Dex or Cloudflare is down.
 - `security.cookie_secure` stays `false`. A secure cookie would make the LAN fallback over plain HTTP impossible. The public hostname is HTTPS-only at the edge.
 
-The operator email lives in `apps/components/auth/values.yaml`. Grafana's copy is a value in `observability`, and validation checks that the two match.
+The operator email lives in `apps/components/auth/values.yaml`. Grafana's copy is `global.operatorEmail` in `observability`. A Helm chart cannot read another component's values, so the lint workflow compares the two with `yq` and fails when they differ.
 
 ### Client secret
 

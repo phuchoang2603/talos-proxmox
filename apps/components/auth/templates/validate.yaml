@@ -7,3 +7,11 @@
 {{- if and (index .Values "oauth2-proxy").enabled (not (index .Values "oauth2-proxy").config.existingSecret) }}
 {{- fail "OAuth2 Proxy requires an externally managed credential Secret" }}
 {{- end }}
+{{- range $key := list "issuer" "redirectURI" "grafanaRedirectURI" }}
+{{- if not (hasPrefix "https://" (index $.Values.identity $key)) }}
+{{- fail (printf "identity.%s must use https:// because Dex is published on the internet" $key) }}
+{{- end }}
+{{- end }}
+{{- if ne .Values.identity.issuer (printf "https://%s/dex" .Values.tunnel.hostname) }}
+{{- fail "identity.issuer must be https://<tunnel.hostname>/dex" }}
+{{- end }}

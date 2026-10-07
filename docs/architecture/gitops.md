@@ -81,7 +81,17 @@ Application Secrets refresh hourly. Workloads that read credentials only at star
 
 Each environment has one Cloudflare tunnel, created once outside the cluster and named after it (`dev-talos`, `prod-talos`). The [`cloudflare-tunnel`](../../apps/components/cloudflare-tunnel/) chart installs the [Cloudflare operator](https://github.com/adyanth/cloudflare-operator) and a `ClusterTunnel` named `talos-proxmox` that runs that tunnel (`existingTunnel`) with a `cloudflared` Deployment in `cloudflare-operator-system`. The operator manifests and CRDs are vendored together from upstream kustomize output, since upstream ships no Helm chart. Never add public hostnames or other configuration to these tunnels in the Cloudflare dashboard: Cloudflare pushes dashboard configuration to `cloudflared`, replacing the ingress rules the operator writes.
 
-Argo CD and Grafana are exposed on LAN-only LoadBalancer Services, not through Cloudflare tunnels or Istio Gateways. Argo CD uses `10.69.11.254` (dev) and `10.69.12.254` (prod); Grafana uses `10.69.12.128` (prod). Their original ClusterIP Services stay internal, and each UI LoadBalancer exposes only HTTP port 80. Application repositories can still publish their own hostnames by rendering bindings next to their origin Services. For each subject, the operator adds an ingress rule to the tunnel's configuration, restarts `cloudflared`, and creates a proxied CNAME plus a `_managed.<hostname>` TXT ownership record in the `phuchoang.sbs` zone. Deleting the binding removes both records.
+Argo CD is exposed only on LAN LoadBalancer Services: `10.69.11.254` (dev) and `10.69.12.254` (prod). Grafana keeps its LAN LoadBalancer at `10.69.12.128` (prod) as a fallback. Each UI LoadBalancer exposes only HTTP port 80.
+
+A `TunnelBinding` lives in its origin Service's namespace, and the component that owns the routing also owns its binding. The platform publishes three prod hostnames of its own:
+
+| Hostname | Origin | Owning component |
+| --- | --- | --- |
+| `auth.phuchoang.sbs` | `dex.auth:5556` | `auth` |
+| `kubeflow.phuchoang.sbs` | `istio-ingressgateway.istio-system:80` | `kubeflow` (rendered into `istio-system`) |
+| `grafana.phuchoang.sbs` | `grafana.observability:80` | `observability` |
+
+Application repositories publish their own hostnames by rendering bindings next to their origin Services, such as `shop` and `pay` from the ecommerce repository. For each subject, the operator adds an ingress rule to the tunnel's configuration, restarts `cloudflared`, and creates a proxied CNAME plus a `_managed.<hostname>` TXT ownership record in the `phuchoang.sbs` zone. Deleting the binding removes both records. A subject's `target` defaults to the Service's first port, so set it explicitly. Bindings in components that sync before `cloudflare-tunnel` retry until its CRDs exist.
 
 ```yaml
 apiVersion: networking.cfargotunnel.com/v1alpha1
@@ -90,9 +100,11 @@ metadata:
   name: web
   namespace: example
 subjects:
-  - name: web
+  - kind: Service
+    name: web
     spec:
-      fqdn: web-dev.phuchoang.sbs
+      fqdn: web.phuchoang.sbs
+      target: http://web.example.svc.cluster.local:80
 tunnelRef:
   kind: ClusterTunnel
   name: talos-proxmox

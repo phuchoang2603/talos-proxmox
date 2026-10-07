@@ -11,14 +11,6 @@ spec:
   http:
     - match:
         - uri:
-            prefix: /dex/
-      route:
-        - destination:
-            host: dex.{{ .Release.Namespace }}.svc.cluster.local
-            port:
-              number: 5556
-    - match:
-        - uri:
             prefix: /oauth2/
       route:
         - destination:
@@ -42,8 +34,6 @@ spec:
     - to:
         - operation:
             notPaths:
-              - /dex/*
-              - /dex/**
               - /oauth2/*
       when:
         - key: request.headers[authorization]
@@ -66,8 +56,6 @@ spec:
       to:
         - operation:
             notPaths:
-              - /dex/*
-              - /dex/**
               - /oauth2/*
 ---
 apiVersion: security.istio.io/v1
@@ -81,6 +69,7 @@ spec:
       app: istio-ingressgateway
   jwtRules:
     - issuer: {{ .Values.identity.issuer }}
+      jwksUri: {{ .Values.identity.internalIssuer }}/keys
       fromHeaders:
         - name: Authorization
           prefix: "Bearer "
