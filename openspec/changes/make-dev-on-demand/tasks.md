@@ -25,4 +25,4 @@
 ## 5. Merge the agents into the observability chart
 
 - [x] 5.1 Add `otel-agent` and `otel-cluster` aliases of `opentelemetry-collector` 0.174.0 to `observability`, move the agent values and globals into its `values.yaml`, delete `apps/components/otel-agent` and its Argo CD entry, and update the wave table; verify the merged chart renders the same 11 agent resources, differing only in release labels and alias-derived container names
-- [ ] 5.2 Merge; verify Argo CD removes the `otel-agent` Application, `observability` is Synced and Healthy with the agent DaemonSet and cluster collector running, and logs and metrics keep arriving
+- [x] 5.2 Merge; verify Argo CD removes the `otel-agent` Application, `observability` is Synced and Healthy with the agent DaemonSet and cluster collector running, and logs and metrics keep arriving
