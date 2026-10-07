@@ -5,9 +5,9 @@
 
 ## 2. Destroy dev
 
-- [ ] 2.1 Merge section 1; verify the push run applies prod only and succeeds
-- [ ] 2.2 Force-unlock the `talos-cluster-dev` HCP Terraform workspace; verify it reports unlocked
-- [ ] 2.3 Dispatch Manual Provision on `main` with `dev` and `destroy`; verify the run succeeds, VM 1111 no longer exists on `pve`, and both dev workspaces report no resources
+- [x] 2.1 Merge section 1; verify the push run applies prod only and succeeds
+- [x] 2.2 Force-unlock the `talos-cluster-dev` HCP Terraform workspace; verify it reports unlocked
+- [x] 2.3 Dispatch Manual Provision on `main` with `dev` and `destroy`; verify the run succeeds, VM 1111 no longer exists on `pve`, and both dev workspaces report no resources
 
 ## 3. Resize prod-server1
 
