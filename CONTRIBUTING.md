@@ -108,11 +108,11 @@ Review the plan before approving the apply. Existing Doppler project/environment
 
 ## 5. Deploy through GitHub Actions
 
-Push the reviewed configuration to `main`. The **Provision** workflow validates the repository, then runs dev and prod independently. For each environment it applies the cluster root followed by the platform root.
+Push the reviewed configuration to `main`. The **Provision** workflow validates the repository, then applies prod's cluster root followed by its platform root. Pushes never touch dev.
 
-For one environment, use **Actions → Manual Provision → Run workflow**, select `main`, the environment, and **apply**. A dispatch from another branch cannot provision.
+Dev exists only on demand. To build it, or to rehearse a change before merging it to prod, use **Actions → Manual Provision → Run workflow**, select `main`, `dev`, and **apply**. Select **destroy** when you are done. The same workflow can also apply or destroy prod. A dispatch from another branch cannot provision.
 
-A green workflow means both OpenTofu applies completed. Check Argo CD convergence separately using [cluster access](docs/operations/cluster-access.md#check-convergence): the root Application and its children should become Synced and Healthy, including storage and SPIRE.
+A green workflow means the OpenTofu applies completed. Check Argo CD convergence separately using [cluster access](docs/operations/cluster-access.md#check-convergence): the root Application and its children should become Synced and Healthy, including storage and SPIRE.
 
 ## Run OpenTofu locally
 

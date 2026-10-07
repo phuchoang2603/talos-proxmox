@@ -18,18 +18,15 @@ jobs:
   lint:
     uses: ./.github/workflows/lint.yml
 
+  # Dev is built and destroyed only through manual.yml.
   provision:
-    name: Provision (${{ matrix.environment }})
+    name: Provision (prod)
     if: github.event_name == 'push'
     needs: lint
-    strategy:
-      fail-fast: false
-      matrix:
-        environment: [dev, prod]
     permissions:
       contents: read
       id-token: write
     uses: ./.github/workflows/provision.yml
     with:
-      environment: ${{ matrix.environment }}
+      environment: prod
     secrets: inherit

@@ -37,19 +37,20 @@ The separate platform root makes Kubernetes and Helm provider credentials availa
 flowchart TD
     PR["PR targeting main"] --> Lint["Validate all roots and charts"]
     Push["Push to main"] --> Lint
-    Lint --> Trigger{"Push to main?"}
+    Dispatch["Manual dispatch on main"] --> Lint
+    Lint --> Trigger{"Push or dispatch?"}
     Trigger -->|"No: PR checks complete"| Done["No provisioning"]
-    Trigger -->|"Yes"| DevCluster["dev cluster apply"]
-    Trigger -->|"Yes"| ProdCluster["prod cluster apply"]
-    DevCluster --> DevPlatform["dev platform apply"]
+    Trigger -->|"Push"| ProdCluster["prod cluster apply"]
+    Trigger -->|"Dispatch"| Selected["selected environment: apply or destroy"]
     ProdCluster --> ProdPlatform["prod platform apply"]
-    DevPlatform --> DevArgo["dev Argo CD converges asynchronously"]
     ProdPlatform --> ProdArgo["prod Argo CD converges asynchronously"]
 ```
 
+Dev runs only on demand. Pushes never apply it; an operator builds it through **Manual Provision** to rehearse a change and destroys it afterwards. Lint still renders dev's overlays on every PR, so a later dispatch does not start from broken charts.
+
 | Workflow | Responsibility |
 | --- | --- |
-| [`terraform.yml`](../../.github/workflows/terraform.yml) | Runs only when `terraform/`, `apps/`, or `.github/workflows/` change: PR checks, and on `main` pushes, deploy dev/prod in parallel with `fail-fast: false` |
+| [`terraform.yml`](../../.github/workflows/terraform.yml) | Runs only when `terraform/`, `apps/`, or `.github/workflows/` change: PR checks, and on `main` pushes, deploy prod |
 | [`lint.yml`](../../.github/workflows/lint.yml) | Backend-disabled init, format and validate all roots; lint charts and environment overlays |
 | [`provision.yml`](../../.github/workflows/provision.yml) | Reusable per-environment apply or destroy, restricted to `main` pushes/manual dispatches |
 | [`manual.yml`](../../.github/workflows/manual.yml) | Validate, then apply or destroy one selected environment on `main` |

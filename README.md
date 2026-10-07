@@ -1,6 +1,6 @@
 # Talos on Proxmox, with AWS burst workers
 
-Two independent Kubernetes environments, **dev** and **prod**, run Talos on fixed Proxmox VMs. Each can add stateless AWS workers when workloads need more capacity. OpenTofu provisions the infrastructure; each cluster's Argo CD manages its applications; Doppler supplies credentials.
+Two independent Kubernetes environments, **dev** and **prod**, run Talos on fixed Proxmox VMs. Prod runs continuously. Dev exists only while an operator needs it, to rehearse platform changes, and is built and destroyed on demand. Each can add stateless AWS workers when workloads need more capacity. OpenTofu provisions the infrastructure; each cluster's Argo CD manages its applications; Doppler supplies credentials.
 
 ```mermaid
 flowchart LR

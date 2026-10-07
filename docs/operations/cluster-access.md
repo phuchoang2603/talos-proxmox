@@ -26,7 +26,7 @@ export TALOSCONFIG="$HOME/.talos/config-${CLUSTER_ENV}.yaml"
 kubectl get nodes -o wide
 ```
 
-Run both downloads successfully before continuing. The cluster root writes these configs; downloading them does not require access to Terraform state.
+Run both downloads successfully before continuing. The cluster root writes these configs; downloading them does not require access to Terraform state. Dev exists only after an operator builds it with **Manual Provision**, and its configs are removed when it is destroyed, so download them again after each rebuild.
 
 ## Kubernetes versus Talos endpoints
 
