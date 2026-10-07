@@ -17,6 +17,10 @@ oauth2-proxy:
     redeem-url: http://dex.auth.svc.cluster.local:5556/dex/token
     oidc-jwks-url: http://dex.auth.svc.cluster.local:5556/dex/keys
     redirect-url: https://kubeflow.phuchoang.sbs/oauth2/callback
+    # Send anonymous requests straight to Dex; the default "force" prompt makes Dex show
+    # its consent screen despite skipApprovalScreen.
+    skip-provider-button: "true"
+    approval-prompt: auto
     reverse-proxy: "true"
     set-xauthrequest: "true"
     cookie-secure: "true"
