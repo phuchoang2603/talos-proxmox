@@ -93,6 +93,7 @@ The plugin's OTel mode uses the column names that the gateway's `clickhouse` exp
 ## Risks / Trade-offs
 
 - [grafana.com unreachable when the pod starts] → The plugin fails to install and the data source does not work until a restart succeeds. Accepted by the operator. A custom image is the fallback if this recurs.
+- [Every new pod migrates an empty database, which took about 2.5 minutes on prod-server1 versus 16 seconds on a workstation] → A startup probe allows up to 10 minutes before liveness checks begin. An in-memory `emptyDir` would be faster, but would count about 90 MB of database and plugins against Grafana's memory limit.
 - [Dashboards edited in the UI are lost on restart] → Provision them with `allowUiUpdates: false`, so Grafana shows them as provisioned. Document that changes go through Git.
 - [Copied dashboards drift from the plugin version] → Record the plugin tag next to the plugin version and update both together.
 - [Placeholder substitution misses a reference] → Verify after rollout that every panel in all eight dashboards loads data or returns an empty result without a data source error.

@@ -56,6 +56,14 @@ grafana:
       memory: 256Mi
     limits:
       memory: 512Mi
+  # Every new pod migrates an empty database first, which takes minutes on prod-server1's
+  # shared SSD; liveness checks start only once this succeeds.
+  startupProbe:
+    httpGet:
+      path: /api/health
+      port: grafana
+    periodSeconds: 10
+    failureThreshold: 60
   admin:
     existingSecret: grafana-admin
   envValueFrom:
