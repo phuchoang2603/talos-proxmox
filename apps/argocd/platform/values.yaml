@@ -160,13 +160,6 @@ components:
     releaseName: observability
     clusters: [prod]
     managedNamespaceMetadata: *privileged
-  otel-agent:
-    path: apps/components/otel-agent
-    namespace: observability
-    syncWave: "2"
-    releaseName: otel-agent
-    clusters: [prod]
-    managedNamespaceMetadata: *privileged
   cloudflare-tunnel:
     path: apps/components/cloudflare-tunnel
     releaseName: cloudflare-tunnel

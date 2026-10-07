@@ -26,7 +26,7 @@ The [bootstrap chart](../../apps/argocd/bootstrap/) creates the `talos-proxmox` 
 | Owner | Components |
 | --- | --- |
 | Platform OpenTofu root | Gateway API CRDs, Cilium, ESO token namespace/Secret, Karpenter (CRDs, controller, `EC2NodeClass`, `NodePool`, and its AWS key Secret), Argo CD and bootstrap AppProject/root Application/UI LoadBalancer Service |
-| Argo CD | ESO/store, Cilium address pools/L2 policies, storage, metrics, cloud controller, GPU components, Istio, operators, observability, telemetry agents, Cloudflare operator/CRDs and `ClusterTunnel`, and the Grafana UI LoadBalancer Service |
+| Argo CD | ESO/store, Cilium address pools/L2 policies, storage, metrics, cloud controller, GPU components, Istio, operators, observability and its telemetry agents, Cloudflare operator/CRDs and `ClusterTunnel`, and the Grafana UI LoadBalancer Service |
 
 Cilium and Argo CD remain OpenTofu-owned after bring-up. Changes to them go through a platform apply. Application changes go through Git and Argo CD.
 
@@ -47,8 +47,7 @@ The source of truth is [`apps/argocd/platform/values.yaml`](../../apps/argocd/pl
 | 0 | local-path, Talos CCM, cert-manager, CNPG, Strimzi, MongoDB operator | dev, prod |
 | 0 | ClickHouse operator | prod |
 | 1 | GPU operator, NVIDIA DRA | dev, prod |
-| 1 | Observability store: ClickHouse, Grafana, OTLP gateway | prod |
-| 2 | Telemetry agents | prod |
+| 1 | Observability: ClickHouse, Grafana, OTLP gateway, node agents, cluster collector | prod |
 | 2 | Cloudflare operator and tunnel | dev, prod |
 
 Dev runs no telemetry components and has no dependency on prod.

@@ -46,6 +46,12 @@ Eight vCPUs equals every thread on `pve`, so prod-server1 shares them with the n
 
 The apply reboots prod-server1. It is one of three control-plane nodes, so etcd keeps quorum. ClickHouse, Grafana, and GPU workloads on that node are down until it returns.
 
+### Agents merge into the observability chart
+
+Once the agents run only on prod, `otel-agent` and `observability` share a cluster, a namespace, and the same collector chart version, so a separate component only adds an Application. The observability chart gains `otel-agent` and `otel-cluster` aliases of the `opentelemetry-collector` dependency it already uses for `otel-gateway`. One chart archive serves all three. The agents' globals join the chart's `global` block, and `fullnameOverride` keeps every resource name, including the `otel-agent.observability.svc` endpoint workloads send to.
+
+The collector's pod selector includes the Helm release name, and selectors are immutable, so the DaemonSet and Deployment cannot be adopted in place. Argo CD deletes them with the removed `otel-agent` Application and recreates them under `observability`, retrying until the old objects are gone. Agent telemetry pauses for that window; the agents' file-backed queue and the log receiver's checkpoints resume where they stopped.
+
 ## Risks / Trade-offs
 
 - [Dev definitions drift unnoticed between dispatches] → Lint still renders dev overlays on every PR; a dispatch surfaces anything lint cannot catch.
@@ -59,5 +65,6 @@ The apply reboots prod-server1. It is one of three control-plane nodes, so etcd 
 2. Force-unlock `talos-cluster-dev`, dispatch Manual Provision `dev`/`destroy`, and confirm VM 1111 and dev's AWS resources are gone.
 3. Merge the resize. The push apply reboots prod-server1 with 8 vCPUs and 32 GiB.
 4. Merge the telemetry decoupling. Argo CD removes dev's `otel-agent` Application, the gateway's LoadBalancer, and both token ExternalSecrets. Then apply the foundation root locally to delete `OTEL_INGEST_TOKEN`.
+5. Merge the chart consolidation. Argo CD deletes the `otel-agent` Application and its resources, and the `observability` Application recreates them.
 
 Rollback: dispatch Manual Provision `dev`/`apply` to rebuild dev, after reverting the resize if `pve` lacks memory for both.

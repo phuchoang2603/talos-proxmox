@@ -38,6 +38,10 @@ secrets:
 
 global:
   grafanaAddress: 10.69.12.128
+  # Read by the agent and cluster collectors' configs.
+  clusterName: prod-talos
+  environment: prod
+  gatewayEndpoint: otel-gateway.observability.svc:4317
 
 # Stateless: the data source, dashboards, and admin account are provisioned on every start.
 grafana:
@@ -204,3 +208,243 @@ otel-gateway:
           receivers: [otlp]
           processors: [memory_limiter, batch]
           exporters: [clickhouse]
+
+otel-agent:
+  fullnameOverride: otel-agent
+  mode: daemonset
+  image:
+    repository: otel/opentelemetry-collector-contrib
+    tag: "0.161.0"
+  presets:
+    logsCollection:
+      enabled: true
+      storeCheckpoints: true
+    kubeletMetrics:
+      enabled: true
+    hostMetrics:
+      enabled: true
+    kubernetesAttributes:
+      enabled: true
+  # Applications send OTLP to otel-agent.observability.svc and reach their own node's agent.
+  service:
+    enabled: true
+  # Runs on every node, including tainted AWS burst workers.
+  tolerations:
+    - operator: Exists
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+  ports:
+    jaeger-compact:
+      enabled: false
+    jaeger-thrift:
+      enabled: false
+    jaeger-grpc:
+      enabled: false
+    zipkin:
+      enabled: false
+  alternateConfig:
+    extensions:
+      health_check:
+        endpoint: ${env:MY_POD_IP}:13133
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: ${env:MY_POD_IP}:4317
+          http:
+            endpoint: ${env:MY_POD_IP}:4318
+      # Talos kubelets serve self-signed certificates.
+      kubeletstats:
+        insecure_skip_verify: true
+      # Replaces the preset's operator list, so container-parser is restated.
+      # JSON bodies promote level, trace_id/span_id, and msg; other lines pass through.
+      file_log:
+        operators:
+          - type: container
+            id: container-parser
+            max_log_size: 102400
+          - type: json_parser
+            id: json-body
+            if: 'body matches "^\\{"'
+            on_error: send_quiet
+          - type: severity_parser
+            id: json-level
+            if: "attributes.level != nil"
+            parse_from: attributes.level
+            on_error: send_quiet
+          - type: trace_parser
+            id: json-trace
+            if: "attributes.trace_id != nil"
+            trace_id:
+              parse_from: attributes.trace_id
+            span_id:
+              parse_from: attributes.span_id
+            on_error: send_quiet
+          - type: move
+            id: json-msg
+            if: "attributes.msg != nil"
+            from: attributes.msg
+            to: body
+    processors:
+      memory_limiter:
+        check_interval: 5s
+        limit_percentage: 80
+        spike_limit_percentage: 25
+      resource/environment:
+        attributes:
+          - key: k8s.cluster.name
+            value: "{{ .Values.global.clusterName }}"
+            action: upsert
+          - key: deployment.environment
+            value: "{{ .Values.global.environment }}"
+            action: upsert
+      # hostmetrics carries no node identity of its own.
+      resource/node:
+        attributes:
+          - key: k8s.node.name
+            value: ${env:K8S_NODE_NAME}
+            action: insert
+          - key: host.name
+            value: ${env:K8S_NODE_NAME}
+            action: insert
+      batch: {}
+    exporters:
+      otlp/gateway:
+        endpoint: "{{ .Values.global.gatewayEndpoint }}"
+        tls:
+          insecure: true
+        retry_on_failure:
+          enabled: true
+          max_elapsed_time: 15m
+        sending_queue:
+          enabled: true
+          queue_size: 1000
+          storage: file_storage
+    service:
+      extensions:
+        - health_check
+      pipelines:
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, k8s_attributes, resource/environment, batch]
+          exporters: [otlp/gateway]
+        metrics:
+          receivers: [otlp]
+          processors: [memory_limiter, k8s_attributes, resource/environment, resource/node, batch]
+          exporters: [otlp/gateway]
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, k8s_attributes, resource/environment, batch]
+          exporters: [otlp/gateway]
+
+otel-cluster:
+  fullnameOverride: otel-cluster
+  mode: deployment
+  replicaCount: 1
+  # Ambient lets it scrape enrolled pods in namespaces with STRICT mTLS; Istio gateways, waypoints,
+  # and ztunnel are not captured and stay reachable either way.
+  podLabels:
+    istio.io/dataplane-mode: ambient
+  image:
+    repository: otel/opentelemetry-collector-contrib
+    tag: "0.161.0"
+  presets:
+    clusterMetrics:
+      enabled: true
+    kubernetesEvents:
+      enabled: true
+  clusterRole:
+    rules:
+      - apiGroups: [""]
+        resources: [pods]
+        verbs: [get, list, watch]
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+  service:
+    enabled: false
+  ports:
+    otlp:
+      enabled: false
+    otlp-http:
+      enabled: false
+    jaeger-compact:
+      enabled: false
+    jaeger-thrift:
+      enabled: false
+    jaeger-grpc:
+      enabled: false
+    zipkin:
+      enabled: false
+  alternateConfig:
+    extensions:
+      health_check:
+        endpoint: ${env:MY_POD_IP}:13133
+    receivers:
+      prometheus:
+        config:
+          scrape_configs:
+            - job_name: annotated-pods
+              kubernetes_sd_configs:
+                - role: pod
+              relabel_configs:
+                - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+                  action: keep
+                  regex: "true"
+                - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+                  action: replace
+                  target_label: __metrics_path__
+                  regex: (.+)
+                - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+                  action: replace
+                  regex: ([^:]+)(?::\d+)?;(\d+)
+                  replacement: $$1:$$2
+                  target_label: __address__
+                - source_labels: [__meta_kubernetes_namespace]
+                  target_label: namespace
+                - source_labels: [__meta_kubernetes_pod_name]
+                  target_label: pod
+    processors:
+      memory_limiter:
+        check_interval: 5s
+        limit_percentage: 80
+        spike_limit_percentage: 25
+      resource/environment:
+        attributes:
+          - key: k8s.cluster.name
+            value: "{{ .Values.global.clusterName }}"
+            action: upsert
+          - key: deployment.environment
+            value: "{{ .Values.global.environment }}"
+            action: upsert
+      batch: {}
+    exporters:
+      otlp/gateway:
+        endpoint: "{{ .Values.global.gatewayEndpoint }}"
+        tls:
+          insecure: true
+        retry_on_failure:
+          enabled: true
+          max_elapsed_time: 15m
+        sending_queue:
+          enabled: true
+          queue_size: 1000
+    service:
+      extensions:
+        - health_check
+      pipelines:
+        logs:
+          receivers: []
+          processors: [memory_limiter, resource/environment, batch]
+          exporters: [otlp/gateway]
+        metrics:
+          receivers: [prometheus]
+          processors: [memory_limiter, resource/environment, batch]
+          exporters: [otlp/gateway]

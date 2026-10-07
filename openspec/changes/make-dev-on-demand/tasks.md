@@ -21,3 +21,8 @@
 - [x] 4.3 Remove `OTEL_INGEST_TOKEN` from `terraform/foundation/doppler.tf` and update docs that describe dev telemetry, the LAN gateway, or the token
 - [x] 4.4 Merge; verify Argo CD prunes the gateway LoadBalancer and both token Secrets, prod agents keep delivering telemetry, and `10.69.12.129` no longer answers
 - [x] 4.5 Apply the foundation root locally; verify `OTEL_INGEST_TOKEN` is gone from both Doppler configs
+
+## 5. Merge the agents into the observability chart
+
+- [x] 5.1 Add `otel-agent` and `otel-cluster` aliases of `opentelemetry-collector` 0.174.0 to `observability`, move the agent values and globals into its `values.yaml`, delete `apps/components/otel-agent` and its Argo CD entry, and update the wave table; verify the merged chart renders the same 11 agent resources, differing only in release labels and alias-derived container names
+- [ ] 5.2 Merge; verify Argo CD removes the `otel-agent` Application, `observability` is Synced and Healthy with the agent DaemonSet and cluster collector running, and logs and metrics keep arriving

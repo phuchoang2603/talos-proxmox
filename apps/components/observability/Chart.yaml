@@ -1,6 +1,6 @@
 apiVersion: v2
 name: observability
-description: ClickHouse telemetry store, Grafana, and the OTLP gateway collector
+description: ClickHouse telemetry store, Grafana, and the OpenTelemetry gateway, node agents, and cluster collector
 type: application
 version: 0.1.0
 dependencies:
@@ -9,5 +9,13 @@ dependencies:
     repository: https://grafana-community.github.io/helm-charts
   - name: opentelemetry-collector
     alias: otel-gateway
+    version: 0.174.0
+    repository: https://open-telemetry.github.io/opentelemetry-helm-charts
+  - name: opentelemetry-collector
+    alias: otel-agent
+    version: 0.174.0
+    repository: https://open-telemetry.github.io/opentelemetry-helm-charts
+  - name: opentelemetry-collector
+    alias: otel-cluster
     version: 0.174.0
     repository: https://open-telemetry.github.io/opentelemetry-helm-charts
