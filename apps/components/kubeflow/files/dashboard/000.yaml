@@ -5474,6 +5474,9 @@ data:
     #
     app.kubernetes.io/part-of: "kubeflow-profile"
     istio.io/dataplane-mode: "ambient"
+    # The controller always adds istio-injection=enabled; ambient has no sidecar CNI, so
+    # istio-init would need NET_ADMIN, which the baseline Pod Security level rejects.
+    istio-injection: ""
     katib.kubeflow.org/metrics-collector-injection: "enabled"
     pipelines.kubeflow.org/enabled: "true"
     serving.kubeflow.org/inferenceservice: "enabled"
