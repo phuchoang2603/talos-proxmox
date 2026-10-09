@@ -5531,6 +5531,12 @@ spec:
         name: jupyter-web-app
         ports:
         - containerPort: 5000
+        resources:
+          requests:
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -5889,6 +5895,12 @@ spec:
         name: tensorboards-web-app
         ports:
         - containerPort: 5000
+        resources:
+          requests:
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -5939,6 +5951,12 @@ spec:
         name: volumes-web-app
         ports:
         - containerPort: 5000
+        resources:
+          requests:
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
