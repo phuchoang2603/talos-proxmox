@@ -2,16 +2,7 @@
 
 Two independent Kubernetes environments, **dev** and **prod**, run Talos on fixed Proxmox VMs. Prod runs continuously. Dev exists only while an operator needs it, to rehearse platform changes, and is built and destroyed on demand. Each can add stateless AWS workers when workloads need more capacity. OpenTofu provisions the infrastructure; each cluster's Argo CD manages its applications; Doppler supplies credentials.
 
-```mermaid
-flowchart LR
-    Git["Git repository"] --> CI["GitHub Actions / OpenTofu"]
-    CI --> Dev["dev: Proxmox + Talos + Argo CD"]
-    CI --> Prod["prod: Proxmox + Talos + Argo CD"]
-    Git --> Dev
-    Git --> Prod
-    Dev <-->|"KubeSpan"| AWSDev["dev AWS workers: 0–2"]
-    Prod <-->|"KubeSpan"| AWSProd["prod AWS workers: 0–2"]
-```
+![Production architecture](docs/architecture/diagrams/architecture.svg)
 
 Persistent workloads stay on Proxmox, on local-path node storage in both environments. Prod runs three control-plane VMs, one per Proxmox host, that also run workloads; only `prod-server1` sits on SSD, so write-heavy volumes belong there. Each environment has its own state workspaces, Doppler config, AWS worker group, and Argo CD. Neither cluster manages the other.
 
@@ -19,6 +10,7 @@ Persistent workloads stay on Proxmox, on local-path node storage in both environ
 
 | I want to… | Read |
 | --- | --- |
+| View the production architecture diagram | [Production architecture SVG](docs/architecture/diagrams/architecture.svg) |
 | Contribute, validate, or deploy | [Contributing and setup](CONTRIBUTING.md) |
 | Understand provisioning, state, and CI | [Terraform and CI architecture](docs/architecture/terraform-ci.md) |
 | Understand AWS networking and autoscaling | [Hybrid AWS worker architecture](docs/architecture/hybrid-aws-workers.md) |
