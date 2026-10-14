@@ -7,7 +7,7 @@ store:
     name: clickstack
     image:
       repository: clickhouse/clickhouse-server
-      tag: "25.7-alpine"
+      tag: "25.12-alpine"
     # Sized from observed use: ingest and merges hold ~1-1.5 cores. ClickHouse caps itself at
     # 90% of the memory limit and sizes its caches from it.
     resources:
