@@ -20,7 +20,7 @@ jobs:
       - name: Setup OpenTofu
         uses: opentofu/setup-opentofu@v1
         with:
-          tofu_version: 1.12.5
+          tofu_version: v1.13.1
 
       - name: OpenTofu Init
         run: tofu init -backend=false
