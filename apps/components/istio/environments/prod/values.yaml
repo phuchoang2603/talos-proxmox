@@ -18,6 +18,8 @@ istiod:
             - content-type
             - set-cookie
   pilot:
+    cni:
+      enabled: true
     env:
       PILOT_JWT_PUB_KEY_REFRESH_INTERVAL: 1m
 
