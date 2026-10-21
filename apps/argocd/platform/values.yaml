@@ -139,6 +139,12 @@ components:
     syncWave: "0"
     releaseName: mongodb-operator
     clusters: [dev, prod]
+  redis-operator:
+    path: apps/components/redis-operator
+    namespace: operators
+    syncWave: "0"
+    releaseName: redis-operator
+    clusters: [dev, prod]
   clickhouse-operator:
     path: apps/components/clickhouse-operator
     namespace: operators

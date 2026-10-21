@@ -1,0 +1,9 @@
+# Watch Redis (standalone/replication/cluster) resources across all namespaces.
+redis-operator:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi

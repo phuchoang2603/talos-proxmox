@@ -1,0 +1,9 @@
+apiVersion: v2
+name: redis-operator
+description: OT-CONTAINER-KIT Redis operator wrapper (runs Valkey images)
+type: application
+version: 0.1.0
+dependencies:
+  - name: redis-operator
+    version: 0.27.0
+    repository: https://ot-container-kit.github.io/helm-charts
