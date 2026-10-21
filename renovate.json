@@ -6,5 +6,12 @@
   "postUpdateOptions": [
     "helmUpdateSubChartArchives"
   ],
-  "automerge": false
+  "automerge": false,
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "automerge": true,
+      "platformAutomerge": true
+    }
+  ]
 }
