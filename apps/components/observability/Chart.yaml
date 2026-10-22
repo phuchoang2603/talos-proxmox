@@ -9,13 +9,13 @@ dependencies:
     repository: https://grafana-community.github.io/helm-charts
   - name: opentelemetry-collector
     alias: otel-gateway
-    version: 0.176.1
+    version: 0.177.0
     repository: https://open-telemetry.github.io/opentelemetry-helm-charts
   - name: opentelemetry-collector
     alias: otel-agent
-    version: 0.176.1
+    version: 0.177.0
     repository: https://open-telemetry.github.io/opentelemetry-helm-charts
   - name: opentelemetry-collector
     alias: otel-cluster
-    version: 0.176.1
+    version: 0.177.0
     repository: https://open-telemetry.github.io/opentelemetry-helm-charts
