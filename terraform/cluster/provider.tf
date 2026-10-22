@@ -15,7 +15,7 @@ terraform {
     }
     doppler = {
       source  = "DopplerHQ/doppler"
-      version = "1.21.5"
+      version = "1.22.1"
     }
   }
   # Select talos-cluster-dev or talos-cluster-prod with TF_WORKSPACE.

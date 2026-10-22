@@ -8,7 +8,7 @@ terraform {
     }
     doppler = {
       source  = "DopplerHQ/doppler"
-      version = "1.21.5"
+      version = "1.22.1"
     }
     github = {
       source  = "integrations/github"
