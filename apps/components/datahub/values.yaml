@@ -65,16 +65,9 @@ datahub:
     resources:
       requests: {cpu: 100m, memory: 768Mi}
       limits: {cpu: "1", memory: 1536Mi}
-    extraVolumes:
-      - name: frontend-users
-        secret:
-          secretName: datahub-frontend-users
-    extraVolumeMounts:
-      - name: frontend-users
-        mountPath: /datahub-frontend/conf/user.props
-        subPath: user.props
-        readOnly: true
     extraEnvs:
+      - name: AUTH_JAAS_ENABLED
+        value: "false"
       - name: JAVA_TOOL_OPTIONS
         value: -Xms256m -Xmx512m
   acryl-datahub-actions:
@@ -93,7 +86,17 @@ datahub:
       argocd.argoproj.io/hook: Sync
       argocd.argoproj.io/sync-wave: "1"
       argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    extraVolumes:
+      - name: bootstrap-policies
+        configMap:
+          name: datahub-bootstrap-policies
+    extraVolumeMounts:
+      - name: bootstrap-policies
+        mountPath: /etc/datahub/bootstrap
+        readOnly: true
     extraEnvs:
+      - name: BOOTSTRAP_POLICIES_FILE
+        value: file:///etc/datahub/bootstrap/policies.json
       - name: JAVA_TOOL_OPTIONS
         value: -Xms512m -Xmx1g
     resources:
