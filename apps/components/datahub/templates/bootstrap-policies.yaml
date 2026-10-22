@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: datahub-bootstrap-policies
+data:
+  policies.json: |
+{{ .Files.Get "files/bootstrap-policies.json" | indent 4 }}
