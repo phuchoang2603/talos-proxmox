@@ -82,6 +82,9 @@ datahub:
   datahub-ingestion-cron:
     enabled: false
   datahubSystemUpdate:
+    serviceAccount:
+      create: false
+      rbac: false
     nonblocking:
       annotations:
         argocd.argoproj.io/hook: PostSync
