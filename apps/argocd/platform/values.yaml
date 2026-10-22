@@ -96,6 +96,13 @@ components:
     syncWave: "2"
     releaseName: kubeflow
     clusters: [prod]
+  datahub:
+    path: apps/components/datahub
+    namespace: datahub
+    syncWave: "3"
+    releaseName: datahub
+    clusters: [prod]
+    enabled: false
   metrics-server:
     path: apps/components/metrics-server
     namespace: kube-system

@@ -63,7 +63,10 @@
           },
           "sourceType": {
             "type": "string",
-            "enum": ["helm", "kustomize"]
+            "enum": [
+              "helm",
+              "kustomize"
+            ]
           },
           "clusters": {
             "type": "array",
@@ -93,19 +96,34 @@
             "minItems": 1,
             "items": {
               "type": "object",
-              "required": ["group", "kind", "jsonPointers"],
+              "required": [
+                "group",
+                "kind",
+                "jsonPointers"
+              ],
               "additionalProperties": false,
               "properties": {
-                "group": { "type": "string" },
-                "kind": { "type": "string" },
-                "name": { "type": "string" },
+                "group": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
                 "jsonPointers": {
                   "type": "array",
                   "minItems": 1,
-                  "items": { "type": "string" }
+                  "items": {
+                    "type": "string"
+                  }
                 }
               }
             }
+          },
+          "enabled": {
+            "type": "boolean"
           }
         }
       }

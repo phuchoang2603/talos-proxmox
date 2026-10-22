@@ -26,3 +26,26 @@ Use `devenv shell` for `helm lint` and `helm template` in both repos; supply `--
 A bounded CUDA smoke Job already passed on prod-server1 on October 6, 2026 (Job `default/kubeflow-gpu-smoke-20261006`, CUDA result 42). This verifies GPU scheduling and execution only; it does not prove Kubeflow workload integration.
 
 The GPU is exposed only through DRA (DeviceClass `gpu.nvidia.com` maps the extended resource `nvidia.com/gpu`), so no node reports `nvidia.com/gpu` capacity and the Jupyter spawner's GPU field lists no vendors. Create GPU notebooks from a Notebook manifest that sets `nvidia.com/gpu` limits. Do not patch node capacity to make the field appear: the scheduler would then account the fake node resource instead of allocating a DRA device.
+
+## Historical DP1 platform prerequisites
+
+Spark Operator's watched namespaces include `fraud-data-prod` alongside `kubeflow`; the fraud application owns the data namespace and SparkApplications. The platform's optional `datahub` component is disabled until external credentials, dependency readiness and combined capacity are verified. It installs no additional shared operators. Its pinned official DataHub chart is 1.1.7, server v1.7.0.1; dependencies are CNPG PostgreSQL 16.13, Strimzi Kafka 4.2.1 and OpenSearch chart 2.36.0/image 2.19.5. The installed Strimzi operator advertises Kafka 4.2.1 support. DataHub's supported search integration is OpenSearch 2.x.
+
+The rendered budgets below are requests/limits, before operator overhead; only one DP1 SparkApplication runs at a time. JVM heap leaves room for native allocations. Setup has separate blocking/nonblocking update Jobs, each budgeted below.
+
+| Workload | CPU request / limit | Memory request / limit | JVM heap | Persistent storage |
+| --- | --- | --- | --- | --- |
+| GMS | 0.5 / 2 cores | 2 / 3 GiB | 1 GiB | PostgreSQL/search/Kafka below |
+| Frontend | 0.1 / 1 cores | 768 / 1536 MiB | 512 MiB | None |
+| PostgreSQL | 0.25 / 1 cores | 512 MiB / 1 GiB | N/A | 10 GiB local-path |
+| Kafka combined broker/controller | 0.5 / 2 cores | 1536 MiB / 2 GiB | 1 GiB | 10 GiB local-path |
+| OpenSearch | 0.5 / 2 cores | 2 / 3 GiB | 1 GiB | 20 GiB local-path |
+| Each update Job | 0.5 / 2 cores | 1 / 2 GiB | 1 GiB | None |
+| DP1 driver + executor | 2 / operator defaults | 5 GiB including overhead | 2 GiB each | Ephemeral shuffle/spill |
+| DP1 metadata stage | 0.1 / 1 cores | 512 MiB / 1 GiB | N/A | Reports in lake evidence scope |
+
+On 2026-10-22, read-only inspection found no DataHub deployment. Node allocatable CPU was 7.5/7.5/3.5 cores and memory about 29.7/14.0/14.0 GiB. Existing requested CPU was 4.825/3.19/2.895 cores and memory 11.89/6.31/6.44 GiB. Instantaneous usage was 4.372/2.242/1.665 cores and 11059/8718/9739 MiB. Steady DataHub requests add 1.85 cores and 6.75 GiB, plus 40 GiB of node-bound PVCs; DP1 adds at least 2 cores and 5 GiB, with setup Jobs temporarily adding 0.5 cores/1 GiB each. This is a preliminary inventory, not rollout acceptance: limits overcommit physical resources, free local-path disk, OpenSearch host requirements, restart placement and measured concurrent peak Spark memory/shuffle still need validation. Keep the component disabled until readiness and simultaneous scheduling pass.
+
+Provision the following external keys in platform Doppler `talos-proxmox/prod`: `DATAHUB_SYSTEM_CLIENT_SECRET`, `DATAHUB_TOKEN_SIGNING_KEY`, `DATAHUB_TOKEN_SALT`, `DATAHUB_ENCRYPTION_KEY`, `DATAHUB_POSTGRES_PASSWORD` and `DATAHUB_FRONTEND_USERS` (Java `user.props` content). Retain auth/encryption/database keys across restarts. ESO targets contain no inline credentials. The frontend has no public ingress; access it through `kubectl -n datahub port-forward service/datahub-datahub-frontend 9002:9002` with the external user credential. GMS authentication is enabled and the private network policy permits application-namespace access on 8080. A separate DP1 token and metadata identity must be restricted and verified by authenticated publication/readback before enabling the consumer.
+
+Render with `helm template datahub apps/components/datahub -n datahub` and render the platform root with `--set cluster=prod --set components.datahub.enabled=true`. The blocking system-update Job is an Argo Sync hook after dependencies, followed by GMS/frontend in wave 2; the upstream PreSync hook would deadlock a fresh deployment of these bundled dependencies. During reconciliation, verify ExternalSecrets, CNPG readiness, Kafka metadata/topics, OpenSearch health, successful blocking/nonblocking update Jobs, authenticated GMS and frontend login. Then restart each stateful dependency and verify metadata/assertions survive; observe the complete DataHub plus Spark run against the budgets above. All dependency clusters have one instance, local-path volumes are node-bound, and this course deployment has no HA or verified backup/restore. Do not remove PVCs or change shared operators during rollback; disable the optional component and stop the consumer workflows while preserving catalog state.

@@ -1,0 +1,118 @@
+datahub:
+  global:
+    datahub:
+      version: v1.7.0.1
+      metadata_service_authentication:
+        enabled: true
+        provisionSecrets:
+          enabled: false
+      encryptionKey:
+        provisionSecret:
+          enabled: false
+    elasticsearch:
+      host: datahub-search
+      port: "9200"
+      useSSL: "false"
+      implementation: opensearch
+    kafka:
+      bootstrap:
+        server: datahub-kafka-kafka-bootstrap:9092
+      partitions: 1
+      replicationFactor: 1
+    sql:
+      datasource:
+        host: datahub-postgres-rw:5432
+        hostForpostgresqlClient: datahub-postgres-rw
+        port: "5432"
+        url: jdbc:postgresql://datahub-postgres-rw:5432/datahub
+        driver: org.postgresql.Driver
+        database: datahub
+        username: datahub
+        password:
+          secretRef: datahub-postgres-credentials
+          secretKey: password
+  datahub-gms:
+    annotations:
+      argocd.argoproj.io/sync-wave: "2"
+    replicaCount: 1
+    resources:
+      requests: {cpu: 500m, memory: 2Gi}
+      limits: {cpu: "2", memory: 3Gi}
+    extraEnvs:
+      - name: JAVA_TOOL_OPTIONS
+        value: -Xms1g -Xmx1g
+  datahub-frontend:
+    annotations:
+      argocd.argoproj.io/sync-wave: "2"
+    replicaCount: 1
+    resources:
+      requests: {cpu: 100m, memory: 768Mi}
+      limits: {cpu: "1", memory: 1536Mi}
+    extraVolumes:
+      - name: frontend-users
+        secret:
+          secretName: datahub-frontend-users
+    extraVolumeMounts:
+      - name: frontend-users
+        mountPath: /datahub-frontend/conf/user.props
+        subPath: user.props
+        readOnly: true
+    extraEnvs:
+      - name: JAVA_TOOL_OPTIONS
+        value: -Xms256m -Xmx512m
+  acryl-datahub-actions:
+    enabled: false
+  datahub-ingestion-cron:
+    enabled: false
+  datahubSystemUpdate:
+    nonblocking:
+      annotations:
+        argocd.argoproj.io/hook: PostSync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    annotations:
+      helm.sh/hook: null
+      helm.sh/hook-weight: null
+      helm.sh/hook-delete-policy: null
+      argocd.argoproj.io/hook: Sync
+      argocd.argoproj.io/sync-wave: "1"
+      argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    extraEnvs:
+      - name: JAVA_TOOL_OPTIONS
+        value: -Xms512m -Xmx1g
+    resources:
+      requests: {cpu: 500m, memory: 1Gi}
+      limits: {cpu: "2", memory: 2Gi}
+  postgresqlSetupJob:
+    enabled: true
+    resources:
+      requests: {cpu: 100m, memory: 256Mi}
+      limits: {cpu: "1", memory: 512Mi}
+  mysqlSetupJob:
+    enabled: false
+opensearch:
+  fullnameOverride: datahub-search
+  masterService: datahub-search
+  image:
+    tag: "2.19.5"
+  singleNode: true
+  replicas: 1
+  opensearchJavaOpts: -Xms1g -Xmx1g
+  resources:
+    requests: {cpu: 500m, memory: 2Gi}
+    limits: {cpu: "2", memory: 3Gi}
+  persistence:
+    enabled: true
+    storageClass: local-path
+    size: 20Gi
+  sysctlInit:
+    enabled: false
+  config:
+    opensearch.yml: |
+      cluster.name: datahub
+      network.host: 0.0.0.0
+      plugins.security.disabled: true
+  extraEnvs:
+    - name: DISABLE_INSTALL_DEMO_CONFIG
+      value: "true"
+    - name: DISABLE_SECURITY_PLUGIN
+      value: "true"

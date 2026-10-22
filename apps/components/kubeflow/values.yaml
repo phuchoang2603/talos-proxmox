@@ -20,5 +20,6 @@ spark-operator:
   spark:
     jobNamespaces:
       - kubeflow
+      - fraud-data-prod
   certManager:
     enable: true

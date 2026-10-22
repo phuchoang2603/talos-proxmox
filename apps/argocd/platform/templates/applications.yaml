@@ -1,6 +1,6 @@
 {{- $cluster := .Values.cluster }}
 {{- range $name, $app := $.Values.components }}
-{{- if has $cluster $app.clusters }}
+{{- if and (has $cluster $app.clusters) (or (not (hasKey $app "enabled")) $app.enabled) }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
