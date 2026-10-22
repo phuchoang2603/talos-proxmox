@@ -11,6 +11,10 @@ spec:
     - from:
         - namespaceSelector:
             matchLabels:
+              kubernetes.io/metadata.name: operators
+    - from:
+        - namespaceSelector:
+            matchLabels:
               kubernetes.io/metadata.name: fraud-data-prod
       ports:
         - {port: 8080, protocol: TCP}
