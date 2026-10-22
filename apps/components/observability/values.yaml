@@ -176,7 +176,7 @@ otel-gateway:
   mode: deployment
   image:
     repository: otel/opentelemetry-collector-contrib
-    tag: "0.161.0"
+    tag: "0.163.2"
   resources:
     requests:
       cpu: 150m
@@ -252,7 +252,7 @@ otel-agent:
   mode: daemonset
   image:
     repository: otel/opentelemetry-collector-contrib
-    tag: "0.161.0"
+    tag: "0.163.2"
   presets:
     logsCollection:
       enabled: true
@@ -389,7 +389,7 @@ otel-cluster:
     istio.io/dataplane-mode: ambient
   image:
     repository: otel/opentelemetry-collector-contrib
-    tag: "0.161.0"
+    tag: "0.163.2"
   presets:
     clusterMetrics:
       enabled: true
