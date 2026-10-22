@@ -9,5 +9,5 @@ dependencies:
     version: 1.14.1
     repository: oci://public.ecr.aws/karpenter
   - name: karpenter
-    version: 1.14.1
+    version: 1.15.0
     repository: oci://public.ecr.aws/karpenter
