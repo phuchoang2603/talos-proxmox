@@ -7,7 +7,8 @@
         "allUsers": false,
         "allGroups": false,
         "users": [
-          "urn:li:corpuser:datahub"
+          "urn:li:corpuser:datahub",
+          "urn:li:corpuser:xuanphuc.a1gv@gmail.com"
         ]
       },
       "privileges": [
@@ -64,7 +65,8 @@
         "allUsers": false,
         "allGroups": false,
         "users": [
-          "urn:li:corpuser:datahub"
+          "urn:li:corpuser:datahub",
+          "urn:li:corpuser:xuanphuc.a1gv@gmail.com"
         ]
       },
       "privileges": [
@@ -601,102 +603,6 @@
       "state": "ACTIVE",
       "type": "METADATA",
       "editable": true
-    }
-  },
-  {
-    "urn": "urn:li:dataHubPolicy:operator-platform",
-    "info": {
-      "actors": {
-        "resourceOwners": false,
-        "allUsers": false,
-        "allGroups": false,
-        "users": [
-          "urn:li:corpuser:xuanphuc.a1gv@gmail.com"
-        ]
-      },
-      "privileges": [
-        "CREATE_LOGICAL_MODELS",
-        "MANAGE_POLICIES",
-        "MANAGE_INGESTION",
-        "MANAGE_SECRETS",
-        "MANAGE_USERS_AND_GROUPS",
-        "VIEW_ANALYTICS",
-        "GENERATE_PERSONAL_ACCESS_TOKENS",
-        "MANAGE_ACCESS_TOKENS",
-        "MANAGE_SERVICE_ACCOUNTS",
-        "MANAGE_DOMAINS",
-        "MANAGE_GLOBAL_ANNOUNCEMENTS",
-        "MANAGE_TESTS",
-        "MANAGE_GLOSSARIES",
-        "MANAGE_USER_CREDENTIALS",
-        "MANAGE_TAGS",
-        "MANAGE_GLOBAL_VIEWS",
-        "MANAGE_GLOBAL_SETTINGS",
-        "RESTORE_INDICES_PRIVILEGE",
-        "GET_TIMESERIES_INDEX_SIZES_PRIVILEGE",
-        "TRUNCATE_TIMESERIES_INDEX_PRIVILEGE",
-        "GET_ES_TASK_STATUS_PRIVILEGE",
-        "SET_WRITEABLE_PRIVILEGE",
-        "APPLY_RETENTION_PRIVILEGE",
-        "MANAGE_GLOBAL_OWNERSHIP_TYPES",
-        "GET_ANALYTICS_PRIVILEGE",
-        "CREATE_BUSINESS_ATTRIBUTE",
-        "MANAGE_BUSINESS_ATTRIBUTE",
-        "MANAGE_STRUCTURED_PROPERTIES",
-        "VIEW_STRUCTURED_PROPERTIES_PAGE",
-        "MANAGE_DOCUMENTATION_FORMS",
-        "MANAGE_FEATURES",
-        "MANAGE_SYSTEM_OPERATIONS",
-        "GET_PLATFORM_EVENTS",
-        "MANAGE_HOME_PAGE_TEMPLATES",
-        "GET_METADATA_CHANGE_LOG_EVENTS",
-        "MANAGE_DOCUMENTS",
-        "GET_TOPIC_EVENTS"
-      ],
-      "displayName": "Operator - All Platform Privileges",
-      "description": "Grants the operator Dex identity the root user's privileges.",
-      "state": "ACTIVE",
-      "type": "PLATFORM",
-      "editable": false
-    }
-  },
-  {
-    "urn": "urn:li:dataHubPolicy:operator-metadata",
-    "info": {
-      "actors": {
-        "resourceOwners": false,
-        "allUsers": false,
-        "allGroups": false,
-        "users": [
-          "urn:li:corpuser:xuanphuc.a1gv@gmail.com"
-        ]
-      },
-      "privileges": [
-        "EDIT_ENTITY",
-        "VIEW_ENTITY_PAGE",
-        "VIEW_DATASET_USAGE",
-        "VIEW_DATASET_PROFILE",
-        "VIEW_DATASET_OPERATIONS",
-        "EDIT_LINEAGE",
-        "EDIT_ENTITY_ASSERTIONS",
-        "SEARCH_PRIVILEGE",
-        "GET_COUNTS_PRIVILEGE",
-        "GET_TIMESERIES_ASPECT_PRIVILEGE",
-        "GET_ENTITY_PRIVILEGE",
-        "GET_TIMELINE_PRIVILEGE",
-        "PRODUCE_PLATFORM_EVENT_PRIVILEGE",
-        "MANAGE_DATA_PRODUCTS",
-        "MANAGE_GLOBAL_OWNERSHIP_TYPES",
-        "DELETE_ENTITY",
-        "ES_EXPLAIN_QUERY_PRIVILEGE",
-        "EXECUTE_ENTITY",
-        "MANAGE_ASSET_SUMMARY"
-      ],
-      "displayName": "Operator - Edit and View All Resources",
-      "description": "Grants the operator Dex identity the root user's privileges.",
-      "state": "ACTIVE",
-      "type": "METADATA",
-      "editable": false
     }
   }
 ]

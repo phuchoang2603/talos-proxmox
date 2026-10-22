@@ -64,7 +64,11 @@ datahub:
       scope: "openid profile email"
     resources:
       requests: {cpu: 100m, memory: 768Mi}
-      limits: {cpu: "1", memory: 1536Mi}
+      limits: {cpu: "2", memory: 1536Mi}
+    livenessProbe:
+      timeoutSeconds: 5
+    readinessProbe:
+      timeoutSeconds: 5
     extraEnvs:
       - name: AUTH_JAAS_ENABLED
         value: "false"
