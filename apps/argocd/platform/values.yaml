@@ -102,7 +102,6 @@ components:
     syncWave: "3"
     releaseName: datahub
     clusters: [prod]
-    enabled: false
   metrics-server:
     path: apps/components/metrics-server
     namespace: kube-system

@@ -40,6 +40,7 @@ identity:
   internalIssuer: http://dex.auth.svc.cluster.local:5556/dex
   redirectURI: https://kubeflow.phuchoang.sbs/oauth2/callback
   grafanaRedirectURI: https://grafana.phuchoang.sbs/login/generic_oauth
+  datahubRedirectURI: https://datahub.phuchoang.sbs/callback/oidc
 
 tunnel:
   clusterTunnel: talos-proxmox

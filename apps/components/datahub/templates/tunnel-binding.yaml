@@ -1,0 +1,14 @@
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: datahub
+  namespace: {{ .Release.Namespace }}
+subjects:
+  - kind: Service
+    name: datahub-datahub-frontend
+    spec:
+      fqdn: {{ .Values.tunnel.hostname }}
+      target: http://datahub-datahub-frontend.{{ .Release.Namespace }}.svc.cluster.local:9002
+tunnelRef:
+  kind: ClusterTunnel
+  name: {{ .Values.tunnel.clusterTunnel }}

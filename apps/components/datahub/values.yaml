@@ -45,6 +45,23 @@ datahub:
     annotations:
       argocd.argoproj.io/sync-wave: "2"
     replicaCount: 1
+    service:
+      type: ClusterIP
+    authCookies:
+      sameSite: LAX
+      secure: "true"
+    oidcAuthentication:
+      enabled: true
+      provider: other
+      clientId: datahub
+      clientSecretRef:
+        secretRef: datahub-oidc-client
+        secretKey: client-secret
+      discoveryUri: https://auth.phuchoang.sbs/dex/.well-known/openid-configuration
+      oidcBaseUrl: https://datahub.phuchoang.sbs
+      user_name_claim: email
+      user_name_claim_regex: "(.*)"
+      scope: "openid profile email"
     resources:
       requests: {cpu: 100m, memory: 768Mi}
       limits: {cpu: "1", memory: 1536Mi}
@@ -116,3 +133,7 @@ opensearch:
       value: "true"
     - name: DISABLE_SECURITY_PLUGIN
       value: "true"
+
+tunnel:
+  clusterTunnel: talos-proxmox
+  hostname: datahub.phuchoang.sbs

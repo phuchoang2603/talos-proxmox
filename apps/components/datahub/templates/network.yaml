@@ -17,6 +17,6 @@ spec:
     - from:
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: auth
+              kubernetes.io/metadata.name: cloudflare-operator-system
       ports:
         - {port: 9002, protocol: TCP}
