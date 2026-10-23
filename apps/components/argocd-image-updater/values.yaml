@@ -1,0 +1,7 @@
+argocd-image-updater:
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      memory: 256Mi

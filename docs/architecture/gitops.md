@@ -4,6 +4,8 @@
 
 Each environment runs its own Argo CD in namespace `argo-cd`. Both read the same public Git repository and shared platform chart, but each renders only its own components and targets its local Kubernetes API.
 
+Prod also runs Argo CD Image Updater in `argo-cd`, installed by the platform component catalog. Application repositories own their `ImageUpdater` resources, tag policies and Git write-back targets. Git write-back reuses Argo CD repository credentials, which must permit pushing to the selected branch; this installation does not create repository or registry credentials.
+
 ## Bootstrap and reconciliation
 
 ```mermaid

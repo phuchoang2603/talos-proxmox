@@ -60,6 +60,12 @@ components:
         jsonPointers:
           - /webhooks/0/clientConfig/caBundle
           - /webhooks/0/failurePolicy
+  argocd-image-updater:
+    path: apps/components/argocd-image-updater
+    namespace: argo-cd
+    syncWave: "-1"
+    releaseName: argocd-image-updater
+    clusters: [prod]
   argo-workflows:
     path: apps/components/argo-workflows
     namespace: argo-workflows
