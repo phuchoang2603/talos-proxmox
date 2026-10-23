@@ -62,8 +62,8 @@ jobs:
         run: |
           tofu init -input=false
           # shellcheck disable=SC2086
-          tofu plan -input=false -no-color ${PLAN_FLAGS} -var-file="env/${TF_VAR_env}/main.tfvars" -out=.planfile
-          tofu apply -input=false -auto-approve .planfile
+          tofu plan -input=false -lock-timeout=5m -no-color ${PLAN_FLAGS} -var-file="env/${TF_VAR_env}/main.tfvars" -out=.planfile
+          tofu apply -input=false -lock-timeout=5m -auto-approve .planfile
 
       # Everything the platform root manages lives in the cluster just destroyed, so its state is
       # emptied instead of destroyed. This runs only after the cluster destroy succeeds.
@@ -86,5 +86,5 @@ jobs:
           TF_WORKSPACE: talos-platform-${{ inputs.environment }}
         run: |
           tofu init -input=false
-          tofu plan -input=false -no-color -out=.planfile
-          tofu apply -input=false -auto-approve .planfile
+          tofu plan -input=false -lock-timeout=5m -no-color -out=.planfile
+          tofu apply -input=false -lock-timeout=5m -auto-approve .planfile
