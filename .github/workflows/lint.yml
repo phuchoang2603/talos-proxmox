@@ -38,7 +38,7 @@ jobs:
       KUBE_VERSION: 1.36.3
     steps:
       - uses: actions/checkout@v4
-      - uses: azure/setup-helm@v4
+      - uses: azure/setup-helm@v5
 
       - name: Lint component charts and overlays
         run: |
