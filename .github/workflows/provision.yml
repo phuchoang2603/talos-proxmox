@@ -28,7 +28,7 @@ jobs:
       TF_IN_AUTOMATION: true
       PLAN_FLAGS: ${{ inputs.action == 'destroy' && '-destroy' || '' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dopplerhq/cli-action@v3
       - uses: opentofu/setup-opentofu@v1
         with:
