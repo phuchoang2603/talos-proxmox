@@ -9,6 +9,12 @@ resource "talos_machine_configuration_apply" "controlplane" {
   config_patches = concat([
     yamlencode(local.common_machine_patch),
     local.node_machine_patches[each.key],
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "HostnameConfig"
+      hostname   = each.key
+      auto       = "off"
+    }),
   ], local.kubespan_machine_patches, local.controlplane_machine_patches)
 
   depends_on = [
@@ -27,6 +33,12 @@ resource "talos_machine_configuration_apply" "worker" {
   config_patches = concat([
     yamlencode(local.common_machine_patch),
     local.node_machine_patches[each.key],
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "HostnameConfig"
+      hostname   = each.key
+      auto       = "off"
+    }),
   ], local.kubespan_machine_patches)
 
   depends_on = [
