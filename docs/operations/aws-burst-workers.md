@@ -58,6 +58,12 @@ If Karpenter launches a node that a pod does not fit on, compare `kubectl get no
 
 See [the join sequence](../architecture/hybrid-aws-workers.md#scale-from-zero-then-return-to-zero) for the responsibilities of each component.
 
+## GPU training pool
+
+The `aws-gpu-training` NodePool is opt-in (`gpu.enabled` in the environment values) and separate from `aws-burst`. It is on-demand only, limited to one availability zone and the single-GPU types in `gpu.instanceTypes`, and its `gpu.limits` cover exactly one two-worker group. Nodes carry the `burst.talos.dev/stateless` taint plus `burst.talos.dev/gpu-training=true:NoSchedule` and the label `burst.talos.dev/workload=gpu-training`. CPU workloads do not tolerate the GPU taint, so they cannot consume this capacity.
+
+A GPU workload must tolerate both taints, select `burst.talos.dev/workload=gpu-training`, and request one GPU per pod. Nodes are removed only when empty, after `gpu.consolidateAfter`, and expire after `gpu.expireAfter`. To stop new GPU capacity without removing the configuration, set `gpu.paused: true`, which renders the pool limits as zero.
+
 ## Return to zero or pause bursting
 
 For normal scale-down, remove or scale down the burst workloads through their Git owner and let Karpenter remove unneeded nodes. Leaving AWS-only workloads Pending can trigger new capacity.
