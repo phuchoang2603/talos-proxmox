@@ -8,11 +8,11 @@ store:
     image:
       repository: clickhouse/clickhouse-server
       tag: "25.12-alpine"
-    # Sized from observed use: ingest and merges hold ~1-1.5 cores. ClickHouse caps itself at
-    # 90% of the memory limit and sizes its caches from it.
+    # Request reserves a floor; ingest and merges burst to ~1-1.5 cores under the unset CPU limit.
+    # ClickHouse caps itself at 90% of the memory limit and sizes its caches from it.
     resources:
       requests:
-        cpu: 1500m
+        cpu: 500m
         memory: 4Gi
       limits:
         memory: 4Gi
