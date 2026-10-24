@@ -2,7 +2,7 @@ locals {
   doppler_project = "talos-proxmox"
   secrets         = data.doppler_secrets.this.map
 
-  gpu_enabled      = try(local.secrets.AWS_GPU_AMI_ID, "") != ""
+  gpu_enabled      = nonsensitive(try(local.secrets.AWS_GPU_AMI_ID, "") != "")
   gpu_secret_types = local.gpu_enabled ? { AWS_GPU_WORKER_MACHINE_CONFIG = "string" } : {}
 
   gpu_secret_values = local.gpu_enabled ? {
