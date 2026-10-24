@@ -1,0 +1,47 @@
+---
+apiVersion: trainer.kubeflow.org/v1alpha1
+kind: ClusterTrainingRuntime
+metadata:
+  labels:
+    trainer.kubeflow.org/framework: torch
+    trainer.kubeflow.org/webhook-validation: disabled
+  name: aws-gpu-training
+  namespace: kubeflow-system
+spec:
+  mlPolicy:
+    numNodes: 2
+    torch: {}
+  template:
+    spec:
+      replicatedJobs:
+      - name: node
+        template:
+          metadata:
+            labels:
+              trainer.kubeflow.org/trainjob-ancestor-step: trainer
+          spec:
+            backoffLimit: 0
+            template:
+              spec:
+                restartPolicy: Never
+                nodeSelector:
+                  burst.talos.dev/compute: aws
+                  burst.talos.dev/workload: gpu-training
+                tolerations:
+                - {key: burst.talos.dev/stateless, operator: Equal, value: "true", effect: NoSchedule}
+                - {key: burst.talos.dev/gpu-training, operator: Equal, value: "true", effect: NoSchedule}
+                affinity:
+                  podAntiAffinity:
+                    requiredDuringSchedulingIgnoredDuringExecution:
+                    - topologyKey: kubernetes.io/hostname
+                      labelSelector:
+                        matchLabels:
+                          jobset.sigs.k8s.io/replicatedjob-name: node
+                containers:
+                - image: pytorch/pytorch:2.13.0-cuda13.0-cudnn9-runtime
+                  name: node
+                  resources:
+                    requests:
+                      nvidia.com/gpu: "1"
+                    limits:
+                      nvidia.com/gpu: "1"
