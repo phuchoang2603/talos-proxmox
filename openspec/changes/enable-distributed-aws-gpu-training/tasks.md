@@ -3,11 +3,11 @@
 ## 1. Bounded GPU provisioning
 
 - [x] 1.1 Extend `karpenter-nodes` values/templates for an optional independent GPU NodeClass/Pool while retaining the existing CPU identities; verify default and GPU-enabled Helm renders and finite GPU limits.
-- [ ] 1.2 Wire GPU AMI/bootstrap and pool settings through `terraform/platform/karpenter.tf` and environment secret references; verify OpenTofu validation/plan preserves ownership and exposes no bootstrap values in routine output.
-- [ ] 1.3 Pin a compatible GPU Talos schematic/AMI and GPU machine configuration, then extend the Karpenter IAM AMI allowlist; verify policy permits only approved CPU/GPU images and the environment's existing worker profile.
-- [ ] 1.4 Check regional G-family quota and two-instance availability in a selected us-east-1 zone, choose compatible single-GPU types and disk sizing, and set finite limits for one two-worker group; retain offering/quota/config evidence before enablement.
-- [ ] 1.5 Add GPU-only taint/labels, empty-only consolidation, bounded expiry/grace and pause controls; verify CPU pods cannot consume GPU capacity and paused GPU submissions cannot provision nodes.
-- [ ] 1.6 Configure budget alerts and verify existing destroy/cleanup logic covers both pools and permissionless worker roles; retain non-secret plan/notification configuration and cleanup checks.
+- [x] 1.2 Wire GPU AMI/bootstrap and pool settings through `terraform/platform/karpenter.tf` and environment secret references; verify OpenTofu validation/plan preserves ownership and exposes no bootstrap values in routine output.
+- [x] 1.3 Pin a compatible GPU Talos schematic/AMI and GPU machine configuration, then extend the Karpenter IAM AMI allowlist; verify policy permits only approved CPU/GPU images and the environment's existing worker profile.
+- [x] 1.4 Check regional G-family quota and two-instance availability in a selected us-east-1 zone, choose compatible single-GPU types and disk sizing, and set finite limits for one two-worker group; retain offering/quota/config evidence before enablement.
+- [x] 1.5 Add GPU-only taint/labels, empty-only consolidation, bounded expiry/grace and pause controls; verify CPU pods cannot consume GPU capacity and paused GPU submissions cannot provision nodes.
+- [x] 1.6 Configure budget alerts and verify existing destroy/cleanup logic covers both pools and permissionless worker roles; retain non-secret plan/notification configuration and cleanup checks.
 - [ ] 1.7 Remove obsolete free-plan assumptions in affected configuration/docs and minimally update AWS worker operational guidance for GPU limits and on-demand defaults; verify existing CPU pool behavior remains documented accurately.
 
 ## 2. Accelerator and distributed runtime readiness
