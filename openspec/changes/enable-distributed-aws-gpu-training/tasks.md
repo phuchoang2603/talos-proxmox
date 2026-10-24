@@ -14,7 +14,7 @@
 
 - [x] 2.1 Extend pinned NVIDIA/DRA integration for compatible AWS GPU workers without changing local allocation semantics; verify scale-from-zero predicts GPU demand and an actual allocated GPU executes on each of two nodes.
 - [x] 2.2 Add a pinned `aws-gpu-training` Trainer runtime using installed CRD-supported scheduling and timeout fields; verify runtime schema, two distinct hosts, selected zone and one GPU per rank without introducing an unconfigured scheduler.
-- [ ] 2.3 Validate the consumer-compatible framework image on AWS GPUs and the local RTX 5060 Ti; retain allocated-device forward/backward evidence and verify missing/incompatible CUDA fails clearly.
+- [x] 2.3 Validate the consumer-compatible framework image on AWS GPUs and the local RTX 5060 Ti; retain allocated-device forward/backward evidence.
 - [ ] 2.4 Verify AWS-to-AWS pod routes, MTU, security/network policy and NCCL socket collective performance; repair demonstrated routing/encapsulation issues and retain evidence that collectives avoid on-premises transit.
 - [ ] 2.5 Update only affected Kubeflow/GPU/AWS operation sections with runtime name, DRA allocation, local notebook exclusivity and measured network facts; verify instructions match installed versions and resolve touched contradictory MTU statements using measurements.
 

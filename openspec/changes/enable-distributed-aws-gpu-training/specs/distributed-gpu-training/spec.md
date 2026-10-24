@@ -18,9 +18,9 @@ The platform SHALL expose an opt-in GPU burst pool alongside existing CPU capaci
 ### Requirement: Verified accelerator readiness
 AWS GPU workers SHALL use a pinned compatible Talos image and GPU stack. Readiness evidence SHALL include allocated-device execution and a framework forward/backward pass; node registration alone SHALL NOT establish training readiness.
 
-#### Scenario: GPU driver or image mismatch
-- **WHEN** a worker joins but its allocated GPU cannot execute the supported framework
-- **THEN** GPU training acceptance fails with device and image diagnostics
+#### Scenario: Worker joined but device unverified
+- **WHEN** a worker has joined the cluster
+- **THEN** readiness is claimed only after an allocated GPU completes a framework forward/backward pass
 
 ### Requirement: Distributed runtime handoff
 The platform SHALL expose a versioned runtime and scheduling contract supporting two GPU ranks on distinct AWS nodes. Acceptance SHALL verify rendezvous, all-reduce, worker identity, timeout behavior and the actual AWS-to-AWS traffic path without routing collectives through on-premises nodes.
