@@ -36,6 +36,18 @@ store:
   uiQueryLimits:
     maxMemoryUsage: 536870912
     maxExecutionTime: 60
+  # Hourly Parquet export of the ClickHouse telemetry tables to RustFS.
+  archive:
+    url: https://minio.home.phuchoang.sbs/telemetry-prod/clickhouse
+    lookbackHours: 2
+    tables:
+      - { name: otel_logs, time: Timestamp }
+      - { name: otel_traces, time: Timestamp }
+      - { name: otel_metrics_gauge, time: TimeUnix }
+      - { name: otel_metrics_sum, time: TimeUnix }
+      - { name: otel_metrics_histogram, time: TimeUnix }
+      - { name: otel_metrics_exponential_histogram, time: TimeUnix }
+      - { name: otel_metrics_summary, time: TimeUnix }
 
 secrets:
   refreshInterval: 1h
@@ -155,13 +167,6 @@ otel-gateway:
       maxUnavailable: 1
   podSecurityContext:
     fsGroup: 10001
-  extraVolumes:
-    - name: archive-queue
-      persistentVolumeClaim:
-        claimName: otel-gateway-queue
-  extraVolumeMounts:
-    - name: archive-queue
-      mountPath: /var/lib/otelcol
   image:
     repository: otel/opentelemetry-collector-contrib
     tag: "0.163.2"
@@ -177,21 +182,6 @@ otel-gateway:
         secretKeyRef:
           name: clickhouse-credentials
           key: otel-password
-    - name: AWS_ACCESS_KEY_ID
-      valueFrom:
-        secretKeyRef:
-          name: otel-rustfs
-          key: access-key
-    - name: AWS_SECRET_ACCESS_KEY
-      valueFrom:
-        secretKeyRef:
-          name: otel-rustfs
-          key: secret-key
-    - name: AWS_EC2_METADATA_DISABLED
-      value: "true"
-    # RustFS rejects duplicate Content-Encoding from gzip plus SDK streaming checksums.
-    - name: AWS_REQUEST_CHECKSUM_CALCULATION
-      value: when_required
   ports:
     jaeger-compact:
       enabled: false
@@ -204,9 +194,6 @@ otel-gateway:
   # Only prod's own collectors send here, through the in-cluster Service.
   alternateConfig:
     extensions:
-      file_storage:
-        directory: /var/lib/otelcol/archive
-        create_directory: true
       health_check:
         endpoint: ${env:MY_POD_IP}:13133
     receivers:
@@ -226,26 +213,6 @@ otel-gateway:
         send_batch_max_size: 2000
         timeout: 5s
     exporters:
-      awss3/archive:
-        marshaler: otlp_json
-        s3uploader:
-          region: us-east-1
-          endpoint: https://minio.home.phuchoang.sbs
-          s3_bucket: telemetry-prod
-          s3_prefix: prod
-          s3_partition_format: 'year=%Y/month=%m/day=%d/hour=%H'
-          s3_partition_timezone: UTC
-          s3_force_path_style: true
-          compression: gzip
-        timeout: 30s
-        retry_on_failure:
-          enabled: true
-          max_elapsed_time: 0s
-        sending_queue:
-          enabled: true
-          num_consumers: 1
-          queue_size: 20
-          storage: file_storage
       clickhouse:
         endpoint: tcp://clickstack-clickhouse-headless:9000?dial_timeout=10s
         database: default
@@ -260,20 +227,19 @@ otel-gateway:
     service:
       extensions:
         - health_check
-        - file_storage
       pipelines:
         logs:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [clickhouse, awss3/archive]
+          exporters: [clickhouse]
         metrics:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [clickhouse, awss3/archive]
+          exporters: [clickhouse]
         traces:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [clickhouse, awss3/archive]
+          exporters: [clickhouse]
 
 otel-agent:
   fullnameOverride: otel-agent
