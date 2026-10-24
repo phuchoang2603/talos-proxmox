@@ -27,11 +27,31 @@ nodePool:
   # Optional cap on total provisioned resources. Empty means no NodePool cap, so the AWS account's
   # vCPU quota is the only ceiling. Example: {cpu: "16", memory: 64Gi}. Set cpu "0" to pause bursting.
   limits: {}
-  # The AWS account is on the free plan, which launches only free-tier-eligible types
-  # (`aws ec2 describe-instance-types --filters Name=free-tier-eligible,Values=true`).
-  # Widen this list, or switch to category/generation requirements, on a paid account.
+  # A small allowlist of cost-effective general-purpose types. Widen this list, or switch to
+  # category/generation requirements, to let Karpenter choose from more instances.
   instanceTypes: [m7i-flex.large, c7i-flex.large]
   capacityTypes: [spot, on-demand]
   consolidateAfter: 5m
   expireAfter: 720h
+  terminationGracePeriod: 30m
+
+# Optional on-demand GPU pool for one bounded two-worker training group. Disabled until a GPU AMI,
+# machine config, zone, single-GPU types and finite limits are chosen from verified quota/offerings.
+gpu:
+  enabled: false
+  # Set cpu "0" in the NodePool limits without changing the rest of the configuration.
+  paused: false
+  amiId: ami-00000000000000000
+  userData: "# set by the platform root"
+  zone: ""
+  instanceTypes: []
+  rootVolumeSize: 100Gi
+  workloadLabelKey: burst.talos.dev/workload
+  workloadLabelValue: gpu-training
+  taintKey: burst.talos.dev/gpu-training
+  taintValue: "true"
+  # Must cover exactly one two-worker group, e.g. {cpu: "16", memory: 64Gi, nvidia.com/gpu: "2"}.
+  limits: {}
+  consolidateAfter: 5m
+  expireAfter: 24h
   terminationGracePeriod: 30m

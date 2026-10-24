@@ -39,7 +39,9 @@ The diagram represents either dev or prod. Each has its own VPC, Talos identity,
 | Default persistent storage | local-path | local-path |
 | Karpenter replicas | 1 | 1 |
 
-Both use `us-east-1` with one public subnet in each of `us-east-1a` through `us-east-1d`. There is a single `NodePool`, `aws-burst`, that allows amd64 `m7i-flex.large` and `c7i-flex.large` instances, on spot or on-demand capacity. These are the free-tier-eligible types the account can launch; a paid account can widen the list. It has no NodePool cap, so the AWS account's vCPU quota (64 on-demand, shared by dev and prod) is the ceiling; set `nodePool.limits` in the chart to add one. Workers use a pinned Talos AMI and a 40 GiB disposable `gp3` boot disk. This disk is node storage, not a Kubernetes EBS volume.
+Both use `us-east-1` with one public subnet in each of `us-east-1a` through `us-east-1d`. The CPU `NodePool`, `aws-burst`, allows amd64 `m7i-flex.large` and `c7i-flex.large` instances, on spot or on-demand capacity — a small cost-effective allowlist that can be widened in the chart. It has no NodePool cap, so the AWS account's vCPU quota (64 on-demand, shared by dev and prod) is the ceiling; set `nodePool.limits` in the chart to add one. Workers use a pinned Talos AMI and a 40 GiB disposable `gp3` boot disk. This disk is node storage, not a Kubernetes EBS volume.
+
+An opt-in second `NodePool`, `aws-gpu-training`, provides bounded on-demand GPU capacity for one distributed training group. It is disabled by default and, unlike `aws-burst`, is on-demand only with finite `cpu`/`memory`/`nvidia.com/gpu` limits sized for exactly one two-worker group, a single availability zone, and its own GPU taint. See [AWS worker operations](../operations/aws-burst-workers.md#gpu-training-pool).
 
 Configuration: [`terraform/aws/`](../../terraform/aws/), [`terraform/platform/karpenter.tf`](../../terraform/platform/karpenter.tf), and [`apps/components/karpenter-nodes/`](../../apps/components/karpenter-nodes/).
 

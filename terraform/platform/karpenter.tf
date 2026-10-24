@@ -59,6 +59,12 @@ resource "helm_release" "karpenter_nodes" {
       instanceProfile = "${local.cluster_name}-burst-worker"
       userData        = local.secrets.AWS_WORKER_MACHINE_CONFIG
     }))],
+    contains(keys(local.secrets), "AWS_GPU_AMI_ID") ? [sensitive(yamlencode({
+      gpu = {
+        amiId    = local.secrets.AWS_GPU_AMI_ID
+        userData = local.secrets.AWS_GPU_WORKER_MACHINE_CONFIG
+      }
+    }))] : [],
   )
 
   depends_on = [helm_release.karpenter]

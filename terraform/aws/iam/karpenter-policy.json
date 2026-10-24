@@ -35,7 +35,7 @@
       "Sid": "UsePinnedImage",
       "Effect": "Allow",
       "Action": ["ec2:RunInstances", "ec2:CreateFleet"],
-      "Resource": "arn:aws:ec2:REGION::image/AMI_ID"
+      "Resource": "AMI_ARNS"
     },
     {
       "Sid": "UseOwnedLaunchTemplates",
