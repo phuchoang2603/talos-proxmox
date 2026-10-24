@@ -8,6 +8,7 @@ openmetadata:
         enabled: false
       pipelineServiceClientConfig:
         enabled: false
+        type: k8s
       database:
         host: openmetadata-postgres-rw
         port: 5432
