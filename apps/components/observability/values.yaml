@@ -147,6 +147,21 @@ hyperdx-auth:
 otel-gateway:
   fullnameOverride: otel-gateway
   mode: deployment
+  replicaCount: 1
+  rollout:
+    strategy: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+  podSecurityContext:
+    fsGroup: 10001
+  extraVolumes:
+    - name: archive-queue
+      persistentVolumeClaim:
+        claimName: otel-gateway-queue
+  extraVolumeMounts:
+    - name: archive-queue
+      mountPath: /var/lib/otelcol
   image:
     repository: otel/opentelemetry-collector-contrib
     tag: "0.163.2"
@@ -162,6 +177,21 @@ otel-gateway:
         secretKeyRef:
           name: clickhouse-credentials
           key: otel-password
+    - name: AWS_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          name: otel-rustfs
+          key: access-key
+    - name: AWS_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: otel-rustfs
+          key: secret-key
+    - name: AWS_EC2_METADATA_DISABLED
+      value: "true"
+    # RustFS rejects duplicate Content-Encoding from gzip plus SDK streaming checksums.
+    - name: AWS_REQUEST_CHECKSUM_CALCULATION
+      value: when_required
   ports:
     jaeger-compact:
       enabled: false
@@ -174,6 +204,9 @@ otel-gateway:
   # Only prod's own collectors send here, through the in-cluster Service.
   alternateConfig:
     extensions:
+      file_storage:
+        directory: /var/lib/otelcol/archive
+        create_directory: true
       health_check:
         endpoint: ${env:MY_POD_IP}:13133
     receivers:
@@ -189,16 +222,37 @@ otel-gateway:
         limit_percentage: 80
         spike_limit_percentage: 25
       batch:
-        send_batch_size: 10000
+        send_batch_size: 2000
+        send_batch_max_size: 2000
         timeout: 5s
     exporters:
+      awss3/archive:
+        marshaler: otlp_json
+        s3uploader:
+          region: us-east-1
+          endpoint: https://minio.home.phuchoang.sbs
+          s3_bucket: telemetry-prod
+          s3_prefix: prod
+          s3_partition_format: 'year=%Y/month=%m/day=%d/hour=%H'
+          s3_partition_timezone: UTC
+          s3_force_path_style: true
+          compression: gzip
+        timeout: 30s
+        retry_on_failure:
+          enabled: true
+          max_elapsed_time: 0s
+        sending_queue:
+          enabled: true
+          num_consumers: 1
+          queue_size: 20
+          storage: file_storage
       clickhouse:
         endpoint: tcp://clickstack-clickhouse-headless:9000?dial_timeout=10s
         database: default
         username: otelcollector
         password: ${env:CLICKHOUSE_OTEL_PASSWORD}
         create_schema: true
-        ttl: 168h
+        ttl: 72h
         timeout: 10s
         retry_on_failure:
           enabled: true
@@ -206,19 +260,20 @@ otel-gateway:
     service:
       extensions:
         - health_check
+        - file_storage
       pipelines:
         logs:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [clickhouse]
+          exporters: [clickhouse, awss3/archive]
         metrics:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [clickhouse]
+          exporters: [clickhouse, awss3/archive]
         traces:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [clickhouse]
+          exporters: [clickhouse, awss3/archive]
 
 otel-agent:
   fullnameOverride: otel-agent
@@ -236,6 +291,16 @@ otel-agent:
       enabled: true
     kubernetesAttributes:
       enabled: true
+  podAnnotations:
+    checksum/log-parsers: '{{ include "observability.logParsers" . | sha256sum }}'
+  extraVolumes:
+    - name: log-parsers
+      configMap:
+        name: otel-log-parsers
+  extraVolumeMounts:
+    - name: log-parsers
+      mountPath: /etc/otelcol
+      readOnly: true
   # Applications send OTLP to otel-agent.observability.svc and reach their own node's agent.
   service:
     enabled: true
@@ -275,8 +340,6 @@ otel-agent:
         insecure_skip_verify: true
       hostmetrics:
         collection_interval: 60s
-      # Replaces the preset's operator list, so container-parser is restated.
-      # Structured and known text formats promote severity; unknown lines pass through.
       file_log:
         include:
           - /var/log/pods/ecommerce_*/*/*.log
@@ -295,88 +358,7 @@ otel-agent:
         exclude:
           - /var/log/pods/observability_otel-agent*_*/otel-agent/*.log
           - /var/log/pods/observability_clickstack-clickhouse*_*/clickhouse-server/*.log
-        operators:
-          - type: container
-            id: container-parser
-            max_log_size: 102400
-          - type: json_parser
-            id: json-body
-            if: 'body matches "^\\{"'
-            on_error: send_quiet
-          - type: copy
-            id: json-level
-            if: "attributes.level != nil"
-            from: attributes.level
-            to: attributes.parsed_level
-          - type: copy
-            id: json-severity
-            if: "attributes.parsed_level == nil and attributes.severity != nil"
-            from: attributes.severity
-            to: attributes.parsed_level
-          - type: copy
-            id: json-severity-text
-            if: "attributes.parsed_level == nil and attributes.severity_text != nil"
-            from: attributes.severity_text
-            to: attributes.parsed_level
-          - type: copy
-            id: mongodb-level
-            if: "attributes.parsed_level == nil and attributes.s != nil and attributes.c != nil"
-            from: attributes.s
-            to: attributes.parsed_level
-          - type: regex_parser
-            id: timestamp-level
-            if: 'attributes.parsed_level == nil and body matches "^(\\x1b\\[[0-9;]*m)*\\[?[0-9]{4}[-.]"'
-            regex: '(?i)^(?:\x1b\[[0-9;]*m)*\[?\d{4}[-.]\d{2}[-.]\d{2}[T ][0-9:.,]+Z?(?:\x1b\[[0-9;]*m|\s)*(?P<parsed_level>trace|debug|info|warn(?:ing)?|error|fatal|panic)\b'
-            on_error: send_quiet
-          - type: regex_parser
-            id: logfmt-level
-            if: 'attributes.parsed_level == nil and body matches "^time="'
-            regex: '^time=\S+ level=(?P<parsed_level>\w+)\b'
-            on_error: send_quiet
-          - type: regex_parser
-            id: klog-level
-            if: 'attributes.parsed_level == nil and body matches "^[IWEF][0-9]{4}\\s"'
-            regex: '^(?P<parsed_level>[IWEF])\d{4}\s'
-            on_error: send_quiet
-          - type: regex_parser
-            id: clickhouse-level
-            if: 'attributes.parsed_level == nil and body matches "^[0-9]{4}\\."'
-            regex: '^\d{4}\.\d{2}\.\d{2} [0-9:.]+ \[\s*\d+\s*\] \{[^}]*\} <(?P<parsed_level>\w+)>'
-            on_error: send_quiet
-          - type: regex_parser
-            id: redis-level
-            if: 'attributes.parsed_level == nil and body matches "^[0-9]+:[A-Z] "'
-            regex: '^\d+:[A-Z] \d{2} \w{3} \d{4} [0-9:.]+ (?P<parsed_level>[.*#-]) '
-            on_error: send_quiet
-          - type: severity_parser
-            id: normalized-level
-            if: "attributes.parsed_level != nil"
-            parse_from: attributes.parsed_level
-            overwrite_text: true
-            mapping:
-              debug: [D, D1, D2, D3, D4, D5, '.', '-']
-              info: [I, '*']
-              warn: [W, '#']
-              error: [E]
-              fatal: [F]
-            on_error: send_quiet
-          - type: remove
-            id: remove-parsed-level
-            if: "attributes.parsed_level != nil"
-            field: attributes.parsed_level
-          - type: trace_parser
-            id: json-trace
-            if: "attributes.trace_id != nil"
-            trace_id:
-              parse_from: attributes.trace_id
-            span_id:
-              parse_from: attributes.span_id
-            on_error: send_quiet
-          - type: move
-            id: json-msg
-            if: "attributes.msg != nil"
-            from: attributes.msg
-            to: body
+        operators: ${file:/etc/otelcol/log-parsers.yaml}
     processors:
       memory_limiter:
         check_interval: 5s
