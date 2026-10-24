@@ -24,7 +24,7 @@ Use `burst.talos.dev/compute=aws` and `burst.talos.dev/workload=gpu-training`; p
 
 Initial candidate types are single-GPU amd64 G5/G6 sizes with sufficient CPU/RAM and ephemeral space. Select a compatible type and us-east-1 AZ using real regional quota, offering and capacity checks before enabling the pool; there is no free-plan restriction. Prefer a small compatible allowlist, not unconstrained expensive GPU families. Initial capacity is on-demand only.
 
-Set CPU/memory/GPU limits sufficient for exactly one two-worker group of the chosen types, with no room for two concurrent groups. Karpenter limits are eventually consistent, not a hard spending guarantee: also cap admitted run concurrency to one, enforce request/deadline bounds, expose a pool pause setting and configure AWS budget alerts. Record the chosen finite values in environment config before enablement.
+Set CPU/memory/GPU limits sufficient for at most two concurrent single-GPU jobs of the chosen type. Karpenter limits are eventually consistent, not a hard spending guarantee: also cap admitted run concurrency to two, enforce request/deadline bounds, expose a pool pause setting and configure AWS budget alerts. Record the chosen finite values in environment config before enablement.
 
 ### GPU image and scheduling readiness
 

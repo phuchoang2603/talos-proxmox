@@ -4,6 +4,8 @@ Verified readiness is limited to what is listed here; everything else in the cha
 
 ## Network (task 2.4)
 
+The project later narrowed the runtime to single-node jobs; these two-node measurements are kept as reference and no longer part of the contract.
+
 Two g6.xlarge workers, us-east-1b, pods on distinct nodes:
 
 - Pod `eth0` MTU 1370; pod-to-pod route MTU 1320. A DF UDP payload of 1200 passed and 1300 or larger was refused, in both directions.
@@ -35,8 +37,8 @@ A PyTorch DDP job, run ID `accept-recovery`, checkpoints every 10 steps to `s3:/
 
 ## Consumer contract (task 4.6)
 
-- Runtime `ClusterTrainingRuntime/aws-gpu-training`, two ranks, one `nvidia.com/gpu` each, hostname anti-affinity, image `pytorch/pytorch:2.13.0-cuda13.0-cudnn9-runtime`.
-- Pool `aws-gpu-training`: selector `burst.talos.dev/compute=aws`, `burst.talos.dev/workload=gpu-training`; tolerate `burst.talos.dev/stateless=true` and `burst.talos.dev/gpu-training=true`. `g6.xlarge` only, zones us-east-1a to 1d with both ranks required in the same zone, on-demand, limits cpu 8, memory 32Gi, 2 GPUs, `consolidateAfter` 5m, `expireAfter` 24h, 100Gi root volume.
+- Runtime `ClusterTrainingRuntime/aws-gpu-training`, one node and one `nvidia.com/gpu` per job (two jobs may run at once and do not communicate), image `pytorch/pytorch:2.13.0-cuda13.0-cudnn9-runtime`.
+- Pool `aws-gpu-training`: selector `burst.talos.dev/compute=aws`, `burst.talos.dev/workload=gpu-training`; tolerate `burst.talos.dev/stateless=true` and `burst.talos.dev/gpu-training=true`. `g6.xlarge` only, zones us-east-1a to 1d, on-demand, limits cpu 8, memory 32Gi, 2 GPUs, `consolidateAfter` 5m, `expireAfter` 24h, 100Gi root volume.
 - Node stack: Talos 1.13.9 GPU AMI `talos-proxmox-gpu-v1.13.9-6698d6f136c5`, NVIDIA open kernel modules and container toolkit 595.91.07.
 - Deadlines: set `activeDeadlineSeconds` on every TrainJob; allow for capacity waits of 10 minutes or more.
 - Storage: bucket, region and keys come from Secret `ml-s3` (`ML_BUCKET`, `AWS_DEFAULT_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`) copied into the training namespace; prefixes `datasets/<export-id>/` and `runs/<run-id>/{checkpoints,outputs}/`. Mark finished runs with tag `expire=true`.

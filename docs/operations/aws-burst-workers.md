@@ -60,7 +60,7 @@ See [the join sequence](../architecture/hybrid-aws-workers.md#scale-from-zero-th
 
 ## GPU training pool
 
-The `aws-gpu-training` NodePool is opt-in (`gpu.enabled` in the environment values) and separate from `aws-burst`. It is on-demand only, limited to the zones in `gpu.zones` (the runtime keeps both ranks in one of them) and the single-GPU types in `gpu.instanceTypes`, and its `gpu.limits` cover exactly one two-worker group. Nodes carry the `burst.talos.dev/stateless` taint plus `burst.talos.dev/gpu-training=true:NoSchedule` and the label `burst.talos.dev/workload=gpu-training`. CPU workloads do not tolerate the GPU taint, so they cannot consume this capacity.
+The `aws-gpu-training` NodePool is opt-in (`gpu.enabled` in the environment values) and separate from `aws-burst`. It is on-demand only, limited to the zones in `gpu.zones` and the single-GPU types in `gpu.instanceTypes`, and its `gpu.limits` cover two concurrent single-GPU jobs. The `aws-gpu-training` runtime runs one node and one GPU per job; two jobs run independently and do not communicate. Nodes carry the `burst.talos.dev/stateless` taint plus `burst.talos.dev/gpu-training=true:NoSchedule` and the label `burst.talos.dev/workload=gpu-training`. CPU workloads do not tolerate the GPU taint, so they cannot consume this capacity.
 
 A GPU workload must tolerate both taints, select `burst.talos.dev/workload=gpu-training`, and request one GPU per pod. Nodes are removed only when empty, after `gpu.consolidateAfter`, and expire after `gpu.expireAfter`. To stop new GPU capacity without removing the configuration, set `gpu.paused: true`, which renders the pool limits as zero.
 

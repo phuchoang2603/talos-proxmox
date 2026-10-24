@@ -2,13 +2,13 @@
 
 ## Why
 
-The existing AWS Talos burst pool supports CPU stateless jobs but cannot provide the two GPU workers required for distributed fraud-model training. Extend that capacity while preserving the existing cluster, local GPU notebook use and fixed-node storage ownership.
+The existing AWS Talos burst pool supports CPU stateless jobs but cannot provide GPU workers for fraud-model training. Extend that capacity while preserving the existing cluster, local GPU notebook use and fixed-node storage ownership.
 
 ## What Changes
 
 - Add an opt-in, bounded AWS GPU NodePool and GPU-capable Talos AMI/bootstrap path alongside the existing CPU pool; remove obsolete AWS free-plan assumptions.
-- Start acceptance with two distinct on-demand GPU workers in one selected availability zone, with cloud-local collective traffic and scale-to-zero cleanup.
-- Expose a pinned Trainer runtime/scheduling contract and validate GPU allocation, two-rank collectives and recovery without involving the local GPU in training.
+- Start with single-GPU on-demand workers, one per job and up to two jobs at once, across the us-east-1 zones with scale-to-zero cleanup. Jobs are independent; multi-node collectives were measured once but are not a supported contract.
+- Expose a pinned Trainer runtime/scheduling contract and validate GPU allocation, single-node execution and recovery without involving the local GPU in training.
 - Provide a regional S3 staging/checkpoint bucket and scoped workload access independent of permissionless worker instance roles and Karpenter credentials.
 - Validate the existing local DRA GPU path for notebooks without splitting the local platform into CPU/GPU training stacks.
 
@@ -16,7 +16,7 @@ The existing AWS Talos burst pool supports CPU stateless jobs but cannot provide
 
 ### New Capabilities
 
-- `distributed-gpu-training`: Two-worker cloud GPU capacity, runtime readiness, bounded lifecycle and consumer handoff.
+- `distributed-gpu-training`: Single-GPU cloud capacity, runtime readiness, bounded lifecycle and consumer handoff.
 - `ml-object-staging`: Scoped S3 staging/checkpoint infrastructure for immutable ML exports.
 
 ### Modified Capabilities
