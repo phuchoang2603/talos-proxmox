@@ -17,7 +17,7 @@ spec:
     storageClass: local-path
     size: 10Gi
   resources:
-    requests: {cpu: 250m, memory: 512Mi}
+    requests: {cpu: 100m, memory: 512Mi}
     limits: {cpu: "1", memory: 1Gi}
 ---
 apiVersion: kafka.strimzi.io/v1
@@ -40,7 +40,7 @@ spec:
     -Xms: 512m
     -Xmx: 1g
   resources:
-    requests: {cpu: 500m, memory: 1536Mi}
+    requests: {cpu: 250m, memory: 1536Mi}
     limits: {cpu: "2", memory: 2Gi}
 ---
 apiVersion: kafka.strimzi.io/v1

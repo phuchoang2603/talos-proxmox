@@ -36,7 +36,7 @@ datahub:
       argocd.argoproj.io/sync-wave: "2"
     replicaCount: 1
     resources:
-      requests: {cpu: 500m, memory: 2Gi}
+      requests: {cpu: 250m, memory: 2Gi}
       limits: {cpu: "2", memory: 3Gi}
     extraEnvs:
       - name: JAVA_TOOL_OPTIONS
@@ -122,7 +122,7 @@ opensearch:
   replicas: 1
   opensearchJavaOpts: -Xms1g -Xmx1g
   resources:
-    requests: {cpu: 500m, memory: 2Gi}
+    requests: {cpu: 250m, memory: 2Gi}
     limits: {cpu: "2", memory: 3Gi}
   persistence:
     enabled: true
