@@ -58,8 +58,13 @@ resource "random_password" "observability" {
     "HYPERDX_API_KEY",
   ])
 
-  length  = 32
-  special = false
+  length           = 32
+  special          = each.key == "HYPERDX_ADMIN_PASSWORD"
+  override_special = each.key == "HYPERDX_ADMIN_PASSWORD" ? "!@#$%^&*()-_+=" : null
+  min_special      = each.key == "HYPERDX_ADMIN_PASSWORD" ? 1 : 0
+  min_upper        = each.key == "HYPERDX_ADMIN_PASSWORD" ? 1 : 0
+  min_lower        = each.key == "HYPERDX_ADMIN_PASSWORD" ? 1 : 0
+  min_numeric      = each.key == "HYPERDX_ADMIN_PASSWORD" ? 1 : 0
 }
 
 resource "doppler_secret" "observability" {
