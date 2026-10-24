@@ -125,11 +125,16 @@ locals {
             { name = "nvidia_modeset" },
           ] : []
         }
-        nodeLabels = node.role == "servers" ? tomap({
-          "node.kubernetes.io/exclude-from-external-load-balancers" = {
-            "$patch" = "delete"
-          }
-        }) : tomap({})
+        nodeLabels = merge(
+          node.role == "servers" ? {
+            "node.kubernetes.io/exclude-from-external-load-balancers" = {
+              "$patch" = "delete"
+            }
+          } : {},
+          contains(keys(local.gpu_nodes), name) ? {
+            "nvidia.com/gpu.deploy.device-plugin" = "false"
+          } : {}
+        )
       }
     })
   }
