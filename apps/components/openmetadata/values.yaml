@@ -47,7 +47,7 @@ openmetadata:
         enableSelfSignup: false
         oidcConfiguration:
           enabled: true
-          oidcType: custom
+          oidcType: custom-oidc
           clientId:
             secretRef: openmetadata-oidc-client
             secretKey: client-id
