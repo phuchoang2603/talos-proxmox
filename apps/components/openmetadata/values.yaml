@@ -1,0 +1,118 @@
+openmetadata:
+  fullnameOverride: openmetadata
+  openmetadata:
+    config:
+      deployPipelinesConfig:
+        enabled: false
+      reindexConfig:
+        enabled: false
+      pipelineServiceClientConfig:
+        enabled: false
+      database:
+        host: openmetadata-postgres-rw
+        port: 5432
+        driverClass: org.postgresql.Driver
+        dbScheme: postgresql
+        databaseName: openmetadata
+        dbParams: "sslmode=require"
+        maxSize: 20
+        minSize: 2
+        initialSize: 2
+        auth:
+          username: openmetadata
+          password:
+            secretRef: openmetadata-postgres-credentials
+            secretKey: password
+      elasticsearch:
+        host: openmetadata-search
+        searchType: opensearch
+        port: 9200
+        scheme: http
+      authorizer:
+        initialAdmins: [xuanphuc.a1gv]
+        principalDomain: gmail.com
+        allowedEmailRegistrationDomains: [gmail.com]
+      authentication:
+        provider: custom-oidc
+        clientType: confidential
+        authority: https://auth.phuchoang.sbs/dex
+        clientId: openmetadata
+        callbackUrl: https://openmetadata.phuchoang.sbs/callback
+        responseType: code
+        publicKeys:
+          - http://dex.auth.svc.cluster.local:5556/dex/keys
+          - http://openmetadata:8585/api/v1/system/config/jwks
+        jwtPrincipalClaims: [email, preferred_username, sub]
+        enableSelfSignup: false
+        oidcConfiguration:
+          enabled: true
+          oidcType: custom
+          clientId:
+            secretRef: openmetadata-oidc-client
+            secretKey: client-id
+          clientSecret:
+            secretRef: openmetadata-oidc-client
+            secretKey: client-secret
+          discoveryUri: https://auth.phuchoang.sbs/dex/.well-known/openid-configuration
+          callbackUrl: https://openmetadata.phuchoang.sbs/callback
+          serverUrl: https://openmetadata.phuchoang.sbs
+          scope: openid email profile
+          clientAuthenticationMethod: client_secret_basic
+          disablePkce: false
+      jwtTokenConfiguration:
+        rsapublicKeyFilePath: /etc/openmetadata/keys/public_key.der
+        rsaprivateKeyFilePath: /etc/openmetadata/keys/private_key.der
+        jwtissuer: openmetadata.phuchoang.sbs
+        keyId: openmetadata-prod
+      fernetkey:
+        value: ""
+        secretRef: openmetadata-fernet
+        secretKey: key
+  resources:
+    requests: {cpu: 250m, memory: 2Gi}
+    limits: {cpu: "2", memory: 3Gi}
+  extraEnvs:
+    - name: JAVA_TOOL_OPTIONS
+      value: -Xms512m -Xmx1536m
+    - name: CUSTOM_OIDC_AUTHENTICATION_PROVIDER_NAME
+      value: Dex
+  extraVolumes:
+    - name: signing-keys
+      secret:
+        secretName: openmetadata-signing-keys
+  extraVolumeMounts:
+    - name: signing-keys
+      mountPath: /etc/openmetadata/keys
+      readOnly: true
+
+opensearch:
+  fullnameOverride: openmetadata-search
+  masterService: openmetadata-search
+  image:
+    tag: "2.19.5"
+  singleNode: true
+  replicas: 1
+  opensearchJavaOpts: -Xms1g -Xmx1g
+  resources:
+    requests: {cpu: 250m, memory: 2Gi}
+    limits: {cpu: "2", memory: 3Gi}
+  persistence:
+    enabled: true
+    storageClass: local-path
+    size: 20Gi
+  sysctlInit:
+    enabled: false
+  config:
+    opensearch.yml: |
+      cluster.name: openmetadata
+      network.host: 0.0.0.0
+      plugins.security.disabled: true
+  extraEnvs:
+    - name: DISABLE_INSTALL_DEMO_CONFIG
+      value: "true"
+    - name: DISABLE_SECURITY_PLUGIN
+      value: "true"
+
+tunnel:
+  clusterTunnel: talos-proxmox
+  hostname: openmetadata.phuchoang.sbs

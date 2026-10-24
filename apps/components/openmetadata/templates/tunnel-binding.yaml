@@ -1,14 +1,14 @@
 apiVersion: networking.cfargotunnel.com/v1alpha1
 kind: TunnelBinding
 metadata:
-  name: datahub
+  name: openmetadata
   namespace: {{ .Release.Namespace }}
 subjects:
   - kind: Service
-    name: datahub-datahub-frontend
+    name: openmetadata
     spec:
       fqdn: {{ .Values.tunnel.hostname }}
-      target: http://datahub-datahub-frontend.{{ .Release.Namespace }}.svc.cluster.local:9002
+      target: http://openmetadata.{{ .Release.Namespace }}.svc.cluster.local:8585
 tunnelRef:
   kind: ClusterTunnel
   name: {{ .Values.tunnel.clusterTunnel }}

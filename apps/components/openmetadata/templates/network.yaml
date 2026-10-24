@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: datahub-private
+  name: openmetadata-private
 spec:
   podSelector: {}
   policyTypes: [Ingress]
@@ -17,10 +17,10 @@ spec:
             matchLabels:
               kubernetes.io/metadata.name: fraud-data-prod
       ports:
-        - {port: 8080, protocol: TCP}
+        - {port: 8585, protocol: TCP}
     - from:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: cloudflare-operator-system
       ports:
-        - {port: 9002, protocol: TCP}
+        - {port: 8585, protocol: TCP}
