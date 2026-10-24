@@ -1,0 +1,93 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ml-credential-issuer
+  namespace: {{ .Values.namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ml-credential-issuer
+  namespace: {{ .Values.namespace }}
+rules:
+  - apiGroups: [""]
+    resources: [secrets]
+    verbs: [create, patch, delete]
+  - apiGroups: [argoproj.io]
+    resources: [workflowtaskresults]
+    verbs: [create, patch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ml-credential-issuer
+  namespace: {{ .Values.namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ml-credential-issuer
+subjects:
+  - kind: ServiceAccount
+    name: ml-credential-issuer
+    namespace: {{ .Values.namespace }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ml-credential-issuer-script
+  namespace: {{ .Values.namespace }}
+data:
+  issue.sh: |
+{{ .Files.Get "files/issue.sh" | indent 4 }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: ml-run-credentials
+  namespace: {{ .Values.namespace }}
+spec:
+  serviceAccountName: ml-credential-issuer
+  entrypoint: issue
+  arguments:
+    parameters:
+      - name: mode
+        value: writer
+      - name: run-id
+      - name: export-id
+        value: ""
+  templates:
+    - name: issue
+      inputs:
+        parameters:
+          - name: mode
+          - name: run-id
+          - name: export-id
+      container:
+        image: {{ .Values.image }}
+        command: [bash, /scripts/issue.sh]
+        args:
+          - "{{ "{{inputs.parameters.mode}}" }}"
+          - "{{ "{{inputs.parameters.run-id}}" }}"
+          - {{ .Values.namespace }}
+          - "{{ "{{inputs.parameters.export-id}}" }}"
+        env:
+          - name: SESSION_SECONDS
+            value: {{ .Values.sessionSeconds | quote }}
+        envFrom:
+          - secretRef:
+              name: ml-issuer
+        volumeMounts:
+          - name: script
+            mountPath: /scripts
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: [ALL]
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+      volumes:
+        - name: script
+          configMap:
+            name: ml-credential-issuer-script

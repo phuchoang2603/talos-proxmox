@@ -17,7 +17,10 @@
         "ec2:DescribeInstanceTypes",
         "ec2:DescribeAvailabilityZones",
         "ec2:DescribeInstances",
-        "ec2:DescribeLaunchTemplates"
+        "ec2:DescribeLaunchTemplates",
+        "ec2:DescribeVpcEndpoints",
+        "ec2:DescribePrefixLists",
+        "ec2:DescribeVpcEndpointServices"
       ],
       "Resource": "*"
     },
@@ -69,7 +72,8 @@
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:internet-gateway/*",
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:route-table/*",
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/*",
-        "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group-rule/*"
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group-rule/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:vpc-endpoint/*"
       ],
       "Condition": {
         "StringEquals": {
@@ -80,7 +84,8 @@
             "CreateRouteTable",
             "CreateSecurityGroup",
             "AuthorizeSecurityGroupIngress",
-            "AuthorizeSecurityGroupEgress"
+            "AuthorizeSecurityGroupEgress",
+            "CreateVpcEndpoint"
           ],
           "aws:RequestTag/managed-by": "talos-proxmox"
         }
@@ -107,7 +112,9 @@
         "ec2:AuthorizeSecurityGroupIngress",
         "ec2:AuthorizeSecurityGroupEgress",
         "ec2:RevokeSecurityGroupIngress",
-        "ec2:RevokeSecurityGroupEgress"
+        "ec2:RevokeSecurityGroupEgress",
+        "ec2:DeleteVpcEndpoints",
+        "ec2:ModifyVpcEndpoint"
       ],
       "Resource": [
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:vpc/*",
@@ -115,7 +122,8 @@
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:internet-gateway/*",
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:route-table/*",
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/*",
-        "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group-rule/*"
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group-rule/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:vpc-endpoint/*"
       ],
       "Condition": {
         "StringEquals": {
@@ -154,6 +162,31 @@
       "Condition": {
         "StringEquals": {
           "aws:RequestTag/managed-by": "talos-proxmox"
+        }
+      }
+    },
+    {
+      "Sid": "CreateTaggedVpcEndpoint",
+      "Effect": "Allow",
+      "Action": "ec2:CreateVpcEndpoint",
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:vpc-endpoint/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/managed-by": "talos-proxmox"
+        }
+      }
+    },
+    {
+      "Sid": "UseOwnedVpcAndRouteTablesForEndpoint",
+      "Effect": "Allow",
+      "Action": "ec2:CreateVpcEndpoint",
+      "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:vpc/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:route-table/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/managed-by": "talos-proxmox"
         }
       }
     }

@@ -44,3 +44,12 @@ resource "aws_route_table_association" "public" {
   subnet_id      = each.value.id
   route_table_id = aws_route_table.public.id
 }
+
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id            = aws_vpc.worker.id
+  service_name      = "com.amazonaws.${var.region}.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [aws_route_table.public.id]
+
+  tags = merge(local.tags, { Name = "${local.name}-s3" })
+}

@@ -66,6 +66,12 @@ components:
     syncWave: "-1"
     releaseName: argo-workflows
     clusters: [prod]
+  ml-access:
+    path: apps/components/ml-access
+    namespace: fraud-ml-prod
+    syncWave: "1"
+    releaseName: ml-access
+    clusters: [prod]
   auth:
     path: apps/components/auth
     namespace: auth

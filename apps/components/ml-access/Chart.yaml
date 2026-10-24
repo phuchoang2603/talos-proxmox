@@ -1,0 +1,5 @@
+apiVersion: v2
+name: platform-ml-access
+description: Per-run scoped S3 credential issuer and storage settings for ML training runs
+type: application
+version: 0.1.0
