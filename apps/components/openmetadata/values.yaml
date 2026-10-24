@@ -70,7 +70,7 @@ openmetadata:
         secretRef: openmetadata-fernet
         secretKey: key
   resources:
-    requests: {cpu: 250m, memory: 2Gi}
+    requests: {cpu: 150m, memory: 1280Mi}
     limits: {cpu: "2", memory: 3Gi}
   extraEnvs:
     - name: JAVA_TOOL_OPTIONS
@@ -95,7 +95,7 @@ opensearch:
   replicas: 1
   opensearchJavaOpts: -Xms1g -Xmx1g
   resources:
-    requests: {cpu: 250m, memory: 2Gi}
+    requests: {cpu: 50m, memory: 1792Mi}
     limits: {cpu: "2", memory: 3Gi}
   persistence:
     enabled: true
