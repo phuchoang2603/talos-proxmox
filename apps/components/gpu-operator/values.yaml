@@ -3,8 +3,16 @@ gpu-operator:
     enabled: false
   toolkit:
     enabled: false
+  # Runs only on AWS GPU nodes, where Karpenter needs nvidia.com/gpu in Node capacity to
+  # initialize them. GPU nodes with PCI passthrough are labelled
+  # nvidia.com/gpu.deploy.device-plugin=false so DRA stays their only allocator.
   devicePlugin:
-    enabled: false
+    enabled: true
+  daemonsets:
+    tolerations:
+      - {key: nvidia.com/gpu, operator: Exists, effect: NoSchedule}
+      - {key: burst.talos.dev/stateless, operator: Equal, value: "true", effect: NoSchedule}
+      - {key: burst.talos.dev/gpu-training, operator: Equal, value: "true", effect: NoSchedule}
   hostPaths:
     driverInstallDir: /usr/local
   cdi:
