@@ -6,7 +6,7 @@ version: 0.1.0
 dependencies:
   # CRDs ship as templates here so Helm upgrades them; the controller chart's crds/ is skipped.
   - name: karpenter-crd
-    version: 1.15.0
+    version: 1.15.1
     repository: oci://public.ecr.aws/karpenter
   - name: karpenter
     version: 1.15.1
