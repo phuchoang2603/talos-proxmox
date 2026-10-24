@@ -189,6 +189,9 @@ otel-gateway:
           key: secret-key
     - name: AWS_EC2_METADATA_DISABLED
       value: "true"
+    # RustFS rejects duplicate Content-Encoding from gzip plus SDK streaming checksums.
+    - name: AWS_REQUEST_CHECKSUM_CALCULATION
+      value: when_required
   ports:
     jaeger-compact:
       enabled: false
