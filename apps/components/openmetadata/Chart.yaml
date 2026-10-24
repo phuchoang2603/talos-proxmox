@@ -1,0 +1,12 @@
+apiVersion: v2
+name: platform-openmetadata
+description: Private OpenMetadata with PostgreSQL and OpenSearch
+type: application
+version: 0.1.0
+dependencies:
+  - name: openmetadata
+    version: 2.0.6
+    repository: https://helm.open-metadata.org/
+  - name: opensearch
+    version: 2.39.0
+    repository: https://opensearch-project.github.io/helm-charts/

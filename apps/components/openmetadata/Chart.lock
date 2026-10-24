@@ -1,0 +1,9 @@
+dependencies:
+- name: openmetadata
+  repository: https://helm.open-metadata.org/
+  version: 2.0.6
+- name: opensearch
+  repository: https://opensearch-project.github.io/helm-charts/
+  version: 2.39.0
+digest: sha256:f4dd032e2b4a5bc285b18a2b003de963cbb7fa49cbf020060463f18f6f1aa029
+generated: "2026-10-24T02:48:52.466205869-04:00"

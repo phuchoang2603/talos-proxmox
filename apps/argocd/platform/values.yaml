@@ -96,11 +96,11 @@ components:
     syncWave: "2"
     releaseName: kubeflow
     clusters: [prod]
-  datahub:
-    path: apps/components/datahub
-    namespace: datahub
+  openmetadata:
+    path: apps/components/openmetadata
+    namespace: openmetadata
     syncWave: "3"
-    releaseName: datahub
+    releaseName: openmetadata
     clusters: [prod]
   metrics-server:
     path: apps/components/metrics-server
