@@ -43,7 +43,6 @@ resource "aws_iam_access_key" "ml" {
 resource "doppler_secret" "ml_storage" {
   for_each = {
     ML_BUCKET                = aws_s3_bucket.ml.id
-    ML_REGION                = "us-east-1"
     ML_AWS_ACCESS_KEY_ID     = aws_iam_access_key.ml.id
     ML_AWS_SECRET_ACCESS_KEY = aws_iam_access_key.ml.secret
   }
