@@ -1,3 +1,1 @@
 namespace: fraud-ml-prod
-image: alpine/k8s:1.36.5
-sessionSeconds: 14400

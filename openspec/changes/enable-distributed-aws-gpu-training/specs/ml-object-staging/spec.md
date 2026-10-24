@@ -16,14 +16,14 @@ The platform SHALL provision versioned, encrypted S3 storage in the training reg
 - **THEN** staging cleanup does not delete it before its declared retention obligation ends
 
 ### Requirement: Scoped workload access
-Storage access SHALL use workload credentials separate from Karpenter, CI and the permissionless EC2 worker role. Dataset readers SHALL be read-only, run writers SHALL be confined to assigned output prefixes, and transfer principals SHALL be limited to their transfer duties. Secret values SHALL NOT be committed or emitted in routine logs.
+Storage access SHALL use a single workload credential separate from Karpenter, CI and the permissionless EC2 worker role, limited to the dataset and run prefixes of the staging bucket. Secret values SHALL NOT be committed or emitted in routine logs.
 
 #### Scenario: Worker instance attempts S3 access
 - **WHEN** access uses only the worker instance identity
 - **THEN** no dataset or artifact access is granted
 
 #### Scenario: Workload exceeds its scope
-- **WHEN** a training principal writes to a dataset prefix or another run's output prefix
+- **WHEN** the workload credential reads or writes outside the dataset and run prefixes of the staging bucket, or in another bucket
 - **THEN** access is denied
 
 ### Requirement: Consumer storage handoff
