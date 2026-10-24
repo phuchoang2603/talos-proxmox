@@ -1,0 +1,79 @@
+apiVersion: trainer.kubeflow.org/v1alpha1
+kind: TrainJob
+metadata:
+  name: accept-recovery
+  namespace: gpu-acceptance
+spec:
+  runtimeRef:
+    name: aws-gpu-training
+    kind: ClusterTrainingRuntime
+    apiGroup: trainer.kubeflow.org
+  activeDeadlineSeconds: 1500
+  trainer:
+    numNodes: 2
+    env:
+    - {name: RUN_ID, value: accept-recovery}
+    - {name: TOTAL_STEPS, value: "60"}
+    - {name: CKPT_EVERY, value: "10"}
+    - {name: STEP_SLEEP, value: "5"}
+    - {name: NCCL_SOCKET_IFNAME, value: eth0}
+    - name: AWS_ACCESS_KEY_ID
+      valueFrom: {secretKeyRef: {name: ml-s3, key: AWS_ACCESS_KEY_ID}}
+    - name: AWS_SECRET_ACCESS_KEY
+      valueFrom: {secretKeyRef: {name: ml-s3, key: AWS_SECRET_ACCESS_KEY}}
+    - name: AWS_DEFAULT_REGION
+      valueFrom: {secretKeyRef: {name: ml-s3, key: AWS_DEFAULT_REGION}}
+    - name: ML_BUCKET
+      valueFrom: {secretKeyRef: {name: ml-s3, key: ML_BUCKET}}
+    command:
+    - bash
+    - -c
+    - |
+      pip install -q --break-system-packages boto3 2>&1 | tail -1
+      cat > /tmp/r.py <<'PY'
+      import hashlib, io, json, os, time, boto3, torch, torch.distributed as dist
+      from botocore.exceptions import ClientError
+      dist.init_process_group("nccl")
+      r, w = dist.get_rank(), dist.get_world_size()
+      torch.cuda.set_device(0)
+      s3 = boto3.client("s3"); B = os.environ["ML_BUCKET"]; P = f"runs/{os.environ['RUN_ID']}/checkpoints/"
+      total, every, nap = int(os.environ["TOTAL_STEPS"]), int(os.environ["CKPT_EVERY"]), float(os.environ["STEP_SLEEP"])
+
+      def latest_complete():
+          steps = set()
+          for pg in s3.get_paginator("list_objects_v2").paginate(Bucket=B, Prefix=P):
+              for o in pg.get("Contents", []):
+                  parts = o["Key"][len(P):].split("/")
+                  if len(parts) == 2 and parts[0].startswith("step-"): steps.add(int(parts[0][5:]))
+          for s in sorted(steps, reverse=True):
+              try: m = json.loads(s3.get_object(Bucket=B, Key=f"{P}step-{s}/manifest.json")["Body"].read())
+              except ClientError: print(f"RANK {r} reject step={s} reason=no_manifest", flush=True); continue
+              blob = s3.get_object(Bucket=B, Key=f"{P}step-{s}/rank-{r}.pt")["Body"].read()
+              if hashlib.sha256(blob).hexdigest() != m["sha256"][str(r)]:
+                  print(f"RANK {r} reject step={s} reason=hash_mismatch", flush=True); continue
+              return s, blob
+          return 0, None
+
+      model = torch.nn.parallel.DistributedDataParallel(torch.nn.Linear(256, 256).cuda())
+      opt = torch.optim.SGD(model.parameters(), lr=0.01)
+      step, blob = latest_complete()
+      if blob:
+          st = torch.load(io.BytesIO(blob), map_location="cuda"); model.module.load_state_dict(st["m"]); opt.load_state_dict(st["o"])
+          print(f"RANK {r} RESUMED from step={step} host={os.uname().nodename}", flush=True)
+      else:
+          print(f"RANK {r} FRESH start host={os.uname().nodename}", flush=True)
+      while step < total:
+          opt.zero_grad(); loss = model(torch.randn(32, 256, device="cuda")).pow(2).mean(); loss.backward(); opt.step(); step += 1
+          time.sleep(nap)
+          if step % every == 0:
+              buf = io.BytesIO(); torch.save({"m": model.module.state_dict(), "o": opt.state_dict(), "step": step}, buf); data = buf.getvalue()
+              s3.put_object(Bucket=B, Key=f"{P}step-{step}/rank-{r}.pt", Body=data)
+              hs = [None] * w; dist.all_gather_object(hs, hashlib.sha256(data).hexdigest())
+              if r == 0:
+                  s3.put_object(Bucket=B, Key=f"{P}step-{step}/manifest.json", Body=json.dumps({"step": step, "sha256": {str(i): h for i, h in enumerate(hs)}}).encode())
+              dist.barrier()
+              print(f"RANK {r} CHECKPOINT step={step} loss={loss.item():.5f}", flush=True)
+      print(f"RANK {r} DONE step={step}", flush=True)
+      dist.barrier(); dist.destroy_process_group()
+      PY
+      torchrun /tmp/r.py

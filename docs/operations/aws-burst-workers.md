@@ -64,6 +64,8 @@ The `aws-gpu-training` NodePool is opt-in (`gpu.enabled` in the environment valu
 
 A GPU workload must tolerate both taints, select `burst.talos.dev/workload=gpu-training`, and request one GPU per pod. Nodes are removed only when empty, after `gpu.consolidateAfter`, and expire after `gpu.expireAfter`. To stop new GPU capacity without removing the configuration, set `gpu.paused: true`, which renders the pool limits as zero.
 
+The pool is on-demand only: the template fixes the capacity type, so no value can enable Spot, and the `aws-gpu-training` Trainer runtime selects only the pool labels. There is no Spot interruption queue, so Spot needs one plus demonstrated recovery before it is enabled separately. A zone can lack `g6.xlarge` capacity (`InsufficientInstanceCapacity` in the Karpenter log); pods then stay Pending, retries can take over ten minutes, and set `activeDeadlineSeconds` accordingly. The Trainer runtime does not restart a failed group automatically (`backoffLimit: 0`): after losing a worker the TrainJob fails within seconds, and resubmitting it with the same run ID resumes from the newest S3 checkpoint that has a manifest (see `scripts/gpu-acceptance/`).
+
 ## ML staging storage
 
 The private bucket `ML_BUCKET` (foundation-owned, versioned, encrypted, non-TLS denied, protected by `prevent_destroy`) holds `datasets/<export-id>/` and `runs/<run-id>/{checkpoints,outputs}/`. The S3 gateway endpoint keeps AWS worker traffic to it inside the region.

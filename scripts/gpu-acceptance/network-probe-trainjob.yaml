@@ -1,0 +1,81 @@
+apiVersion: trainer.kubeflow.org/v1alpha1
+kind: TrainJob
+metadata:
+  name: accept-network
+  namespace: gpu-acceptance
+spec:
+  runtimeRef:
+    name: aws-gpu-training
+    kind: ClusterTrainingRuntime
+    apiGroup: trainer.kubeflow.org
+  activeDeadlineSeconds: 2400
+  trainer:
+    numNodes: 2
+    env:
+    - {name: NCCL_DEBUG, value: INFO}
+    - {name: NCCL_DEBUG_SUBSYS, value: "INIT,NET"}
+    - {name: NCCL_IB_DISABLE, value: "1"}
+    - {name: NCCL_SOCKET_IFNAME, value: eth0}
+    command:
+    - bash
+    - -c
+    - |
+      cat > /tmp/n.py <<'PY'
+      import os, socket, struct, threading, time, torch, torch.distributed as dist
+      dist.init_process_group("nccl")
+      r, w = dist.get_rank(), dist.get_world_size()
+      torch.cuda.set_device(0)
+      mine = socket.gethostbyname(socket.gethostname())
+      ips = [None] * w
+      dist.all_gather_object(ips, mine)
+      peer = ips[1 - r]
+      mtus = {i: open(f"/sys/class/net/{i}/mtu").read().strip() for i in os.listdir("/sys/class/net") if os.path.isdir(f"/sys/class/net/{i}")}
+      print(f"RANK {r} ip={mine} peer={peer} mtus={mtus}", flush=True)
+
+      def serve_udp():
+          s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM); s.bind(("", 5201)); s.settimeout(30)
+          got = set()
+          try:
+              while True:
+                  d, a = s.recvfrom(65535); got.add(len(d))
+                  if len(d) == 1: break
+          except socket.timeout: pass
+          print(f"RANK {r} udp_received_sizes_max={max(got) if got else 0}", flush=True)
+      def serve_tcp():
+          s = socket.socket(); s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1); s.bind(("", 5202)); s.listen(1)
+          c, _ = s.accept(); c.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+          while True:
+              d = c.recv(8)
+              if not d: break
+              c.sendall(d)
+      threading.Thread(target=serve_udp, daemon=True).start()
+      threading.Thread(target=serve_tcp, daemon=True).start()
+      dist.barrier()
+
+      u = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+      u.setsockopt(socket.IPPROTO_IP, 10, 2)
+      u.connect((peer, 5201))
+      pmtu = u.getsockopt(socket.IPPROTO_IP, 14)
+      ok = 0
+      for payload in (1200, 1300, 1342, 1372, 1400, 1472, 8000):
+          try: u.send(b"x" * payload); ok = payload
+          except OSError as e: print(f"RANK {r} df_send payload={payload} err={e.errno}", flush=True)
+      time.sleep(1); u.send(b"x")
+      print(f"RANK {r} path_mtu={pmtu} largest_df_payload_sent={ok}", flush=True)
+
+      t = socket.create_connection((peer, 5202)); t.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+      rtts = []
+      for _ in range(300):
+          a = time.perf_counter(); t.sendall(b"12345678"); t.recv(8); rtts.append((time.perf_counter() - a) * 1000)
+      rtts.sort(); print(f"RANK {r} tcp_rtt_ms p50={rtts[150]:.3f} p99={rtts[297]:.3f} max={rtts[-1]:.3f}", flush=True)
+      t.close()
+
+      x = torch.empty(64 * 1024 * 1024, dtype=torch.float32, device="cuda")
+      for _ in range(3): dist.all_reduce(x)
+      torch.cuda.synchronize(); t0 = time.time(); n = 20
+      for _ in range(n): dist.all_reduce(x)
+      torch.cuda.synchronize(); dt = (time.time() - t0) / n
+      print(f"RANK {r} allreduce_256MiB avg={dt:.3f}s algbw={x.numel()*4/dt/1e9:.3f}GB/s ({x.numel()*32/dt/1e9:.2f}Gbit/s)", flush=True)
+      dist.barrier(); dist.destroy_process_group()
+      PY
+      torchrun /tmp/n.py
