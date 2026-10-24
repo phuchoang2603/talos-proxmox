@@ -49,3 +49,8 @@ variable "machine_secrets" {
   type      = any
   sensitive = true
 }
+
+variable "gpu_ami_id" {
+  type    = string
+  default = ""
+}

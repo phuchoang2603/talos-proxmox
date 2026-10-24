@@ -36,7 +36,7 @@ resource "aws_iam_policy" "karpenter" {
     "ACCOUNT_ID", data.aws_caller_identity.current.account_id),
     "REGION", var.region),
     "CLUSTER", var.cluster_name),
-    "AMI_ID", var.ami_id),
+    "\"AMI_ARNS\"", jsonencode([for id in compact([var.ami_id, var.gpu_ami_id]) : "arn:aws:ec2:${var.region}::image/${id}"])),
     "WORKER_PROFILE", aws_iam_role.worker.name
   )
   tags = local.tags
