@@ -123,6 +123,8 @@ Spot and on-demand capacity can be unavailable in a zone. Karpenter then tries o
 
 The existing deployment notes report roughly three minutes to worker readiness; treat this as an observation, not a deadline. Image startup, discovery, networking, and Cilium can change that timing.
 
-Cilium's MTU is pinned to 1500 on both sites. Existing network observations report cross-site pod payloads up to 1370 bytes and dropped IP-fragmented pod traffic, including on-premises pairs. Site upload bandwidth also limits traffic to AWS. Validate the workload's traffic pattern before depending on burst capacity.
+Cilium runs VXLAN tunnelling with its MTU set to 1370 on both sites (`apps/components/cilium/values.yaml`), which is KubeSpan's 1420 minus VXLAN overhead. Cross-site pod payloads above that are dropped when fragmented. Site upload bandwidth also limits traffic to AWS. Validate the workload's traffic pattern before depending on burst capacity.
+
+Between two AWS workers in the same VPC, KubeSpan peers use their private VPC addresses, so pod traffic stays in the VPC and does not pass through the on-premises nodes. It is still encapsulated twice (WireGuard, then VXLAN). A socket-based NCCL all-reduce of 256 MiB between two g6.xlarge workers measured 0.77 to 1.03 Gbit/s, which is enough for small data-parallel jobs but not a basis for large-model scaling. The `aws-gpu-training` Trainer runtime runs two ranks, one GPU each, on distinct nodes of that pool.
 
 KubePrism can switch between healthy control planes in a multi-control-plane environment. Dev's single control plane has no such redundancy. The [platform apply](terraform-ci.md#what-a-successful-apply-means) checks API readiness and release installation; it does not gate on fixed or burst node health.

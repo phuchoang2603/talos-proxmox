@@ -64,6 +64,15 @@ The `aws-gpu-training` NodePool is opt-in (`gpu.enabled` in the environment valu
 
 A GPU workload must tolerate both taints, select `burst.talos.dev/workload=gpu-training`, and request one GPU per pod. Nodes are removed only when empty, after `gpu.consolidateAfter`, and expire after `gpu.expireAfter`. To stop new GPU capacity without removing the configuration, set `gpu.paused: true`, which renders the pool limits as zero.
 
+## ML staging storage
+
+The private bucket `ML_BUCKET` (foundation-owned, versioned, encrypted, non-TLS denied, protected by `prevent_destroy`) holds `datasets/<export-id>/` and `runs/<run-id>/{checkpoints,outputs}/`. The S3 gateway endpoint keeps AWS worker traffic to it inside the region.
+
+- **Copy:** data moves only by explicit copy (source to S3, S3 to RustFS). There is no live Iceberg or catalog replication, and RustFS bucket replication has not been tested against AWS.
+- **Retention:** nothing under `datasets/` or `images/` expires. Objects under `runs/` expire after 14 days only when tagged `expire=true`, which the run-end step must set. Noncurrent `runs/` versions expire after 30 days, and incomplete multipart uploads after 7.
+- **Credentials:** one IAM user (`talos-proxmox-ml`) limited to `datasets/*` and `runs/*`, delivered as Secret `fraud-ml-prod/ml-s3`. Rotate with `tofu apply -replace=aws_iam_access_key.ml` in `terraform/foundation`. EC2 worker roles have no S3 access, and IAM does not isolate one run's prefix from another's.
+- **Readiness:** the bucket existing means storage is ready, never that a dataset is. Consumers verify object inventories and hashes.
+
 ## Return to zero or pause bursting
 
 For normal scale-down, remove or scale down the burst workloads through their Git owner and let Karpenter remove unneeded nodes. Leaving AWS-only workloads Pending can trigger new capacity.

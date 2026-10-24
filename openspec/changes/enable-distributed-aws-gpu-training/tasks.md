@@ -24,8 +24,8 @@
 - [x] 3.2 Define dataset/checkpoint/output prefix and retention policies including active/pinned protection and abandoned multipart cleanup; verify plan and representative lifecycle cases cannot expire protected data.
 - [x] 3.3 Define one dedicated IAM user limited to `datasets/*` and `runs/*` of the staging bucket; verify access outside those prefixes or in another bucket is denied while the worker role still has no S3 permissions.
 - [x] 3.4 Write the user's key and non-secret bucket settings to Doppler and deliver them to the training namespace via ExternalSecret; verify delivery and key rotation with no credentials in Git or routine logs.
-- [ ] 3.5 Publish non-secret bucket/region/endpoint/prefix settings and access contract for fraud change `develop-gpu-models-and-train-on-aws`; verify an empty bucket is reported as storage-ready only, never dataset-ready.
-- [ ] 3.6 Update affected AWS/Kubeflow operational storage sections for explicit copy, retention and credential responsibilities; verify no live Iceberg/catalog replication or untested RustFS interoperability is asserted.
+- [x] 3.5 Publish non-secret bucket/region/endpoint/prefix settings and access contract for fraud change `develop-gpu-models-and-train-on-aws`; verify an empty bucket is reported as storage-ready only, never dataset-ready.
+- [x] 3.6 Update affected AWS/Kubeflow operational storage sections for explicit copy, retention and credential responsibilities; verify no live Iceberg/catalog replication or untested RustFS interoperability is asserted.
 
 ## 4. Two-worker acceptance and lifecycle
 
