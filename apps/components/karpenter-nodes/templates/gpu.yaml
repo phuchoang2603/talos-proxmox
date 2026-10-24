@@ -1,0 +1,93 @@
+{{- if .Values.gpu.enabled }}
+{{- if not .Values.gpu.limits }}{{ fail "gpu.limits must be finite when gpu.enabled" }}{{ end }}
+{{- if not .Values.gpu.zone }}{{ fail "gpu.zone must be set when gpu.enabled" }}{{ end }}
+{{- if not .Values.gpu.instanceTypes }}{{ fail "gpu.instanceTypes must be set when gpu.enabled" }}{{ end }}
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: aws-gpu-training
+spec:
+  amiFamily: Custom
+  amiSelectorTerms:
+    - id: {{ .Values.gpu.amiId }}
+  instanceProfile: {{ .Values.instanceProfile }}
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: {{ .Values.clusterName }}
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: {{ .Values.clusterName }}
+  associatePublicIPAddress: true
+  metadataOptions:
+    httpEndpoint: enabled
+    httpTokens: required
+    httpPutResponseHopLimit: 1
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs:
+        volumeSize: {{ .Values.gpu.rootVolumeSize }}
+        volumeType: gp3
+        deleteOnTermination: true
+  kubelet:
+    {{- toYaml .Values.kubelet | nindent 4 }}
+  tags:
+    managed-by: talos-proxmox
+  userData: |
+    {{- .Values.gpu.userData | nindent 4 }}
+---
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: aws-gpu-training
+spec:
+  limits:
+    {{- if .Values.gpu.paused }}
+    cpu: "0"
+    {{- else }}
+    {{- toYaml .Values.gpu.limits | nindent 4 }}
+    {{- end }}
+  disruption:
+    consolidationPolicy: WhenEmpty
+    consolidateAfter: {{ .Values.gpu.consolidateAfter }}
+    budgets:
+      - nodes: "1"
+  template:
+    metadata:
+      labels:
+        {{ .Values.burst.labelKey }}: {{ .Values.burst.labelValue }}
+        {{ .Values.gpu.workloadLabelKey }}: {{ .Values.gpu.workloadLabelValue }}
+    spec:
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: aws-gpu-training
+      expireAfter: {{ .Values.gpu.expireAfter }}
+      terminationGracePeriod: {{ .Values.gpu.terminationGracePeriod }}
+      taints:
+        - key: {{ .Values.burst.taintKey }}
+          value: {{ .Values.burst.taintValue | quote }}
+          effect: NoSchedule
+        - key: {{ .Values.gpu.taintKey }}
+          value: {{ .Values.gpu.taintValue | quote }}
+          effect: NoSchedule
+      startupTaints:
+        - key: node.cloudprovider.kubernetes.io/uninitialized
+          value: "true"
+          effect: NoSchedule
+        - key: node.cilium.io/agent-not-ready
+          value: "true"
+          effect: NoSchedule
+      requirements:
+        - key: kubernetes.io/arch
+          operator: In
+          values: [amd64]
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: [on-demand]
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values: {{ toJson .Values.gpu.instanceTypes }}
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values: [{{ .Values.gpu.zone | quote }}]
+{{- end }}

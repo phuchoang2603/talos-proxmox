@@ -18,6 +18,7 @@
     awscli2
 
     jq
+    openspec
 
     talosctl
     kubectl

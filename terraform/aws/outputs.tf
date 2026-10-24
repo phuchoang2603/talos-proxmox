@@ -25,3 +25,14 @@ output "karpenter_secret_access_key" {
   value     = aws_iam_access_key.karpenter.secret
   sensitive = true
 }
+
+output "gpu_worker_machine_configuration" {
+  description = "Talos GPU worker machine configuration, empty until gpu_ami_id is set"
+  value       = one(data.talos_machine_configuration.worker_gpu[*].machine_configuration)
+  sensitive   = true
+}
+
+
+output "gpu_schematic_id" {
+  value = talos_image_factory_schematic.gpu.id
+}

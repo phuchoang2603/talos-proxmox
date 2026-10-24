@@ -1,0 +1,9 @@
+gpu:
+  enabled: true
+  zone: us-east-1b
+  instanceTypes: [g6.xlarge]
+  rootVolumeSize: 100Gi
+  limits:
+    cpu: "8"
+    memory: 32Gi
+    nvidia.com/gpu: "2"
