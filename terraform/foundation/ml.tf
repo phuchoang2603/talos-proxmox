@@ -7,6 +7,37 @@ locals {
 
 resource "aws_s3_bucket" "ml" {
   bucket = local.ml_bucket
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+data "aws_iam_policy_document" "ml_bucket" {
+  statement {
+    sid       = "DenyInsecureTransport"
+    effect    = "Deny"
+    actions   = ["s3:*"]
+    resources = [aws_s3_bucket.ml.arn, "${aws_s3_bucket.ml.arn}/*"]
+
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values   = ["false"]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "ml" {
+  bucket = aws_s3_bucket.ml.id
+  policy = data.aws_iam_policy_document.ml_bucket.json
+
+  depends_on = [aws_s3_bucket_public_access_block.ml]
 }
 
 resource "aws_s3_bucket_public_access_block" "ml" {
@@ -46,6 +77,50 @@ resource "aws_s3_bucket_lifecycle_configuration" "ml" {
 
     abort_incomplete_multipart_upload {
       days_after_initiation = 7
+    }
+  }
+
+  # Objects under runs/ expire only after the run-end step tags them expire=true, so
+  # untagged (active or pinned) objects and everything under datasets/ and images/ stay.
+  rule {
+    id     = "expire-finished-run-objects"
+    status = "Enabled"
+
+    filter {
+      and {
+        prefix = "runs/"
+        tags   = { expire = "true" }
+      }
+    }
+
+    expiration {
+      days = 14
+    }
+  }
+
+  rule {
+    id     = "expire-noncurrent-run-versions"
+    status = "Enabled"
+
+    filter {
+      prefix = "runs/"
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 30
+    }
+  }
+
+  rule {
+    id     = "clean-expired-delete-markers"
+    status = "Enabled"
+
+    filter {
+      prefix = "runs/"
+    }
+
+    expiration {
+      expired_object_delete_marker = true
     }
   }
 

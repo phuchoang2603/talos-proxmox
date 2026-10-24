@@ -36,3 +36,7 @@ output "gpu_worker_machine_configuration" {
 output "gpu_schematic_id" {
   value = talos_image_factory_schematic.gpu.id
 }
+
+output "s3_gateway_endpoint_id" {
+  value = aws_vpc_endpoint.s3.id
+}

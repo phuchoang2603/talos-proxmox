@@ -1,0 +1,5 @@
+apiVersion: v2
+name: platform-ml-access
+description: Delivers the ML staging S3 credentials and settings to the training namespace
+type: application
+version: 0.1.0

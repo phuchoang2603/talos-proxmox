@@ -22,8 +22,8 @@
 
 - [ ] 3.1 Provision private encrypted versioned S3 staging storage and regional gateway endpoint through the AWS infrastructure owner; verify bucket public-access denial, selected route-table association and preservation on ordinary rollback.
 - [ ] 3.2 Define dataset/checkpoint/output prefix and retention policies including active/pinned protection and abandoned multipart cleanup; verify plan and representative lifecycle cases cannot expire protected data.
-- [ ] 3.3 Define separate transfer/reader/run-writer IAM roles and a trusted issuer identity limited to assuming them; verify reader writes, cross-run writes and dataset-prefix writes are denied while the worker role still has no S3 permissions.
-- [ ] 3.4 Add the platform issuer step that mints per-run STS sessions scoped by session policy and delivers them as a namespace Secret; verify delivery, automatic expiry and early cut-off, with only the issuer's long-lived key in Doppler and no credentials in Git or routine logs.
+- [ ] 3.3 Define one dedicated IAM user limited to `datasets/*` and `runs/*` of the staging bucket; verify access outside those prefixes or in another bucket is denied while the worker role still has no S3 permissions.
+- [ ] 3.4 Write the user's key and non-secret bucket settings to Doppler and deliver them to the training namespace via ExternalSecret; verify delivery and key rotation with no credentials in Git or routine logs.
 - [ ] 3.5 Publish non-secret bucket/region/endpoint/prefix settings and access contract for fraud change `develop-gpu-models-and-train-on-aws`; verify an empty bucket is reported as storage-ready only, never dataset-ready.
 - [ ] 3.6 Update affected AWS/Kubeflow operational storage sections for explicit copy, retention and credential responsibilities; verify no live Iceberg/catalog replication or untested RustFS interoperability is asserted.
 
