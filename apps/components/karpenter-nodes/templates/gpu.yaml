@@ -1,6 +1,6 @@
 {{- if .Values.gpu.enabled }}
 {{- if not .Values.gpu.limits }}{{ fail "gpu.limits must be finite when gpu.enabled" }}{{ end }}
-{{- if not .Values.gpu.zone }}{{ fail "gpu.zone must be set when gpu.enabled" }}{{ end }}
+{{- if not .Values.gpu.zones }}{{ fail "gpu.zones must be set when gpu.enabled" }}{{ end }}
 {{- if not .Values.gpu.instanceTypes }}{{ fail "gpu.instanceTypes must be set when gpu.enabled" }}{{ end }}
 apiVersion: karpenter.k8s.aws/v1
 kind: EC2NodeClass
@@ -89,5 +89,5 @@ spec:
           values: {{ toJson .Values.gpu.instanceTypes }}
         - key: topology.kubernetes.io/zone
           operator: In
-          values: [{{ .Values.gpu.zone | quote }}]
+          values: {{ toJson .Values.gpu.zones }}
 {{- end }}

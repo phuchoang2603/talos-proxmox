@@ -31,6 +31,12 @@ spec:
                 - {key: burst.talos.dev/stateless, operator: Equal, value: "true", effect: NoSchedule}
                 - {key: burst.talos.dev/gpu-training, operator: Equal, value: "true", effect: NoSchedule}
                 affinity:
+                  podAffinity:
+                    requiredDuringSchedulingIgnoredDuringExecution:
+                    - topologyKey: topology.kubernetes.io/zone
+                      labelSelector:
+                        matchLabels:
+                          jobset.sigs.k8s.io/replicatedjob-name: node
                   podAntiAffinity:
                     requiredDuringSchedulingIgnoredDuringExecution:
                     - topologyKey: kubernetes.io/hostname

@@ -43,7 +43,8 @@ gpu:
   paused: false
   amiId: ami-00000000000000000
   userData: "# set by the platform root"
-  zone: ""
+  # Zones the pool may use; the training runtime keeps both ranks in the same zone.
+  zones: []
   instanceTypes: []
   rootVolumeSize: 100Gi
   workloadLabelKey: burst.talos.dev/workload

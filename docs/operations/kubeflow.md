@@ -25,7 +25,7 @@ Use `devenv shell` for `helm lint` and `helm template` in both repos. Check the 
 
 A bounded CUDA smoke Job already passed on prod-server1 on October 6, 2026 (Job `default/kubeflow-gpu-smoke-20261006`, CUDA result 42). This verifies GPU scheduling and execution only; it does not prove Kubeflow workload integration.
 
-The GPU is exposed only through DRA (DeviceClass `gpu.nvidia.com` maps the extended resource `nvidia.com/gpu`), so no node reports `nvidia.com/gpu` capacity and the Jupyter spawner's GPU field lists no vendors. Create GPU notebooks from a Notebook manifest that sets `nvidia.com/gpu` limits. Do not patch node capacity to make the field appear: the scheduler would then account the fake node resource instead of allocating a DRA device.
+The GPU is exposed only through DRA (DeviceClass `gpu.nvidia.com` maps the extended resource `nvidia.com/gpu`), so the local node reports no `nvidia.com/gpu` capacity (it is labelled `nvidia.com/gpu.deploy.device-plugin=false`) and the Jupyter spawner's GPU field lists no vendors. AWS GPU nodes also run the device plugin, only so Karpenter sees the capacity it expects and can consolidate them; pods still allocate through DRA. Create GPU notebooks from a Notebook manifest that sets `nvidia.com/gpu` limits. Do not patch node capacity to make the field appear: the scheduler would then account the fake node resource instead of allocating a DRA device.
 
 ## Historical DP1 platform prerequisites
 

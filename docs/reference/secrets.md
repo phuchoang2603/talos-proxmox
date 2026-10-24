@@ -32,10 +32,10 @@ Set these directly in the matching Doppler config before deployment. They are no
 | `CLICKHOUSE_DEFAULT_PASSWORD` (prod) | Foundation | ClickHouse `default` user |
 | `CLICKHOUSE_OTEL_PASSWORD` (prod) | Foundation | ClickHouse `otelcollector` user; OTLP gateway's ClickHouse exporter |
 | `CLICKHOUSE_APP_PASSWORD` (prod) | Foundation | ClickHouse `app` user; Grafana's ClickHouse data source |
-| `GRAFANA_ADMIN_PASSWORD` (prod) | Foundation | Grafana's `admin` login |
-| `GRAFANA_OIDC_CLIENT_SECRET` (prod) | Foundation | Dex's `grafana` client in `dex-config`; Grafana's Dex login through `grafana-oidc` |
+| `ML_AWS_ACCESS_KEY_ID`, `ML_AWS_SECRET_ACCESS_KEY` (prod) | Foundation | IAM user `talos-proxmox-ml`; ExternalSecret `fraud-ml-prod/ml-s3` |
+| `ML_BUCKET` (prod) | Foundation | ML staging bucket name (contains the account ID); same `ml-s3` Secret |
 
-Foundation generates the telemetry and Grafana credentials, so they survive environment destroys. Neither environment holds a credential for the other.
+Foundation generates the telemetry and ML storage credentials, so they survive environment destroys. Neither environment holds a credential for the other.
 
 Foundation also creates a read/write CI service token per config and publishes it as that GitHub Environment's `DOPPLER_TOKEN` secret. This differs from the read-only ESO token. A local foundation apply uses a workspace-level Doppler login token to manage these service tokens.
 
