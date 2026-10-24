@@ -96,7 +96,7 @@ spec:
     # Passwords are substituted from the container environment when the server loads users.
     extraUsersConfig:
       profiles:
-        grafana:
+        hyperdx:
           max_threads: 2
           max_memory_usage: {{ int64 $store.uiQueryLimits.maxMemoryUsage }}
           max_execution_time: {{ $store.uiQueryLimits.maxExecutionTime }}
@@ -110,11 +110,9 @@ spec:
         app:
           password:
             "@from_env": CLICKHOUSE_APP_PASSWORD
-          profile: grafana
-          # The bundled monitoring dashboard reads clusterAllReplicas(default, ...). The cluster's
-          # interserver secret keeps those reads under this user's grants and profile.
+          profile: hyperdx
           grants:
-            - query: "GRANT SHOW ON *.*, SELECT ON system.*, SELECT ON default.*, READ ON REMOTE"
+            - query: "GRANT SHOW ON *.*, SELECT ON system.*, SELECT ON default.*"
     extraConfig:
       metric_log:
         collect_interval_milliseconds: 60000

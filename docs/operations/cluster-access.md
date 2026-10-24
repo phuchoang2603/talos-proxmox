@@ -67,7 +67,7 @@ kubectl get storageclass
 kubectl -n istio-system get deploy istiod
 kubectl -n istio-system get daemonset istio-cni-node ztunnel
 kubectl -n argo-cd get svc argocd-ui
-# Prod only: kubectl -n observability get svc grafana-ui
+# Prod only: kubectl -n observability get svc hyperdx-ui
 ```
 
 Expected results: the root and child Applications are Synced/Healthy; the Doppler store and ExternalSecrets are Ready; Istio control plane and node agents are ready; and there is exactly one default StorageClass, `local-path`. `kubectl get nodes` lists only the Proxmox control-plane nodes (one in dev, `prod-server1` through `prod-server3` in prod) plus any AWS workers; the control-plane nodes also run workloads, and `prod-server1` is prod's SSD-backed node for write-heavy volumes.
@@ -78,10 +78,10 @@ Only prod collects telemetry; dev runs no telemetry components.
 
 | Endpoint | Address |
 | --- | --- |
-| Grafana (prod) | <https://grafana.phuchoang.sbs>, or <http://10.69.12.128> on the LAN |
+| HyperDX (prod) | <https://hyperdx.phuchoang.sbs>; LAN service <http://10.69.12.128> redirects to the public Dex callback |
 | OTLP from prod workloads | `otel-agent.observability.svc:4317` (gRPC) or `:4318` (HTTP) |
 
-Workloads send OTLP to their node's agent without credentials; the agent adds `k8s.cluster.name` and `deployment.environment` and forwards to the in-cluster gateway, which has no LAN address. Telemetry is kept for 7 days. Collection is limited to payment/fraud/data-pipeline workloads and critical platform namespaces listed in `global.criticalNamespaces`; file-log paths follow the same scope. Application logs are retained at all levels, while infrastructure logs and Kubernetes events are limited to warnings/errors. ClickHouse pod logs are available through `kubectl logs` and are excluded from its own ingestion. Node health remains cluster-wide; infrastructure metrics and annotated-pod scrapes run every 60 seconds. ClickHouse internal metrics are sampled every 60 seconds to preserve its health dashboard; per-second chart rates are normalized to that interval. Its internal text log table is disabled, and metric/query/part diagnostics are retained for one day.
+Workloads send OTLP to their node's agent without credentials; the agent adds `k8s.cluster.name` and `deployment.environment` and forwards to the in-cluster gateway, which has no LAN address. Telemetry is kept for 7 days. Collection is limited to marketplace/payment/fraud/data-pipeline workloads and critical platform namespaces listed in `global.criticalNamespaces`; file-log paths follow the same scope. Application logs are retained at all levels, while infrastructure logs and Kubernetes events are limited to warnings/errors. ClickHouse pod logs are available through `kubectl logs` and are excluded from its own ingestion. Node health remains cluster-wide; infrastructure metrics and annotated-pod scrapes run every 60 seconds. ClickHouse internal metrics are sampled every 60 seconds. Its internal text log table is disabled, and metric/query/part diagnostics are retained for one day.
 
 ## Public URLs (prod)
 
@@ -91,17 +91,11 @@ The prod Cloudflare tunnel publishes three hostnames. Cloudflare terminates TLS 
 | --- | --- | --- |
 | <https://auth.phuchoang.sbs/dex> | Dex, the shared login | The Dex user (`identity.email` in [`apps/components/auth/values.yaml`](../../apps/components/auth/values.yaml)) and `AUTH_DEX_PASSWORD` |
 | <https://kubeflow.phuchoang.sbs> | Kubeflow Dashboard, through the Istio ingress gateway | Redirects to Dex; see [Kubeflow](kubeflow.md) |
-| <https://grafana.phuchoang.sbs> | Grafana | **Sign in with Dex**, or the admin form |
+| <https://hyperdx.phuchoang.sbs> | HyperDX | Dex access gate, then the HyperDX account |
 
-Grafana's Dex login gives only the operator email the `Admin` role; Grafana rejects any other identity. Anonymous access and username sign-up stay disabled.
+HyperDX's OAuth2 Proxy accepts only `global.operatorEmail`, matching the Dex operator identity. HyperDX retains its own account login; the proxy does not create an application session. Use that email and `HYPERDX_ADMIN_PASSWORD` from Doppler for the HyperDX account. The public tunnel and LAN service both route through the access proxy.
 
-If Dex or Cloudflare is down, log in at <http://10.69.12.128> from the LAN as `admin` with the generated password. The same form also works on the public hostname:
-
-```bash
-doppler secrets get GRAFANA_ADMIN_PASSWORD --plain --project talos-proxmox --config prod
-```
-
-Grafana keeps no state of its own. The ClickHouse data source and the dashboards in the `ClickHouse` folder are provisioned from [`apps/components/observability`](../../apps/components/observability/) on every start, and a restart discards sessions and anything edited in the UI. Change dashboards by editing their JSON in `dashboards/` and merging. Queries run as the read-only ClickHouse `app` user, limited to 512 MiB and 60 seconds each.
+HyperDX uses its bundled preset dashboards and provisioned Logs, Traces and Metrics sources. MongoDB persists application state; ClickHouse retains telemetry. Queries run as the read-only ClickHouse `app` user, limited to two threads, 512 MiB and 60 seconds each. This chart installs no custom dashboard JSON or dashboard watcher.
 
 ## Find the failing layer
 
