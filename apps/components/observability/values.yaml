@@ -276,7 +276,7 @@ otel-agent:
       hostmetrics:
         collection_interval: 60s
       # Replaces the preset's operator list, so container-parser is restated.
-      # JSON bodies promote level, trace_id/span_id, and msg; other lines pass through.
+      # Structured and known text formats promote severity; unknown lines pass through.
       file_log:
         include:
           - /var/log/pods/ecommerce_*/*/*.log
@@ -303,11 +303,67 @@ otel-agent:
             id: json-body
             if: 'body matches "^\\{"'
             on_error: send_quiet
-          - type: severity_parser
+          - type: copy
             id: json-level
             if: "attributes.level != nil"
-            parse_from: attributes.level
+            from: attributes.level
+            to: attributes.parsed_level
+          - type: copy
+            id: json-severity
+            if: "attributes.parsed_level == nil and attributes.severity != nil"
+            from: attributes.severity
+            to: attributes.parsed_level
+          - type: copy
+            id: json-severity-text
+            if: "attributes.parsed_level == nil and attributes.severity_text != nil"
+            from: attributes.severity_text
+            to: attributes.parsed_level
+          - type: copy
+            id: mongodb-level
+            if: "attributes.parsed_level == nil and attributes.s != nil and attributes.c != nil"
+            from: attributes.s
+            to: attributes.parsed_level
+          - type: regex_parser
+            id: timestamp-level
+            if: 'attributes.parsed_level == nil and body matches "^(\\x1b\\[[0-9;]*m)*\\[?[0-9]{4}[-.]"'
+            regex: '(?i)^(?:\x1b\[[0-9;]*m)*\[?\d{4}[-.]\d{2}[-.]\d{2}[T ][0-9:.,]+Z?(?:\x1b\[[0-9;]*m|\s)*(?P<parsed_level>trace|debug|info|warn(?:ing)?|error|fatal|panic)\b'
             on_error: send_quiet
+          - type: regex_parser
+            id: logfmt-level
+            if: 'attributes.parsed_level == nil and body matches "^time="'
+            regex: '^time=\S+ level=(?P<parsed_level>\w+)\b'
+            on_error: send_quiet
+          - type: regex_parser
+            id: klog-level
+            if: 'attributes.parsed_level == nil and body matches "^[IWEF][0-9]{4}\\s"'
+            regex: '^(?P<parsed_level>[IWEF])\d{4}\s'
+            on_error: send_quiet
+          - type: regex_parser
+            id: clickhouse-level
+            if: 'attributes.parsed_level == nil and body matches "^[0-9]{4}\\."'
+            regex: '^\d{4}\.\d{2}\.\d{2} [0-9:.]+ \[\s*\d+\s*\] \{[^}]*\} <(?P<parsed_level>\w+)>'
+            on_error: send_quiet
+          - type: regex_parser
+            id: redis-level
+            if: 'attributes.parsed_level == nil and body matches "^[0-9]+:[A-Z] "'
+            regex: '^\d+:[A-Z] \d{2} \w{3} \d{4} [0-9:.]+ (?P<parsed_level>[.*#-]) '
+            on_error: send_quiet
+          - type: severity_parser
+            id: normalized-level
+            if: "attributes.parsed_level != nil"
+            parse_from: attributes.parsed_level
+            overwrite_text: true
+            mapping:
+              debug: [D, D1, D2, D3, D4, D5, '.', '-']
+              info: [I, '*']
+              warn: [W, '#']
+              error: [E]
+              fatal: [F]
+            on_error: send_quiet
+          - type: remove
+            id: remove-parsed-level
+            if: "attributes.parsed_level != nil"
+            field: attributes.parsed_level
           - type: trace_parser
             id: json-trace
             if: "attributes.trace_id != nil"
@@ -348,7 +404,7 @@ otel-agent:
         logs:
           log_record:
             - 'not IsMatch(String(resource.attributes["k8s.namespace.name"]), "{{ .Values.global.criticalNamespaces }}")'
-            - 'not IsMatch(String(resource.attributes["k8s.namespace.name"]), "^(ecommerce|payment-gateway|fraud-data-prod|fraud-ml-prod)$") and severity_number < SEVERITY_NUMBER_WARN and not IsMatch(String(body), "(?i)(warn|error|fatal|panic|(^|\\s)[WEF][0-9]{4})")'
+            - 'not IsMatch(String(resource.attributes["k8s.namespace.name"]), "^(ecommerce|payment-gateway|fraud-data-prod|fraud-ml-prod)$") and severity_number < SEVERITY_NUMBER_WARN and (severity_number != SEVERITY_NUMBER_UNSPECIFIED or not IsMatch(String(body), "(?i)(warn|error|fatal|panic|(^|\\s)[WEF][0-9]{4})"))'
         metrics:
           datapoint:
             - 'resource.attributes["k8s.namespace.name"] != nil and not IsMatch(resource.attributes["k8s.namespace.name"], "{{ .Values.global.criticalNamespaces }}")'
@@ -487,6 +543,12 @@ otel-cluster:
         metrics:
           datapoint:
             - 'resource.attributes["k8s.namespace.name"] != nil and not IsMatch(resource.attributes["k8s.namespace.name"], "{{ .Values.global.criticalNamespaces }}")'
+      transform/event-severity:
+        log_statements:
+          - context: log
+            statements:
+              - set(severity_number, SEVERITY_NUMBER_WARN)
+              - set(severity_text, "WARN")
       batch: {}
     exporters:
       otlp/gateway:
@@ -505,7 +567,7 @@ otel-cluster:
       pipelines:
         logs:
           receivers: []
-          processors: [memory_limiter, filter/critical, resource/environment, batch]
+          processors: [memory_limiter, transform/event-severity, filter/critical, resource/environment, batch]
           exporters: [otlp/gateway]
         metrics:
           receivers: [prometheus]
