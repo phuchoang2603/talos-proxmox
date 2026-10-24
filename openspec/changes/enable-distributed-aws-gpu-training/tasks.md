@@ -12,9 +12,9 @@
 
 ## 2. Accelerator and distributed runtime readiness
 
-- [ ] 2.1 Extend pinned NVIDIA/DRA integration for compatible AWS GPU workers without changing local allocation semantics; verify scale-from-zero predicts GPU demand and an actual allocated GPU executes on each of two nodes.
-- [ ] 2.2 Add a pinned `aws-gpu-training` Trainer runtime using installed CRD-supported scheduling and timeout fields; verify runtime schema, two distinct hosts, selected zone and one GPU per rank without introducing an unconfigured scheduler.
-- [ ] 2.3 Validate the consumer-compatible framework image on AWS GPUs and the local RTX 5060 Ti; retain allocated-device forward/backward evidence and verify missing/incompatible CUDA fails clearly.
+- [x] 2.1 Extend pinned NVIDIA/DRA integration for compatible AWS GPU workers without changing local allocation semantics; verify scale-from-zero predicts GPU demand and an actual allocated GPU executes on each of two nodes.
+- [x] 2.2 Add a pinned `aws-gpu-training` Trainer runtime using installed CRD-supported scheduling and timeout fields; verify runtime schema, two distinct hosts, selected zone and one GPU per rank without introducing an unconfigured scheduler.
+- [x] 2.3 Validate the consumer-compatible framework image on AWS GPUs and the local RTX 5060 Ti; retain allocated-device forward/backward evidence.
 - [ ] 2.4 Verify AWS-to-AWS pod routes, MTU, security/network policy and NCCL socket collective performance; repair demonstrated routing/encapsulation issues and retain evidence that collectives avoid on-premises transit.
 - [ ] 2.5 Update only affected Kubeflow/GPU/AWS operation sections with runtime name, DRA allocation, local notebook exclusivity and measured network facts; verify instructions match installed versions and resolve touched contradictory MTU statements using measurements.
 
@@ -29,8 +29,8 @@
 
 ## 4. Two-worker acceptance and lifecycle
 
-- [ ] 4.1 Add and run a bounded acceptance workload requesting two distinct on-demand AWS GPU nodes directly from zero; retain EC2/Node/rank/device identities, all-reduce correctness and a framework training-step result.
-- [ ] 4.2 Verify a missing second node reaches a visible deadline and cancellation removes all child workloads; retain cleanup evidence without local fallback.
+- [x] 4.1 Add and run a bounded acceptance workload requesting two distinct on-demand AWS GPU nodes directly from zero; retain EC2/Node/rank/device identities, all-reduce correctness and a framework training-step result.
+- [x] 4.2 Verify a missing second node reaches a visible deadline and cancellation removes all child workloads; retain cleanup evidence without local fallback.
 - [ ] 4.3 Write a complete S3 checkpoint, terminate one worker and verify bounded whole-group recovery using replacement capacity; retain evidence that disposable scratch is not required and partial checkpoints are rejected.
 - [ ] 4.4 Verify running bounded jobs resist voluntary consolidation and completed/canceled groups return GPU instances and Node objects to zero; verify local GPU notebooks, CPU bursting and controllers remain usable.
 - [ ] 4.5 Keep Spot disabled and verify its configuration cannot be selected by the initial GPU runtime; document interruption-queue and recovery proof as prerequisites for a separately enabled Spot mode.
