@@ -88,15 +88,16 @@ spec:
       secret:
         name: clickhouse-credentials
         key: default-password
-    systemLogsTTLDays: 7
+    systemLogsTTLDays: 1
     logger:
-      level: information
+      level: warning
       size: 100M
       count: 10
     # Passwords are substituted from the container environment when the server loads users.
     extraUsersConfig:
       profiles:
         grafana:
+          max_threads: 2
           max_memory_usage: {{ int64 $store.uiQueryLimits.maxMemoryUsage }}
           max_execution_time: {{ $store.uiQueryLimits.maxExecutionTime }}
       users:
@@ -115,16 +116,25 @@ spec:
           grants:
             - query: "GRANT SHOW ON *.*, SELECT ON system.*, SELECT ON default.*, READ ON REMOTE"
     extraConfig:
+      metric_log:
+        collect_interval_milliseconds: 60000
+        flush_interval_milliseconds: 60000
+      asynchronous_metrics_update_period_s: 60
+      asynchronous_metric_log:
+        flush_interval_milliseconds: 60000
+      text_log:
+        "@remove": "1"
       max_connections: 4096
       keep_alive_timeout: 64
       max_concurrent_queries: 100
       # Shares prod-server1's SSD with etcd.
-      background_pool_size: 4
-      # Defaults assume 16 threads x 2 slots; each threshold must fit the 8 slots left above.
+      background_pool_size: 2
+      background_merges_mutations_concurrency_ratio: 1
+      # Merge thresholds must fit the two background slots.
       merge_tree:
-        number_of_free_entries_in_pool_to_execute_mutation: 5
-        number_of_free_entries_in_pool_to_execute_optimize_entire_partition: 6
-        number_of_free_entries_in_pool_to_lower_max_size_of_merge: 2
+        number_of_free_entries_in_pool_to_execute_mutation: 1
+        number_of_free_entries_in_pool_to_execute_optimize_entire_partition: 1
+        number_of_free_entries_in_pool_to_lower_max_size_of_merge: 1
       storage_configuration:
         disks:
           default:

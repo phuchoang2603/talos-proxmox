@@ -81,7 +81,7 @@ Only prod collects telemetry; dev runs no telemetry components.
 | Grafana (prod) | <https://grafana.phuchoang.sbs>, or <http://10.69.12.128> on the LAN |
 | OTLP from prod workloads | `otel-agent.observability.svc:4317` (gRPC) or `:4318` (HTTP) |
 
-Workloads send OTLP to their node's agent without credentials; the agent adds `k8s.cluster.name` and `deployment.environment` and forwards to the in-cluster gateway, which has no LAN address. Telemetry is kept for 7 days.
+Workloads send OTLP to their node's agent without credentials; the agent adds `k8s.cluster.name` and `deployment.environment` and forwards to the in-cluster gateway, which has no LAN address. Telemetry is kept for 7 days. Collection is limited to payment/fraud/data-pipeline workloads and critical platform namespaces listed in `global.criticalNamespaces`; file-log paths follow the same scope. Application logs are retained at all levels, while infrastructure logs and Kubernetes events are limited to warnings/errors. ClickHouse pod logs are available through `kubectl logs` and are excluded from its own ingestion. Node health remains cluster-wide; infrastructure metrics and annotated-pod scrapes run every 60 seconds. ClickHouse internal metrics are sampled every 60 seconds to preserve its health dashboard; per-second chart rates are normalized to that interval. Its internal text log table is disabled, and metric/query/part diagnostics are retained for one day.
 
 ## Public URLs (prod)
 

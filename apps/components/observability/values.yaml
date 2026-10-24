@@ -8,13 +8,13 @@ store:
     image:
       repository: clickhouse/clickhouse-server
       tag: "25.12-alpine"
-    # Request reserves a floor; ingest and merges burst to ~1-1.5 cores under the unset CPU limit.
     # ClickHouse caps itself at 90% of the memory limit and sizes its caches from it.
     resources:
       requests:
         cpu: 500m
         memory: 4Gi
       limits:
+        cpu: "2"
         memory: 4Gi
     # local-path does not enforce claim sizes; keep_free_space_bytes is the real bound.
     storage: 50Gi
@@ -49,6 +49,7 @@ global:
   # Read by the agent and cluster collectors' configs.
   clusterName: prod-talos
   environment: prod
+  criticalNamespaces: "^(payment-gateway|fraud-data-prod|fraud-ml-prod|kafka|openmetadata|auth|argo-cd|argo-workflows|kube-system|istio-system|operators|observability)$"
   gatewayEndpoint: otel-gateway.observability.svc:4317
 
 # Stateless: the data source, dashboards, and admin account are provisioned on every start.
@@ -297,10 +298,30 @@ otel-agent:
             endpoint: ${env:MY_POD_IP}:4318
       # Talos kubelets serve self-signed certificates.
       kubeletstats:
+        collection_interval: 60s
+        metric_groups: [node, pod, container]
         insecure_skip_verify: true
+      hostmetrics:
+        collection_interval: 60s
       # Replaces the preset's operator list, so container-parser is restated.
       # JSON bodies promote level, trace_id/span_id, and msg; other lines pass through.
       file_log:
+        include:
+          - /var/log/pods/payment-gateway_*/*/*.log
+          - /var/log/pods/fraud-data-prod_*/*/*.log
+          - /var/log/pods/fraud-ml-prod_*/*/*.log
+          - /var/log/pods/kafka_*/*/*.log
+          - /var/log/pods/openmetadata_*/*/*.log
+          - /var/log/pods/auth_*/*/*.log
+          - /var/log/pods/argo-cd_*/*/*.log
+          - /var/log/pods/argo-workflows_*/*/*.log
+          - /var/log/pods/kube-system_*/*/*.log
+          - /var/log/pods/istio-system_*/*/*.log
+          - /var/log/pods/operators_*/*/*.log
+          - /var/log/pods/observability_*/*/*.log
+        exclude:
+          - /var/log/pods/observability_otel-agent*_*/otel-agent/*.log
+          - /var/log/pods/observability_clickstack-clickhouse*_*/clickhouse-server/*.log
         operators:
           - type: container
             id: container-parser
@@ -349,6 +370,18 @@ otel-agent:
           - key: host.name
             value: ${env:K8S_NODE_NAME}
             action: insert
+      filter/critical:
+        error_mode: ignore
+        logs:
+          log_record:
+            - 'not IsMatch(String(resource.attributes["k8s.namespace.name"]), "{{ .Values.global.criticalNamespaces }}")'
+            - 'not IsMatch(String(resource.attributes["k8s.namespace.name"]), "^(payment-gateway|fraud-data-prod|fraud-ml-prod)$") and severity_number < SEVERITY_NUMBER_WARN and not IsMatch(String(body), "(?i)(warn|error|fatal|panic|(^|\\s)[WEF][0-9]{4})")'
+        metrics:
+          datapoint:
+            - 'resource.attributes["k8s.namespace.name"] != nil and not IsMatch(resource.attributes["k8s.namespace.name"], "{{ .Values.global.criticalNamespaces }}")'
+        traces:
+          span:
+            - 'not IsMatch(String(resource.attributes["k8s.namespace.name"]), "{{ .Values.global.criticalNamespaces }}")'
       batch: {}
     exporters:
       otlp/gateway:
@@ -368,15 +401,15 @@ otel-agent:
       pipelines:
         logs:
           receivers: [otlp]
-          processors: [memory_limiter, k8s_attributes, resource/environment, batch]
+          processors: [memory_limiter, k8s_attributes, filter/critical, resource/environment, batch]
           exporters: [otlp/gateway]
         metrics:
           receivers: [otlp]
-          processors: [memory_limiter, k8s_attributes, resource/environment, resource/node, batch]
+          processors: [memory_limiter, k8s_attributes, filter/critical, resource/environment, resource/node, batch]
           exporters: [otlp/gateway]
         traces:
           receivers: [otlp]
-          processors: [memory_limiter, k8s_attributes, resource/environment, batch]
+          processors: [memory_limiter, k8s_attributes, filter/critical, resource/environment, batch]
           exporters: [otlp/gateway]
 
 otel-cluster:
@@ -426,13 +459,27 @@ otel-cluster:
       health_check:
         endpoint: ${env:MY_POD_IP}:13133
     receivers:
+      k8s_cluster:
+        collection_interval: 60s
+      k8sobjects:
+        objects:
+          - name: events
+            group: events.k8s.io
+            mode: watch
+            namespaces: [payment-gateway, fraud-data-prod, fraud-ml-prod, kafka, openmetadata, auth, argo-cd, argo-workflows, kube-system, istio-system, operators, observability]
+            field_selector: type=Warning
+            exclude_watch_type: [DELETED]
       prometheus:
         config:
           scrape_configs:
             - job_name: annotated-pods
+              scrape_interval: 60s
               kubernetes_sd_configs:
                 - role: pod
               relabel_configs:
+                - source_labels: [__meta_kubernetes_namespace]
+                  action: keep
+                  regex: "{{ .Values.global.criticalNamespaces }}"
                 - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
                   action: keep
                   regex: "true"
@@ -462,6 +509,11 @@ otel-cluster:
           - key: deployment.environment
             value: "{{ .Values.global.environment }}"
             action: upsert
+      filter/critical:
+        error_mode: ignore
+        metrics:
+          datapoint:
+            - 'resource.attributes["k8s.namespace.name"] != nil and not IsMatch(resource.attributes["k8s.namespace.name"], "{{ .Values.global.criticalNamespaces }}")'
       batch: {}
     exporters:
       otlp/gateway:
@@ -480,9 +532,9 @@ otel-cluster:
       pipelines:
         logs:
           receivers: []
-          processors: [memory_limiter, resource/environment, batch]
+          processors: [memory_limiter, filter/critical, resource/environment, batch]
           exporters: [otlp/gateway]
         metrics:
           receivers: [prometheus]
-          processors: [memory_limiter, resource/environment, batch]
+          processors: [memory_limiter, filter/critical, resource/environment, batch]
           exporters: [otlp/gateway]
