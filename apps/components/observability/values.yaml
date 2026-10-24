@@ -1,5 +1,5 @@
 # Wrapper-owned resources. Names feed the operator-generated Services
-# (<name>-clickhouse-headless, <name>-svc) that Grafana and the gateway use.
+# (<name>-clickhouse-headless, <name>-svc) that HyperDX and the gateway use.
 store:
   # The only SSD-backed prod node; keeps ClickHouse merges off the HDD etcd nodes.
   nodeName: prod-server1
@@ -30,7 +30,9 @@ store:
       limits:
         memory: 512Mi
     storage: 5Gi
-  # Applied to the app user that Grafana queries as; exceeding either fails only that query.
+  mongodb:
+    name: hyperdx-mongodb
+  # Applied to the app user that HyperDX queries as; exceeding either fails only that query.
   uiQueryLimits:
     maxMemoryUsage: 536870912
     maxExecutionTime: 60
@@ -42,135 +44,103 @@ tunnel:
   clusterTunnel: talos-proxmox
 
 global:
-  grafanaAddress: 10.69.12.128
-  grafanaHostname: grafana.phuchoang.sbs
-  # The only identity granted a Grafana role; lint checks it against auth's identity.email.
+  hyperdxAddress: 10.69.12.128
+  hyperdxHostname: hyperdx.phuchoang.sbs
+  # The only identity granted a HyperDX role; lint checks it against auth's identity.email.
   operatorEmail: xuanphuc.a1gv@gmail.com
   # Read by the agent and cluster collectors' configs.
   clusterName: prod-talos
   environment: prod
-  criticalNamespaces: "^(payment-gateway|fraud-data-prod|fraud-ml-prod|kafka|openmetadata|auth|argo-cd|argo-workflows|kube-system|istio-system|operators|observability)$"
+  criticalNamespaces: "^(ecommerce|payment-gateway|fraud-data-prod|fraud-ml-prod|kafka|openmetadata|auth|argo-cd|argo-workflows|kube-system|istio-system|operators|observability)$"
   gatewayEndpoint: otel-gateway.observability.svc:4317
 
-# Stateless: the data source, dashboards, and admin account are provisioned on every start.
-grafana:
-  fullnameOverride: grafana
-  replicas: 1
-  testFramework:
+clickstack:
+  fullnameOverride: hyperdx
+  # Credentials come from ExternalSecrets, so the chart's secret-bearing pieces stay off.
+  clickhouse:
     enabled: false
-  # Sidecars are off, so Grafana needs no Kubernetes API access.
-  rbac:
-    create: false
-  # The database and downloaded plugin (~100Mi) live in memory: on prod-server1's SSD, shared
-  # with etcd and ClickHouse, SQLite stalls long enough to fail health checks.
-  persistence:
+  mongodb:
     enabled: false
-    inMemory:
-      enabled: true
-      sizeLimit: 256Mi
-  # The memory limit also covers the in-memory data directory. No CPU limit: page loads burst
-  # to about one core.
+  otel-collector:
+    enabled: false
+  hyperdx:
+    # Blanked rather than null: Helm 4 keeps a subchart's map defaults when the parent sets null.
+    # The real values reach HyperDX through deployment.env, which overrides the chart's envFrom.
+    secrets:
+      HYPERDX_API_KEY: ""
+      CLICKHOUSE_PASSWORD: ""
+      CLICKHOUSE_APP_PASSWORD: ""
+      MONGODB_PASSWORD: ""
+    config:
+      OTEL_EXPORTER_OTLP_ENDPOINT: ""
+      EXPRESS_SESSION_SECRET: ""
+      FRONTEND_URL: 'https://{{ .Values.global.hyperdxHostname }}'
+      USAGE_STATS_ENABLED: "false"
+      # Set from the hyperdx Secret below; the chart default embeds the password.
+      MONGO_URI: ""
+    deployment:
+      useExistingConfigSecret: true
+      existingConfigSecret: hyperdx
+      env:
+        - name: MONGO_URI
+          valueFrom:
+            secretKeyRef:
+              name: hyperdx
+              key: MONGO_URI
+        - name: EXPRESS_SESSION_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: hyperdx
+              key: EXPRESS_SESSION_SECRET
+        - name: HYPERDX_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: hyperdx
+              key: HYPERDX_API_KEY
+      resources:
+        requests:
+          cpu: 100m
+          memory: 384Mi
+        limits:
+          memory: 1Gi
+
+hyperdx-auth:
+  fullnameOverride: hyperdx-auth
+  replicaCount: 1
   resources:
     requests:
-      cpu: 250m
-      memory: 512Mi
+      cpu: 10m
+      memory: 32Mi
     limits:
-      memory: 1Gi
-  # Liveness checks start only once the first database migration succeeds.
-  startupProbe:
-    httpGet:
-      path: /api/health
-      port: grafana
-    periodSeconds: 10
-    failureThreshold: 60
-  admin:
-    existingSecret: grafana-admin
-  envValueFrom:
-    CLICKHOUSE_APP_PASSWORD:
-      secretKeyRef:
-        name: clickhouse-credentials
-        key: app-password
-    GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET:
-      secretKeyRef:
-        name: grafana-oidc
-        key: client-secret
-  # Downloaded from grafana.com on every start. The files in dashboards/ were copied from
-  # grafana/clickhouse-datasource tag v4.22.1; update both together.
-  plugins:
-    - grafana-clickhouse-datasource@4.22.1
-  grafana.ini:
-    server:
-      root_url: 'https://{{ .Values.global.grafanaHostname }}'
-    # Browsers reach Dex publicly; token and userinfo calls stay in-cluster. The login form
-    # remains as the LAN fallback, so session cookies cannot be secure-only.
-    auth.generic_oauth:
-      enabled: true
-      name: Dex
-      client_id: grafana
-      scopes: openid email profile
-      use_pkce: true
-      auth_url: https://auth.phuchoang.sbs/dex/auth
-      token_url: http://dex.auth.svc.cluster.local:5556/dex/token
-      api_url: http://dex.auth.svc.cluster.local:5556/dex/userinfo
-      # Stateless Grafana recreates the OAuth user on every fresh login.
-      allow_sign_up: true
-      role_attribute_path: "email == '{{ .Values.global.operatorEmail }}' && 'Admin' || ''"
-      role_attribute_strict: true
-    security:
-      cookie_secure: false
-    users:
-      allow_sign_up: false
-    auth.anonymous:
-      enabled: false
-    # Nothing scrapes Grafana, and /metrics would be unauthenticated on the public hostname.
-    metrics:
-      enabled: false
-    analytics:
-      reporting_enabled: false
-      check_for_updates: false
-      check_for_plugin_updates: false
-  datasources:
-    datasources.yaml:
-      apiVersion: 1
-      datasources:
-        - name: ClickHouse
-          uid: clickhouse
-          type: grafana-clickhouse-datasource
-          isDefault: true
-          editable: false
-          jsonData:
-            host: clickstack-clickhouse-headless
-            port: 9000
-            protocol: native
-            username: app
-            defaultDatabase: default
-            logs:
-              defaultDatabase: default
-              defaultTable: otel_logs
-              otelEnabled: true
-              otelVersion: latest
-              showLogLinks: true
-            traces:
-              defaultDatabase: default
-              defaultTable: otel_traces
-              otelEnabled: true
-              otelVersion: latest
-              showTraceLinks: true
-          secureJsonData:
-            password: $__env{CLICKHOUSE_APP_PASSWORD}
-  dashboardProviders:
-    dashboardproviders.yaml:
-      apiVersion: 1
-      providers:
-        - name: clickhouse
-          folder: ClickHouse
-          type: file
-          disableDeletion: true
-          allowUiUpdates: false
-          options:
-            path: /var/lib/grafana/dashboards/clickhouse
-  dashboardsConfigMaps:
-    clickhouse: grafana-dashboards
+      memory: 128Mi
+  config:
+    existingSecret: hyperdx-auth
+    configFile: |
+      email_domains = []
+      authenticated_emails_file = "/etc/oauth2-proxy/emails/allowed"
+      upstreams = ["http://hyperdx:3000/"]
+  extraVolumes:
+    - name: allowed-emails
+      configMap:
+        name: hyperdx-auth
+  extraVolumeMounts:
+    - name: allowed-emails
+      mountPath: /etc/oauth2-proxy/emails
+      readOnly: true
+  extraArgs:
+    provider: oidc
+    oidc-issuer-url: https://auth.phuchoang.sbs/dex
+    skip-oidc-discovery: "true"
+    login-url: https://auth.phuchoang.sbs/dex/auth
+    redeem-url: http://dex.auth.svc.cluster.local:5556/dex/token
+    oidc-jwks-url: http://dex.auth.svc.cluster.local:5556/dex/keys
+    redirect-url: https://hyperdx.phuchoang.sbs/oauth2/callback
+    skip-provider-button: "true"
+    approval-prompt: auto
+    reverse-proxy: "true"
+    cookie-secure: "true"
+    cookie-name: _hyperdx_oauth2
+    cookie-samesite: lax
 
 otel-gateway:
   fullnameOverride: otel-gateway
@@ -307,6 +277,7 @@ otel-agent:
       # JSON bodies promote level, trace_id/span_id, and msg; other lines pass through.
       file_log:
         include:
+          - /var/log/pods/ecommerce_*/*/*.log
           - /var/log/pods/payment-gateway_*/*/*.log
           - /var/log/pods/fraud-data-prod_*/*/*.log
           - /var/log/pods/fraud-ml-prod_*/*/*.log
@@ -375,7 +346,7 @@ otel-agent:
         logs:
           log_record:
             - 'not IsMatch(String(resource.attributes["k8s.namespace.name"]), "{{ .Values.global.criticalNamespaces }}")'
-            - 'not IsMatch(String(resource.attributes["k8s.namespace.name"]), "^(payment-gateway|fraud-data-prod|fraud-ml-prod)$") and severity_number < SEVERITY_NUMBER_WARN and not IsMatch(String(body), "(?i)(warn|error|fatal|panic|(^|\\s)[WEF][0-9]{4})")'
+            - 'not IsMatch(String(resource.attributes["k8s.namespace.name"]), "^(ecommerce|payment-gateway|fraud-data-prod|fraud-ml-prod)$") and severity_number < SEVERITY_NUMBER_WARN and not IsMatch(String(body), "(?i)(warn|error|fatal|panic|(^|\\s)[WEF][0-9]{4})")'
         metrics:
           datapoint:
             - 'resource.attributes["k8s.namespace.name"] != nil and not IsMatch(resource.attributes["k8s.namespace.name"], "{{ .Values.global.criticalNamespaces }}")'
@@ -466,7 +437,7 @@ otel-cluster:
           - name: events
             group: events.k8s.io
             mode: watch
-            namespaces: [payment-gateway, fraud-data-prod, fraud-ml-prod, kafka, openmetadata, auth, argo-cd, argo-workflows, kube-system, istio-system, operators, observability]
+            namespaces: [ecommerce, payment-gateway, fraud-data-prod, fraud-ml-prod, kafka, openmetadata, auth, argo-cd, argo-workflows, kube-system, istio-system, operators, observability]
             field_selector: type=Warning
             exclude_watch_type: [DELETED]
       prometheus:
