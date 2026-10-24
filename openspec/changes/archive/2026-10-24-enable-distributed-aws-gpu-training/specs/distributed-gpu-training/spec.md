@@ -5,14 +5,14 @@ Provide bounded, stateless AWS GPU workers for distributed training while retain
 ## ADDED Requirements
 
 ### Requirement: Dedicated cloud GPU capacity
-The platform SHALL expose an opt-in GPU burst pool alongside existing CPU capacity. Initial acceptance SHALL provision two distinct on-demand AWS GPU workers in one selected availability zone in the existing Talos cluster. Pool configuration SHALL declare finite resource limits, compatible instance types and a pause control.
+The platform SHALL expose an opt-in GPU burst pool alongside existing CPU capacity. Initial acceptance SHALL provision an on-demand AWS GPU worker for a single-node job, and up to two such jobs MAY run concurrently without communicating with each other. Pool configuration SHALL declare finite resource limits, compatible instance types and a pause control.
 
 #### Scenario: Train from zero cloud workers
-- **WHEN** a two-worker GPU workload is submitted within configured limits
-- **THEN** two eligible AWS nodes join and provide GPU allocation without changing fixed Proxmox inventory
+- **WHEN** a single-GPU workload is submitted within configured limits
+- **THEN** one eligible AWS node joins and provides GPU allocation without changing fixed Proxmox inventory
 
 #### Scenario: Capacity or quota failure
-- **WHEN** the selected region or zone cannot supply the required pair
+- **WHEN** no allowed zone can supply the required node
 - **THEN** the reason is observable and the workload does not silently use local capacity or another topology
 
 ### Requirement: Verified accelerator readiness
@@ -23,14 +23,14 @@ AWS GPU workers SHALL use a pinned compatible Talos image and GPU stack. Readine
 - **THEN** readiness is claimed only after an allocated GPU completes a framework forward/backward pass
 
 ### Requirement: Distributed runtime handoff
-The platform SHALL expose a versioned runtime and scheduling contract supporting two GPU ranks on distinct AWS nodes. Acceptance SHALL verify rendezvous, all-reduce, worker identity, timeout behavior and the actual AWS-to-AWS traffic path without routing collectives through on-premises nodes.
+The platform SHALL expose a versioned runtime and scheduling contract supporting one GPU rank on one AWS node per job. Acceptance SHALL verify worker identity, allocated-device execution and timeout behavior. Multi-node collectives are not part of the contract.
 
-#### Scenario: Two-node collective
+#### Scenario: Single-node training step
 - **WHEN** the acceptance workload executes
-- **THEN** both AWS GPUs contribute to a verified collective and measured routing and throughput evidence is retained
+- **THEN** the allocated AWS GPU completes a framework training step and identity evidence is retained
 
-#### Scenario: Missing second worker
-- **WHEN** only one required worker becomes ready before the configured deadline
+#### Scenario: Worker never becomes ready
+- **WHEN** the required worker does not become ready before the configured deadline
 - **THEN** the workload fails or is canceled with cleanup instead of hanging indefinitely
 
 ### Requirement: Bounded cloud lifecycle

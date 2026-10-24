@@ -60,9 +60,20 @@ See [the join sequence](../architecture/hybrid-aws-workers.md#scale-from-zero-th
 
 ## GPU training pool
 
-The `aws-gpu-training` NodePool is opt-in (`gpu.enabled` in the environment values) and separate from `aws-burst`. It is on-demand only, limited to one availability zone and the single-GPU types in `gpu.instanceTypes`, and its `gpu.limits` cover exactly one two-worker group. Nodes carry the `burst.talos.dev/stateless` taint plus `burst.talos.dev/gpu-training=true:NoSchedule` and the label `burst.talos.dev/workload=gpu-training`. CPU workloads do not tolerate the GPU taint, so they cannot consume this capacity.
+The `aws-gpu-training` NodePool is opt-in (`gpu.enabled` in the environment values) and separate from `aws-burst`. It is on-demand only, limited to the zones in `gpu.zones` and the single-GPU types in `gpu.instanceTypes`, and its `gpu.limits` cover two concurrent single-GPU jobs. The `aws-gpu-training` runtime runs one node and one GPU per job; two jobs run independently and do not communicate. Nodes carry the `burst.talos.dev/stateless` taint plus `burst.talos.dev/gpu-training=true:NoSchedule` and the label `burst.talos.dev/workload=gpu-training`. CPU workloads do not tolerate the GPU taint, so they cannot consume this capacity.
 
 A GPU workload must tolerate both taints, select `burst.talos.dev/workload=gpu-training`, and request one GPU per pod. Nodes are removed only when empty, after `gpu.consolidateAfter`, and expire after `gpu.expireAfter`. To stop new GPU capacity without removing the configuration, set `gpu.paused: true`, which renders the pool limits as zero.
+
+The pool is on-demand only: the template fixes the capacity type, so no value can enable Spot, and the `aws-gpu-training` Trainer runtime selects only the pool labels. There is no Spot interruption queue, so Spot needs one plus demonstrated recovery before it is enabled separately. A zone can lack `g6.xlarge` capacity (`InsufficientInstanceCapacity` in the Karpenter log); with several zones allowed Karpenter tries the next one, but a group can still stay Pending for minutes, so set `activeDeadlineSeconds` accordingly. The Trainer runtime does not restart a failed group automatically (`backoffLimit: 0`): after losing a worker the TrainJob fails within seconds, and resubmitting it with the same run ID resumes from the newest S3 checkpoint that has a manifest.
+
+## ML staging storage
+
+The private bucket `ML_BUCKET` (foundation-owned, versioned, encrypted, non-TLS denied, protected by `prevent_destroy`) holds `datasets/<export-id>/` and `runs/<run-id>/{checkpoints,outputs}/`. The S3 gateway endpoint keeps AWS worker traffic to it inside the region.
+
+- **Copy:** data moves only by explicit copy (source to S3, S3 to RustFS). There is no live Iceberg or catalog replication, and RustFS bucket replication has not been tested against AWS.
+- **Retention:** nothing under `datasets/` or `images/` expires. Objects under `runs/` expire after 14 days only when tagged `expire=true`, which the run-end step must set. Noncurrent `runs/` versions expire after 30 days, and incomplete multipart uploads after 7.
+- **Credentials:** one IAM user (`talos-proxmox-ml`) limited to `datasets/*` and `runs/*`, delivered as Secret `fraud-ml-prod/ml-s3`. Rotate with `tofu apply -replace=aws_iam_access_key.ml` in `terraform/foundation`. EC2 worker roles have no S3 access, and IAM does not isolate one run's prefix from another's.
+- **Readiness:** the bucket existing means storage is ready, never that a dataset is. Consumers verify object inventories and hashes.
 
 ## Return to zero or pause bursting
 

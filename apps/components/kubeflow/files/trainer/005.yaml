@@ -9,7 +9,7 @@ metadata:
   namespace: kubeflow-system
 spec:
   mlPolicy:
-    numNodes: 2
+    numNodes: 1
     torch: {}
   template:
     spec:
@@ -30,13 +30,6 @@ spec:
                 tolerations:
                 - {key: burst.talos.dev/stateless, operator: Equal, value: "true", effect: NoSchedule}
                 - {key: burst.talos.dev/gpu-training, operator: Equal, value: "true", effect: NoSchedule}
-                affinity:
-                  podAntiAffinity:
-                    requiredDuringSchedulingIgnoredDuringExecution:
-                    - topologyKey: kubernetes.io/hostname
-                      labelSelector:
-                        matchLabels:
-                          jobset.sigs.k8s.io/replicatedjob-name: node
                 containers:
                 - image: pytorch/pytorch:2.13.0-cuda13.0-cudnn9-runtime
                   name: node

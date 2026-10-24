@@ -1,6 +1,6 @@
 gpu:
   enabled: true
-  zone: us-east-1b
+  zones: [us-east-1a, us-east-1b, us-east-1c, us-east-1d]
   instanceTypes: [g6.xlarge]
   rootVolumeSize: 100Gi
   limits:
