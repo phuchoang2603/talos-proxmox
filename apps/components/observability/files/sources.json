@@ -19,7 +19,6 @@
     "spanIdExpression": "SpanId",
     "connection": "Local ClickHouse",
     "traceSourceId": "Traces",
-    "sessionSourceId": "Sessions",
     "metricSourceId": "Metrics"
   },
   {
@@ -48,7 +47,6 @@
     "statusMessageExpression": "StatusMessage",
     "connection": "Local ClickHouse",
     "logSourceId": "Logs",
-    "sessionSourceId": "Sessions",
     "metricSourceId": "Metrics"
   },
   {
@@ -69,30 +67,6 @@
     },
     "connection": "Local ClickHouse",
     "logSourceId": "Logs",
-    "traceSourceId": "Traces",
-    "sessionSourceId": "Sessions"
-  },
-  {
-    "from": {
-      "databaseName": "default",
-      "tableName": "hyperdx_sessions"
-    },
-    "kind": "session",
-    "timestampValueExpression": "TimestampTime",
-    "name": "Sessions",
-    "displayedTimestampValueExpression": "Timestamp",
-    "implicitColumnExpression": "Body",
-    "serviceNameExpression": "ServiceName",
-    "bodyExpression": "Body",
-    "eventAttributesExpression": "LogAttributes",
-    "resourceAttributesExpression": "ResourceAttributes",
-    "defaultTableSelectExpression": "Timestamp,ServiceName,SeverityText,Body",
-    "severityTextExpression": "SeverityText",
-    "traceIdExpression": "TraceId",
-    "spanIdExpression": "SpanId",
-    "connection": "Local ClickHouse",
-    "logSourceId": "Logs",
-    "traceSourceId": "Traces",
-    "metricSourceId": "Metrics"
+    "traceSourceId": "Traces"
   }
 ]
