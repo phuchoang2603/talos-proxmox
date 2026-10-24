@@ -72,6 +72,16 @@ spec:
           secretKeyRef:
             name: clickhouse-credentials
             key: app-password
+      - name: RUSTFS_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            name: otel-rustfs
+            key: access-key
+      - name: RUSTFS_SECRET_KEY
+        valueFrom:
+          secretKeyRef:
+            name: otel-rustfs
+            key: secret-key
   podTemplate:
     nodeSelector:
       kubernetes.io/hostname: {{ $store.nodeName }}
@@ -122,6 +132,12 @@ spec:
         flush_interval_milliseconds: 60000
       text_log:
         "@remove": "1"
+      named_collections:
+        rustfs:
+          access_key_id:
+            "@from_env": RUSTFS_ACCESS_KEY
+          secret_access_key:
+            "@from_env": RUSTFS_SECRET_KEY
       max_connections: 4096
       keep_alive_timeout: 64
       max_concurrent_queries: 100
