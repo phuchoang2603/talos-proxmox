@@ -1,5 +1,5 @@
 gpu:
-  enabled: false
+  enabled: true
   zone: us-east-1b
   instanceTypes: [g6.xlarge]
   rootVolumeSize: 100Gi
