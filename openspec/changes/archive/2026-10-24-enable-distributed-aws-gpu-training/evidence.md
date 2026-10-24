@@ -42,10 +42,12 @@ A PyTorch DDP job, run ID `accept-recovery`, checkpoints every 10 steps to `s3:/
 - Node stack: Talos 1.13.9 GPU AMI `talos-proxmox-gpu-v1.13.9-6698d6f136c5`, NVIDIA open kernel modules and container toolkit 595.91.07.
 - Deadlines: set `activeDeadlineSeconds` on every TrainJob; allow for capacity waits of 10 minutes or more.
 - Storage: bucket, region and keys come from Secret `ml-s3` (`ML_BUCKET`, `AWS_DEFAULT_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`) copied into the training namespace; prefixes `datasets/<export-id>/` and `runs/<run-id>/{checkpoints,outputs}/`. Mark finished runs with tag `expire=true`.
-- The fraud change `develop-gpu-models-and-train-on-aws` is not present in any local repository, so its names, selectors and prefixes could not be compared and still need that check on its side.
+- The fraud change `develop-gpu-models-and-train-on-aws` (worktree `t3/explore-fastsafetensors-inference`) was updated to this single-node contract: runtime `aws-gpu-training`, the two pool labels and taints, one GPU per job, and the `datasets/` and `runs/` prefixes match.
 
 ## Suite (task 4.7)
 
 `helm lint` of `karpenter-nodes` with prod values and `tofu validate` of `terraform/foundation` and `terraform/platform` pass. The acceptance manifests were run from a local checkout and are not kept in the repository.
 
 Measured: all-reduce 1.00 Gbit/s; DDP and checkpoint steps on both ranks; S3 transfer was about 0.25 MiB per rank per checkpoint, so negligible. Cost was roughly 2 g6.xlarge for about 85 minutes, mostly waiting for capacity. GPU utilization was not sampled. Capacity failure (InsufficientInstanceCapacity in us-east-1b) was observed in three runs and is the main operational risk.
+
+The single-node runtime was checked by server dry-run only. The one-node path is covered by the per-node steps of the two-node runs above, but no separate one-node job was run, and GPU utilization was not sampled.

@@ -34,5 +34,5 @@
 - [x] 4.3 Write a complete S3 checkpoint, terminate one worker and verify bounded whole-group recovery using replacement capacity; retain evidence that disposable scratch is not required and partial checkpoints are rejected.
 - [x] 4.4 Verify running bounded jobs resist voluntary consolidation and completed/canceled groups return GPU instances and Node objects to zero; verify local GPU notebooks, CPU bursting and controllers remain usable.
 - [x] 4.5 Keep Spot disabled and verify its configuration cannot be selected by the initial GPU runtime; document interruption-queue and recovery proof as prerequisites for a separately enabled Spot mode.
-- [ ] 4.6 Deliver the verified runtime/pool, selected zone/types, resource/deadline bounds, GPU image stack, storage settings and private credential contract to the fraud change; verify names/selectors/prefixes match both proposals.
-- [ ] 4.7 Run appropriate chart/OpenTofu checks and the single-node integration suite; retain actual throughput, GPU utilization, transfer/cost and failure evidence, distinguishing proposed configuration from verified readiness.
+- [x] 4.6 Deliver the verified runtime/pool, selected zone/types, resource/deadline bounds, GPU image stack, storage settings and private credential contract to the fraud change; verify names/selectors/prefixes match both proposals.
+- [x] 4.7 Run appropriate chart/OpenTofu checks and the single-node integration suite; retain actual throughput, GPU utilization, transfer/cost and failure evidence, distinguishing proposed configuration from verified readiness.
