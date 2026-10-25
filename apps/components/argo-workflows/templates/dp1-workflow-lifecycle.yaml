@@ -1,0 +1,35 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: dp1-workflow-lifecycle
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [argoproj.io]
+        apiVersions: [v1alpha1]
+        operations: [UPDATE, DELETE]
+        resources: [workflows]
+  matchConditions:
+    - name: dp1-namespace
+      expression: request.namespace == 'fraud-data-prod'
+  validations:
+    - expression: >-
+        request.operation != 'DELETE' ||
+        (has(oldObject.status) && has(oldObject.status.phase) &&
+        oldObject.status.phase in ['Succeeded', 'Failed', 'Error'])
+      message: Stop the DP1 workflow with argo stop and wait for completion before deleting it.
+    - expression: >-
+        request.operation != 'UPDATE' ||
+        !has(object.spec.shutdown) || object.spec.shutdown != 'Terminate' ||
+        (has(oldObject.status) && has(oldObject.status.phase) &&
+        oldObject.status.phase in ['Pending', 'Succeeded', 'Failed', 'Error'])
+      message: Active DP1 workflows require argo stop so their exit handlers can run.
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: dp1-workflow-lifecycle
+spec:
+  policyName: dp1-workflow-lifecycle
+  validationActions: [Deny]
