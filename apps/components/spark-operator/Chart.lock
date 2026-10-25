@@ -1,0 +1,6 @@
+dependencies:
+- name: spark-kubernetes-operator
+  repository: https://apache.github.io/spark-kubernetes-operator
+  version: 1.8.0
+digest: sha256:03ab5e8d9f295cb8ea84c71526c49fdba3345b633d4d179b7f81d63072379593
+generated: "2026-10-25T02:02:14.870162205-04:00"

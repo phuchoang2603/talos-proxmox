@@ -66,6 +66,12 @@ components:
     syncWave: "-1"
     releaseName: argo-workflows
     clusters: [prod]
+  spark-operator:
+    path: apps/components/spark-operator
+    namespace: spark-operator
+    syncWave: "0"
+    releaseName: spark-operator
+    clusters: [prod]
   ml-access:
     path: apps/components/ml-access
     namespace: fraud-ml-prod

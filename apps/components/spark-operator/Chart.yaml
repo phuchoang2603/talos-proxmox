@@ -1,0 +1,9 @@
+apiVersion: v2
+name: platform-spark-operator
+description: Apache Spark Kubernetes Operator scoped to the fraud data namespace
+type: application
+version: 0.1.0
+dependencies:
+  - name: spark-kubernetes-operator
+    version: 1.8.0
+    repository: https://apache.github.io/spark-kubernetes-operator

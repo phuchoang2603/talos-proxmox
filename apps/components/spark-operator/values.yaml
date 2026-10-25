@@ -1,0 +1,28 @@
+spark-kubernetes-operator:
+  image:
+    repository: apache/spark-kubernetes-operator
+    tag: 1.0.0
+  operatorRbac:
+    clusterRole:
+      create: false
+    clusterRoleBinding:
+      create: false
+    role:
+      create: true
+    roleBinding:
+      create: true
+    configManagement:
+      create: false
+  workloadResources:
+    namespaces:
+      create: false
+      overrideWatchedNamespaces: true
+      data: [fraud-data-prod]
+    serviceAccount:
+      create: false
+    role:
+      create: false
+    clusterRole:
+      create: false
+    roleBinding:
+      create: false
