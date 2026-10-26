@@ -16,6 +16,7 @@ kube-starrocks:
         requests: {cpu: 500m, memory: 2Gi}
         limits: {cpu: "2", memory: 3Gi}
       storageSpec:
+        name: fe
         storageClassName: local-path
         storageSize: 10Gi
         logStorageClassName: local-path
@@ -38,6 +39,7 @@ kube-starrocks:
         requests: {cpu: "1", memory: 3Gi}
         limits: {cpu: "3", memory: 5Gi}
       storageSpec:
+        name: be
         storageClassName: local-path
         storageSize: 20Gi
         logStorageClassName: local-path
