@@ -85,7 +85,7 @@ Only prod collects telemetry; dev runs no telemetry components.
 
 Workloads export cumulative OTLP metrics and traces to VMAgent and VTAgent at their per-signal HTTP endpoints. There are no OpenTelemetry collectors, agents, or gateways. VMAgent scrapes cluster metrics every 60 seconds, and VLAgent collects container logs from all nodes, including AWS workers. Kubernetes scheduler, controller-manager, etcd, and kube-proxy scrapes are disabled because Talos does not expose the default endpoints.
 
-VMAgent and VTAgent run on `prod-server2` with separate 1 GiB local-path queue volumes, each capped at 256 MiB per destination. They buffer during store outages and replay queued data when storage returns; queues survive pod restarts. Losing the queue disk loses buffered telemetry, and filling a queue drops its oldest data. This does not replicate stored telemetry.
+VMAgent and VTAgent run on `prod-server2` with separate 1 GiB local-path queue volumes, each capped at 513 MiB per destination (the smallest whole-MiB limit supported by the agents). They buffer during store outages and replay queued data when storage returns; queues survive pod restarts. Losing the queue disk loses buffered telemetry, and filling a queue drops its oldest data. This does not replicate stored telemetry.
 
 VictoriaMetrics, VictoriaLogs, and VictoriaTraces retain telemetry for 3 days on separate local-path volumes on `prod-server1`. Each reserves 20 GiB of free disk space. Telemetry is not backed up or exported to S3; RustFS archive cleanup is performed separately. Grafana provisions the three data sources, trace-to-log links, and the stack's Kubernetes and Victoria dashboards. Its application state uses a local-path volume on the same node.
 
