@@ -183,7 +183,7 @@ victoria-metrics-k8s-stack:
         accessModes: [ReadWriteOnce]
         resources:
           requests:
-            storage: 10Gi
+            storage: 1Gi
       resources:
         requests:
           cpu: 50m
@@ -206,9 +206,11 @@ victoria-metrics-k8s-stack:
             accessModes: [ReadWriteOnce]
             resources:
               requests:
-                storage: 10Gi
+                storage: 1Gi
       remoteWriteSettings:
-        maxDiskUsagePerURL: 8GiB
+        maxDiskUsagePerURL: 256MiB
+      extraArgs:
+        promscrape.maxScrapeSize: 64MiB
       scrapeInterval: 60s
       externalLabels:
         cluster: prod-talos
@@ -218,7 +220,7 @@ victoria-metrics-k8s-stack:
           cpu: 50m
           memory: 128Mi
         limits:
-          memory: 256Mi
+          memory: 1Gi
   vlagent:
     enabled: true
     spec:
@@ -255,7 +257,7 @@ vtagent:
     remoteWrite:
       - url: http://vtsingle-vmks.observability.svc:10428/insert/native
     remoteWriteSettings:
-      maxDiskUsagePerURL: 8GiB
+      maxDiskUsagePerURL: 256MiB
     storage:
       volumeClaimTemplate:
         spec:
@@ -263,7 +265,7 @@ vtagent:
           accessModes: [ReadWriteOnce]
           resources:
             requests:
-              storage: 10Gi
+              storage: 1Gi
     resources:
       requests:
         cpu: 50m
