@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nvidia-dcgm-dashboard
+  namespace: {{ .Release.Namespace }}
+  labels:
+    grafana_dashboard: "1"
+data:
+  nvidia-dcgm.json: |
+{{ .Files.Get "dashboards/nvidia-dcgm.json" | indent 4 }}

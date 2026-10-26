@@ -4,6 +4,8 @@ karpenter:
   # CRDs come from the karpenter-crd dependency.
   replicas: 1
   settings:
+    awsFeatureGates:
+      draNVIDIAGPU: true
     # Spot interruption handling is intentionally off: burst workloads are stateless.
     interruptionQueue: ""
   controller:

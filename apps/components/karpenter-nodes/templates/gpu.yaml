@@ -54,6 +54,7 @@ spec:
   template:
     metadata:
       labels:
+        nvidia.com/gpu.present: "true"
         {{ .Values.burst.labelKey }}: {{ .Values.burst.labelValue }}
         {{ .Values.gpu.workloadLabelKey }}: {{ .Values.gpu.workloadLabelValue }}
     spec:

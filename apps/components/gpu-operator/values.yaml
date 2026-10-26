@@ -3,11 +3,8 @@ gpu-operator:
     enabled: false
   toolkit:
     enabled: false
-  # Runs only on AWS GPU nodes, where Karpenter needs nvidia.com/gpu in Node capacity to
-  # initialize them. GPU nodes with PCI passthrough are labelled
-  # nvidia.com/gpu.deploy.device-plugin=false so DRA stays their only allocator.
   devicePlugin:
-    enabled: true
+    enabled: false
   daemonsets:
     tolerations:
       - {key: nvidia.com/gpu, operator: Exists, effect: NoSchedule}
@@ -24,9 +21,21 @@ gpu-operator:
   # /usr/local/lib/libnvidia-ml.so.1; the nvidia-dra-driver-gpu dependency is used instead.
   gpuCluster:
     deployCR: false
-  # Trim optional operands; the DRA driver handles allocation.
   dcgmExporter:
-    enabled: false
+    enabled: true
+    enablePodUID: true
+    env:
+      - name: KUBERNETES_ENABLE_DRA
+        value: "true"
+      - name: DCGM_EXPORTER_INTERVAL
+        value: "60000"
+    resources:
+      requests: {cpu: 25m, memory: 128Mi}
+      limits: {memory: 512Mi}
+    serviceMonitor:
+      enabled: true
+      interval: 60s
+      scrapeTimeout: 10s
   gfd:
     enabled: false
   migManager:
