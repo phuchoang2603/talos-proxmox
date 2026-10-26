@@ -1,0 +1,18 @@
+{{- if index .Values "gpu-operator" "dcgmExporter" "enabled" }}
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: nvidia-dcgm-exporter
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: nvidia-dcgm-exporter
+  jobLabel: app
+  endpoints:
+    - port: gpu-metrics
+      path: /metrics
+      interval: 60s
+      scrapeTimeout: 10s
+      honorLabels: true
+{{- end }}
