@@ -57,7 +57,7 @@ data:
   {{- range $i, $u := $s.users }}
     CREATE USER IF NOT EXISTS '{{ $u.name }}'@'%' IDENTIFIED BY '@USER_{{ $i }}_PASSWORD@';
     ALTER USER '{{ $u.name }}'@'%' IDENTIFIED BY '@USER_{{ $i }}_PASSWORD@';
-    SET PROPERTY FOR '{{ $u.name }}' 'session.query_timeout' = '{{ $u.queryTimeoutSeconds }}';
+    ALTER USER '{{ $u.name }}'@'%' SET PROPERTIES ("session.query_timeout" = "{{ $u.queryTimeoutSeconds }}");
     {{- range $s.catalogs }}
     GRANT USAGE ON CATALOG {{ .name }} TO USER '{{ $u.name }}'@'%';
     SET CATALOG {{ .name }};
