@@ -21,6 +21,7 @@ data:
       "iceberg.catalog.warehouse" = "{{ $c.warehouse }}",
       "iceberg.catalog.rest.sigv4-enabled" = "true",
       "iceberg.catalog.rest.signing-name" = "{{ $c.signingName }}",
+      "iceberg.catalog.rest.signing-region" = "{{ $c.region }}",
       "iceberg.catalog.rest.access-key-id" = "$S3_ACCESS_KEY",
       "iceberg.catalog.rest.secret-access-key" = "$S3_SECRET_KEY",
       "iceberg.catalog.vended-credentials-enabled" = "false",

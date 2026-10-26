@@ -31,6 +31,7 @@ kube-starrocks:
         mysql_service_nio_enabled = true
         sys_log_level = INFO
         min_graceful_exit_time_second = 25
+        default_replication_num = 1
     starrocksBeSpec:
       replicas: 1
       resources:
