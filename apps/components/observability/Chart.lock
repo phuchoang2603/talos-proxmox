@@ -1,18 +1,6 @@
 dependencies:
-- name: clickstack
-  repository: https://clickhouse.github.io/ClickStack-helm-charts
-  version: 3.4.0
-- name: oauth2-proxy
-  repository: https://oauth2-proxy.github.io/manifests
-  version: 10.7.1
-- name: opentelemetry-collector
-  repository: https://open-telemetry.github.io/opentelemetry-helm-charts
-  version: 0.177.0
-- name: opentelemetry-collector
-  repository: https://open-telemetry.github.io/opentelemetry-helm-charts
-  version: 0.177.0
-- name: opentelemetry-collector
-  repository: https://open-telemetry.github.io/opentelemetry-helm-charts
-  version: 0.177.0
-digest: sha256:3ebaa6491bed63e2c5697e059541ebb1022ab7fadeca4560704723108492a8be
-generated: "2026-10-24T10:50:06.50757336-04:00"
+- name: victoria-metrics-k8s-stack
+  repository: https://victoriametrics.github.io/helm-charts/
+  version: 0.97.0
+digest: sha256:e2d0adb618ec13d3fb70aa81c3d8a1e5d369a18cd4659ddbcce959c5100aba3f
+generated: "2026-10-26T16:40:04.127474556-04:00"

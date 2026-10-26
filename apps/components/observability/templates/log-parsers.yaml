@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: otel-log-parsers
-  namespace: {{ .Release.Namespace }}
-data:
-  log-parsers.yaml: |
-    {{- include "observability.logParsers" . | nindent 4 }}

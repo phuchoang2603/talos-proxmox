@@ -67,7 +67,7 @@ kubectl get storageclass
 kubectl -n istio-system get deploy istiod
 kubectl -n istio-system get daemonset istio-cni-node ztunnel
 kubectl -n argo-cd get svc argocd-ui
-# Prod only: kubectl -n observability get svc hyperdx-ui
+# Prod only: kubectl -n observability get svc grafana
 ```
 
 Expected results: the root and child Applications are Synced/Healthy; the Doppler store and ExternalSecrets are Ready; Istio control plane and node agents are ready; and there is exactly one default StorageClass, `local-path`. `kubectl get nodes` lists only the Proxmox control-plane nodes (one in dev, `prod-server1` through `prod-server3` in prod) plus any AWS workers; the control-plane nodes also run workloads, and `prod-server1` is prod's SSD-backed node for write-heavy volumes.
@@ -78,10 +78,16 @@ Only prod collects telemetry; dev runs no telemetry components.
 
 | Endpoint | Address |
 | --- | --- |
-| HyperDX (prod) | <https://hyperdx.phuchoang.sbs>; LAN service <http://10.69.12.128> redirects to the public Dex callback |
-| OTLP from prod workloads | `otel-agent.observability.svc:4317` (gRPC) or `:4318` (HTTP) |
+| Grafana (prod) | <https://grafana.phuchoang.sbs>; LAN service <http://10.69.12.128> |
+| OTLP metrics (HTTP/protobuf) | `http://vmagent-vmks.observability.svc:8429/opentelemetry/v1/metrics` |
+| OTLP traces (HTTP/protobuf) | `http://vtagent-vmks.observability.svc:10429/insert/opentelemetry/v1/traces` |
+| OTLP logs (HTTP/protobuf) | `http://vlsingle-vmks.observability.svc:9428/insert/opentelemetry/v1/logs` |
 
-Workloads send OTLP to their node's agent without credentials; the agent adds `k8s.cluster.name` and `deployment.environment` and forwards to the in-cluster gateway, which has no LAN address. Telemetry is kept for 3 days on local ClickHouse storage. ClickHouse also exports every telemetry table hourly as Parquet to `s3://telemetry-prod/clickhouse/<signal>/YYYY/MM/DD/HH.parquet` on RustFS (`https://minio.home.phuchoang.sbs`) through refreshable materialized views in the `archive` database, created by the `clickhouse-archive-export` PostSync Job. Each refresh rewrites the previous two full hours, so retries are idempotent; the bucket expires objects after 30 days. The archive is not queried by HyperDX, and the bucket-scoped credential comes from Doppler keys `OTEL_RUSTFS_ACCESS_KEY` and `OTEL_RUSTFS_SECRET_KEY` through the `rustfs` named collection. Collection is limited to marketplace/payment/fraud/data-pipeline workloads and critical platform namespaces listed in `global.criticalNamespaces`; file-log paths follow the same scope. Application logs are retained at all levels, while infrastructure logs and Kubernetes events are limited to warnings/errors. The agent uses OpenTelemetry’s built-in Stanza operators, configured in `templates/_log-parsers.tpl`, to normalize structured JSON, logfmt and known text formats before filtering; recognized severity takes precedence over message keywords, while unrecognized records retain the keyword fallback. ClickHouse pod logs are available through `kubectl logs` and are excluded from its own ingestion. Node health remains cluster-wide; infrastructure metrics and annotated-pod scrapes run every 60 seconds. ClickHouse internal metrics are sampled every 60 seconds. Its internal text log table is disabled, and metric/query/part diagnostics are retained for one day. The ClickHouse exporter’s `ttl` config applies when creating tables; existing `otel_*` MergeTree tables also need `ALTER TABLE … MODIFY TTL` when changing retention.
+Workloads export cumulative OTLP metrics and traces to VMAgent and VTAgent at their per-signal HTTP endpoints. There are no OpenTelemetry collectors, agents, or gateways. VMAgent scrapes cluster metrics every 60 seconds, and VLAgent collects container logs from all nodes, including AWS workers. Kubernetes scheduler, controller-manager, etcd, and kube-proxy scrapes are disabled because Talos does not expose the default endpoints.
+
+VMAgent and VTAgent run on `prod-server2` with separate 10 GiB local-path queue volumes, each capped at 8 GiB per destination. They buffer during store outages and replay queued data when storage returns; queues survive pod restarts. Losing the queue disk loses buffered telemetry, and filling a queue drops its oldest data. This does not replicate stored telemetry.
+
+VictoriaMetrics, VictoriaLogs, and VictoriaTraces retain telemetry for 3 days on separate local-path volumes on `prod-server1`. Each reserves 20 GiB of free disk space. Telemetry is not backed up or exported to S3; RustFS archive cleanup is performed separately. Grafana provisions the three data sources, trace-to-log links, and the stack's Kubernetes and Victoria dashboards. Its application state uses a local-path volume on the same node.
 
 ## Public URLs (prod)
 
@@ -91,11 +97,9 @@ The prod Cloudflare tunnel publishes three hostnames. Cloudflare terminates TLS 
 | --- | --- | --- |
 | <https://auth.phuchoang.sbs/dex> | Dex, the shared login | The Dex user (`identity.email` in [`apps/components/auth/values.yaml`](../../apps/components/auth/values.yaml)) and `AUTH_DEX_PASSWORD` |
 | <https://kubeflow.phuchoang.sbs> | Kubeflow Dashboard, through the Istio ingress gateway | Redirects to Dex; see [Kubeflow](kubeflow.md) |
-| <https://hyperdx.phuchoang.sbs> | HyperDX | Dex access gate, then the HyperDX account |
+| <https://grafana.phuchoang.sbs> | Grafana | Dex or the local admin account |
 
-HyperDX's OAuth2 Proxy accepts only `global.operatorEmail`, matching the Dex operator identity. HyperDX retains its own account login; the proxy does not create an application session. Use that email and `HYPERDX_ADMIN_PASSWORD` from Doppler for the HyperDX account. The public tunnel and LAN service both route through the access proxy.
-
-HyperDX uses its bundled preset dashboards and provisioned Logs, Traces and Metrics sources. MongoDB persists application state; ClickHouse retains telemetry. Queries run as the read-only ClickHouse `app` user, limited to two threads, 512 MiB and 60 seconds each. This chart installs no custom dashboard JSON or dashboard watcher.
+Grafana grants the configured operator email an Admin role through Dex and rejects unmapped identities. The public tunnel and LAN service both require login. The local account is `admin`, with `GRAFANA_ADMIN_PASSWORD` from prod Doppler; anonymous access and password sign-up are disabled.
 
 ## Find the failing layer
 

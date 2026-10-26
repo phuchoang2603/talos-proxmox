@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: hyperdx-allowed-emails
-  namespace: {{ .Release.Namespace }}
-data:
-  allowed: {{ .Values.global.operatorEmail | quote }}

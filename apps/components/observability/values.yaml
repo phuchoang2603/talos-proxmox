@@ -1,523 +1,272 @@
-# Wrapper-owned resources. Names feed the operator-generated Services
-# (<name>-clickhouse-headless, <name>-svc) that HyperDX and the gateway use.
-store:
-  # The only SSD-backed prod node; keeps ClickHouse merges off the HDD etcd nodes.
-  nodeName: prod-server1
-  clickhouse:
-    name: clickstack
-    image:
-      repository: clickhouse/clickhouse-server
-      tag: "25.12-alpine"
-    # ClickHouse caps itself at 90% of the memory limit and sizes its caches from it.
-    resources:
-      requests:
-        cpu: 500m
-        memory: 4Gi
-      limits:
-        cpu: "2"
-        memory: 4Gi
-    # local-path does not enforce claim sizes; keep_free_space_bytes is the real bound.
-    storage: 50Gi
-    keepFreeSpaceBytes: 21474836480
-  keeper:
-    image:
-      repository: clickhouse/clickhouse-keeper
-      tag: "25.12-alpine"
-    resources:
-      requests:
-        cpu: 50m
-        memory: 384Mi
-      limits:
-        memory: 512Mi
-    storage: 5Gi
-  mongodb:
-    name: hyperdx-mongodb
-  # Applied to the app user that HyperDX queries as; exceeding either fails only that query.
-  uiQueryLimits:
-    maxMemoryUsage: 536870912
-    maxExecutionTime: 60
-  # Hourly Parquet export of the ClickHouse telemetry tables to RustFS.
-  archive:
-    url: https://minio.home.phuchoang.sbs/telemetry-prod/clickhouse
-    lookbackHours: 2
-    tables:
-      - { name: otel_logs, time: Timestamp }
-      - { name: otel_traces, time: Timestamp }
-      - { name: otel_metrics_gauge, time: TimeUnix }
-      - { name: otel_metrics_sum, time: TimeUnix }
-      - { name: otel_metrics_histogram, time: TimeUnix }
-      - { name: otel_metrics_exponential_histogram, time: TimeUnix }
-      - { name: otel_metrics_summary, time: TimeUnix }
-
 secrets:
   refreshInterval: 1h
 
 tunnel:
   clusterTunnel: talos-proxmox
+  hostname: grafana.phuchoang.sbs
 
 global:
-  hyperdxAddress: 10.69.12.128
-  hyperdxHostname: hyperdx.phuchoang.sbs
-  # The only identity granted a HyperDX role; lint checks it against auth's identity.email.
   operatorEmail: xuanphuc.a1gv@gmail.com
-  # Read by the agent and cluster collectors' configs.
-  clusterName: prod-talos
-  environment: prod
-  criticalNamespaces: "^(ecommerce|payment-gateway|fraud-data-prod|fraud-ml-prod|kafka|openmetadata|auth|argo-cd|argo-workflows|kube-system|istio-system|operators|observability)$"
-  gatewayEndpoint: otel-gateway.observability.svc:4317
 
-clickstack:
-  fullnameOverride: hyperdx
-  # Credentials come from ExternalSecrets, so the chart's secret-bearing pieces stay off.
-  clickhouse:
-    enabled: false
-  mongodb:
-    enabled: false
-  otel-collector:
-    enabled: false
-  hyperdx:
-    # Blanked rather than null: Helm 4 keeps a subchart's map defaults when the parent sets null.
-    # The real values reach HyperDX through deployment.env, which overrides the chart's envFrom.
-    secrets:
-      HYPERDX_API_KEY: ""
-      CLICKHOUSE_PASSWORD: ""
-      CLICKHOUSE_APP_PASSWORD: ""
-      MONGODB_PASSWORD: ""
-    config:
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-agent.observability.svc:4318"
-      OTEL_SDK_DISABLED: "true"
-      HDX_EXPORTER_ENABLED: "false"
-      EXPRESS_SESSION_SECRET: ""
-      FRONTEND_URL: 'https://{{ .Values.global.hyperdxHostname }}'
-      USAGE_STATS_ENABLED: "false"
-      # Set from the hyperdx Secret below; the chart default embeds the password.
-      MONGO_URI: ""
-    deployment:
-      useExistingConfigSecret: true
-      existingConfigSecret: hyperdx
-      env:
-        - name: MONGO_URI
-          valueFrom:
-            secretKeyRef:
-              name: hyperdx
-              key: MONGO_URI
-        - name: EXPRESS_SESSION_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: hyperdx
-              key: EXPRESS_SESSION_SECRET
-        - name: HYPERDX_API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: hyperdx
-              key: HYPERDX_API_KEY
+victoria-metrics-k8s-stack:
+  fullnameOverride: vmks
+  victoria-metrics-operator:
+    admissionWebhooks:
+      certManager:
+        enabled: true
+    crds:
+      cleanup:
+        enabled: false
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
+  syncJob:
+    enabled: true
+  defaultDashboards:
+    enabled: true
+  defaultDatasources:
+    victorialogs:
+      datasources:
+        - name: VictoriaLogs
+          access: proxy
+          uid: VictoriaLogs
+          type: victoriametrics-logs-datasource
+          plugin: true
+          jsonData:
+            derivedFields:
+              - name: trace_id
+                matcherType: label
+                matcherRegex: trace_id
+                url: '${__value.raw}'
+                urlDisplayLabel: View trace
+                datasourceUid: VictoriaTraces
+    victoriatraces:
+      datasources: []
+    extra:
+      - name: VictoriaTraces
+        type: tempo
+        access: proxy
+        uid: VictoriaTraces
+        url: http://vtsingle-vmks.observability.svc.cluster.local:10428/select/tempo
+        jsonData:
+          tracesToLogsV2:
+            datasourceUid: VictoriaLogs
+            spanStartTimeShift: '-5m'
+            spanEndTimeShift: '5m'
+            filterByTraceID: false
+            filterBySpanID: false
+            customQuery: true
+            query: 'trace_id:="${__trace.traceId}"'
+          tracesToMetrics:
+            datasourceUid: VictoriaMetrics
+  grafana:
+    fullnameOverride: grafana
+    admin:
+      existingSecret: grafana-admin
+      userKey: admin-user
+      passwordKey: admin-password
+    envFromSecret: grafana-oidc
+    service:
+      type: LoadBalancer
+      annotations:
+        lbipam.cilium.io/ips: '10.69.12.128'
+    persistence:
+      enabled: true
+      storageClassName: local-path
+      size: 5Gi
+    nodeSelector:
+      kubernetes.io/hostname: prod-server1
+    deploymentStrategy:
+      type: Recreate
+    resources:
+      requests:
+        cpu: 50m
+        memory: 512Mi
+      limits:
+        memory: 1Gi
+    plugins:
+      - victoriametrics-metrics-datasource
+      - victoriametrics-logs-datasource
+    grafana.ini:
+      server:
+        domain: grafana.phuchoang.sbs
+        root_url: https://grafana.phuchoang.sbs
+      users:
+        allow_sign_up: false
+      auth.anonymous:
+        enabled: false
+      auth.generic_oauth:
+        enabled: true
+        name: Dex
+        allow_sign_up: true
+        client_id: grafana
+        client_secret: '$__env{GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}'
+        scopes: openid profile email
+        auth_url: https://auth.phuchoang.sbs/dex/auth
+        token_url: https://auth.phuchoang.sbs/dex/token
+        api_url: https://auth.phuchoang.sbs/dex/userinfo
+        use_pkce: true
+        role_attribute_path: '{{ printf "email == ''%s'' && ''Admin''" .Values.global.operatorEmail }}'
+        role_attribute_strict: true
+        allowed_domains: gmail.com
+  vmsingle:
+    enabled: true
+    spec:
+      retentionPeriod: 3d
+      nodeSelector:
+        kubernetes.io/hostname: prod-server1
+      extraArgs:
+        storage.minFreeDiskSpaceBytes: '21474836480'
+      storage:
+        storageClassName: local-path
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 20Gi
       resources:
         requests:
           cpu: 100m
-          memory: 384Mi
+          memory: 768Mi
+        limits:
+          memory: 1536Mi
+  vmcluster:
+    enabled: false
+  vlsingle:
+    enabled: true
+    spec:
+      retentionPeriod: 3d
+      nodeSelector:
+        kubernetes.io/hostname: prod-server1
+      extraArgs:
+        storage.minFreeDiskSpaceBytes: '21474836480'
+      storage:
+        storageClassName: local-path
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 20Gi
+      resources:
+        requests:
+          cpu: 50m
+          memory: 256Mi
         limits:
           memory: 1Gi
-
-hyperdx-auth:
-  fullnameOverride: hyperdx-auth
-  replicaCount: 1
-  resources:
-    requests:
-      cpu: 10m
-      memory: 32Mi
-    limits:
-      memory: 128Mi
-  config:
-    existingSecret: hyperdx-auth
-    configFile: |
-      email_domains = []
-      authenticated_emails_file = "/etc/oauth2-proxy/emails/allowed"
-      upstreams = ["http://hyperdx:3000/"]
-  extraVolumes:
-    - name: allowed-emails
-      configMap:
-        name: hyperdx-allowed-emails
-  extraVolumeMounts:
-    - name: allowed-emails
-      mountPath: /etc/oauth2-proxy/emails
-      readOnly: true
-  extraArgs:
-    provider: oidc
-    oidc-issuer-url: https://auth.phuchoang.sbs/dex
-    skip-oidc-discovery: "true"
-    login-url: https://auth.phuchoang.sbs/dex/auth
-    redeem-url: http://dex.auth.svc.cluster.local:5556/dex/token
-    oidc-jwks-url: http://dex.auth.svc.cluster.local:5556/dex/keys
-    redirect-url: https://hyperdx.phuchoang.sbs/oauth2/callback
-    skip-provider-button: "true"
-    approval-prompt: auto
-    reverse-proxy: "true"
-    cookie-secure: "true"
-    cookie-name: _hyperdx_oauth2
-    cookie-samesite: lax
-
-otel-gateway:
-  fullnameOverride: otel-gateway
-  mode: deployment
-  replicaCount: 1
-  rollout:
-    strategy: RollingUpdate
-    rollingUpdate:
-      maxSurge: 0
-      maxUnavailable: 1
-  podSecurityContext:
-    fsGroup: 10001
-  image:
-    repository: otel/opentelemetry-collector-contrib
-    tag: "0.163.2"
-  resources:
-    requests:
-      cpu: 150m
-      memory: 256Mi
-    limits:
-      memory: 1Gi
-  extraEnvs:
-    - name: CLICKHOUSE_OTEL_PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: clickhouse-credentials
-          key: otel-password
-  ports:
-    jaeger-compact:
-      enabled: false
-    jaeger-thrift:
-      enabled: false
-    jaeger-grpc:
-      enabled: false
-    zipkin:
-      enabled: false
-  # Only prod's own collectors send here, through the in-cluster Service.
-  alternateConfig:
-    extensions:
-      health_check:
-        endpoint: ${env:MY_POD_IP}:13133
-    receivers:
-      otlp:
-        protocols:
-          grpc:
-            endpoint: ${env:MY_POD_IP}:4317
-          http:
-            endpoint: ${env:MY_POD_IP}:4318
-    processors:
-      memory_limiter:
-        check_interval: 5s
-        limit_percentage: 80
-        spike_limit_percentage: 25
-      batch:
-        send_batch_size: 2000
-        send_batch_max_size: 2000
-        timeout: 5s
-    exporters:
-      clickhouse:
-        endpoint: tcp://clickstack-clickhouse-headless:9000?dial_timeout=10s
-        database: default
-        username: otelcollector
-        password: ${env:CLICKHOUSE_OTEL_PASSWORD}
-        create_schema: true
-        ttl: 72h
-        timeout: 10s
-        retry_on_failure:
-          enabled: true
-          max_elapsed_time: 5m
-    service:
-      extensions:
-        - health_check
-      pipelines:
-        logs:
-          receivers: [otlp]
-          processors: [memory_limiter, batch]
-          exporters: [clickhouse]
-        metrics:
-          receivers: [otlp]
-          processors: [memory_limiter, batch]
-          exporters: [clickhouse]
-        traces:
-          receivers: [otlp]
-          processors: [memory_limiter, batch]
-          exporters: [clickhouse]
-
-otel-agent:
-  fullnameOverride: otel-agent
-  mode: daemonset
-  image:
-    repository: otel/opentelemetry-collector-contrib
-    tag: "0.163.2"
-  presets:
-    logsCollection:
-      enabled: true
-      storeCheckpoints: true
-    kubeletMetrics:
-      enabled: true
-    hostMetrics:
-      enabled: true
-    kubernetesAttributes:
-      enabled: true
-  podAnnotations:
-    checksum/log-parsers: '{{ include "observability.logParsers" . | sha256sum }}'
-  extraVolumes:
-    - name: log-parsers
-      configMap:
-        name: otel-log-parsers
-  extraVolumeMounts:
-    - name: log-parsers
-      mountPath: /etc/otelcol
-      readOnly: true
-  # Applications send OTLP to otel-agent.observability.svc and reach their own node's agent.
-  service:
-    enabled: true
-  # Runs on every node, including tainted AWS burst workers.
-  tolerations:
-    - operator: Exists
-  resources:
-    requests:
-      cpu: 150m
-      memory: 192Mi
-    limits:
-      memory: 512Mi
-  ports:
-    jaeger-compact:
-      enabled: false
-    jaeger-thrift:
-      enabled: false
-    jaeger-grpc:
-      enabled: false
-    zipkin:
-      enabled: false
-  alternateConfig:
-    extensions:
-      health_check:
-        endpoint: ${env:MY_POD_IP}:13133
-    receivers:
-      otlp:
-        protocols:
-          grpc:
-            endpoint: ${env:MY_POD_IP}:4317
-          http:
-            endpoint: ${env:MY_POD_IP}:4318
-      # Talos kubelets serve self-signed certificates.
-      kubeletstats:
-        collection_interval: 60s
-        metric_groups: [node, pod, container]
-        insecure_skip_verify: true
-      hostmetrics:
-        collection_interval: 60s
-      file_log:
-        include:
-          - /var/log/pods/ecommerce_*/*/*.log
-          - /var/log/pods/payment-gateway_*/*/*.log
-          - /var/log/pods/fraud-data-prod_*/*/*.log
-          - /var/log/pods/fraud-ml-prod_*/*/*.log
-          - /var/log/pods/kafka_*/*/*.log
-          - /var/log/pods/openmetadata_*/*/*.log
-          - /var/log/pods/auth_*/*/*.log
-          - /var/log/pods/argo-cd_*/*/*.log
-          - /var/log/pods/argo-workflows_*/*/*.log
-          - /var/log/pods/kube-system_*/*/*.log
-          - /var/log/pods/istio-system_*/*/*.log
-          - /var/log/pods/operators_*/*/*.log
-          - /var/log/pods/observability_*/*/*.log
-        exclude:
-          - /var/log/pods/observability_otel-agent*_*/otel-agent/*.log
-          - /var/log/pods/observability_clickstack-clickhouse*_*/clickhouse-server/*.log
-        operators: ${file:/etc/otelcol/log-parsers.yaml}
-    processors:
-      memory_limiter:
-        check_interval: 5s
-        limit_percentage: 80
-        spike_limit_percentage: 25
-      resource/environment:
-        attributes:
-          - key: k8s.cluster.name
-            value: "{{ .Values.global.clusterName }}"
-            action: upsert
-          - key: deployment.environment
-            value: "{{ .Values.global.environment }}"
-            action: upsert
-      # hostmetrics carries no node identity of its own.
-      resource/node:
-        attributes:
-          - key: k8s.node.name
-            value: ${env:K8S_NODE_NAME}
-            action: insert
-          - key: host.name
-            value: ${env:K8S_NODE_NAME}
-            action: insert
-      filter/critical:
-        error_mode: ignore
-        logs:
-          log_record:
-            - 'not IsMatch(String(resource.attributes["k8s.namespace.name"]), "{{ .Values.global.criticalNamespaces }}")'
-            - 'not IsMatch(String(resource.attributes["k8s.namespace.name"]), "^(ecommerce|payment-gateway|fraud-data-prod|fraud-ml-prod)$") and severity_number < SEVERITY_NUMBER_WARN and (severity_number != SEVERITY_NUMBER_UNSPECIFIED or not IsMatch(String(body), "(?i)(warn|error|fatal|panic|(^|\\s)[WEF][0-9]{4})"))'
-        metrics:
-          datapoint:
-            - 'resource.attributes["k8s.namespace.name"] != nil and not IsMatch(resource.attributes["k8s.namespace.name"], "{{ .Values.global.criticalNamespaces }}")'
-        traces:
-          span:
-            - 'not IsMatch(String(resource.attributes["k8s.namespace.name"]), "{{ .Values.global.criticalNamespaces }}")'
-      batch: {}
-    exporters:
-      otlp/gateway:
-        endpoint: "{{ .Values.global.gatewayEndpoint }}"
-        tls:
-          insecure: true
-        retry_on_failure:
-          enabled: true
-          max_elapsed_time: 15m
-        sending_queue:
-          enabled: true
-          queue_size: 1000
-          storage: file_storage
-    service:
-      extensions:
-        - health_check
-      pipelines:
-        logs:
-          receivers: [otlp]
-          processors: [memory_limiter, k8s_attributes, filter/critical, resource/environment, batch]
-          exporters: [otlp/gateway]
-        metrics:
-          receivers: [otlp]
-          processors: [memory_limiter, k8s_attributes, filter/critical, resource/environment, resource/node, batch]
-          exporters: [otlp/gateway]
-        traces:
-          receivers: [otlp]
-          processors: [memory_limiter, k8s_attributes, filter/critical, resource/environment, batch]
-          exporters: [otlp/gateway]
-
-otel-cluster:
-  fullnameOverride: otel-cluster
-  mode: deployment
-  replicaCount: 1
-  # Ambient lets it scrape enrolled pods in namespaces with STRICT mTLS; Istio gateways, waypoints,
-  # and ztunnel are not captured and stay reachable either way.
-  podLabels:
-    istio.io/dataplane-mode: ambient
-  image:
-    repository: otel/opentelemetry-collector-contrib
-    tag: "0.163.2"
-  presets:
-    clusterMetrics:
-      enabled: true
-    kubernetesEvents:
-      enabled: true
-  clusterRole:
-    rules:
-      - apiGroups: [""]
-        resources: [pods]
-        verbs: [get, list, watch]
-  resources:
-    requests:
-      cpu: 25m
-      memory: 160Mi
-    limits:
-      memory: 512Mi
-  service:
+  vlcluster:
     enabled: false
-  ports:
-    otlp:
-      enabled: false
-    otlp-http:
-      enabled: false
-    jaeger-compact:
-      enabled: false
-    jaeger-thrift:
-      enabled: false
-    jaeger-grpc:
-      enabled: false
-    zipkin:
-      enabled: false
-  alternateConfig:
-    extensions:
-      health_check:
-        endpoint: ${env:MY_POD_IP}:13133
-    receivers:
-      k8s_cluster:
-        collection_interval: 60s
-      k8sobjects:
-        objects:
-          - name: events
-            group: events.k8s.io
-            mode: watch
-            namespaces: [ecommerce, payment-gateway, fraud-data-prod, fraud-ml-prod, kafka, openmetadata, auth, argo-cd, argo-workflows, kube-system, istio-system, operators, observability]
-            field_selector: type=Warning
-            exclude_watch_type: [DELETED]
-      prometheus:
-        config:
-          scrape_configs:
-            - job_name: annotated-pods
-              scrape_interval: 60s
-              kubernetes_sd_configs:
-                - role: pod
-              relabel_configs:
-                - source_labels: [__meta_kubernetes_namespace]
-                  action: keep
-                  regex: "{{ .Values.global.criticalNamespaces }}"
-                - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
-                  action: keep
-                  regex: "true"
-                - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
-                  action: replace
-                  target_label: __metrics_path__
-                  regex: (.+)
-                - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
-                  action: replace
-                  regex: ([^:]+)(?::\d+)?;(\d+)
-                  replacement: $$1:$$2
-                  target_label: __address__
-                - source_labels: [__meta_kubernetes_namespace]
-                  target_label: namespace
-                - source_labels: [__meta_kubernetes_pod_name]
-                  target_label: pod
-    processors:
-      memory_limiter:
-        check_interval: 5s
-        limit_percentage: 80
-        spike_limit_percentage: 25
-      resource/environment:
-        attributes:
-          - key: k8s.cluster.name
-            value: "{{ .Values.global.clusterName }}"
-            action: upsert
-          - key: deployment.environment
-            value: "{{ .Values.global.environment }}"
-            action: upsert
-      filter/critical:
-        error_mode: ignore
-        metrics:
-          datapoint:
-            - 'resource.attributes["k8s.namespace.name"] != nil and not IsMatch(resource.attributes["k8s.namespace.name"], "{{ .Values.global.criticalNamespaces }}")'
-      transform/event-severity:
-        log_statements:
-          - context: log
-            statements:
-              - set(severity_number, SEVERITY_NUMBER_WARN)
-              - set(severity_text, "WARN")
-      batch: {}
-    exporters:
-      otlp/gateway:
-        endpoint: "{{ .Values.global.gatewayEndpoint }}"
-        tls:
-          insecure: true
-        retry_on_failure:
-          enabled: true
-          max_elapsed_time: 15m
-        sending_queue:
-          enabled: true
-          queue_size: 1000
-    service:
-      extensions:
-        - health_check
-      pipelines:
-        logs:
-          receivers: []
-          processors: [memory_limiter, transform/event-severity, filter/critical, resource/environment, batch]
-          exporters: [otlp/gateway]
-        metrics:
-          receivers: [prometheus]
-          processors: [memory_limiter, filter/critical, resource/environment, batch]
-          exporters: [otlp/gateway]
+  vtsingle:
+    enabled: true
+    spec:
+      retentionPeriod: 3d
+      nodeSelector:
+        kubernetes.io/hostname: prod-server1
+      extraArgs:
+        storage.minFreeDiskSpaceBytes: '21474836480'
+        otlpGRPCListenAddr: ':4317'
+        otlpGRPC.tls: 'false'
+      serviceSpec:
+        useAsDefault: true
+        spec:
+          ports:
+            - name: http
+              port: 10428
+              targetPort: 10428
+              protocol: TCP
+            - name: otlp-grpc
+              port: 4317
+              targetPort: 4317
+              protocol: TCP
+      storage:
+        storageClassName: local-path
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 10Gi
+      resources:
+        requests:
+          cpu: 50m
+          memory: 256Mi
+        limits:
+          memory: 1Gi
+  vtcluster:
+    enabled: false
+  vmagent:
+    enabled: true
+    spec:
+      selectAllByDefault: true
+      statefulMode: true
+      nodeSelector:
+        kubernetes.io/hostname: prod-server2
+      statefulStorage:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: local-path
+            accessModes: [ReadWriteOnce]
+            resources:
+              requests:
+                storage: 10Gi
+      remoteWriteSettings:
+        maxDiskUsagePerURL: 8GiB
+      scrapeInterval: 60s
+      externalLabels:
+        cluster: prod-talos
+        environment: prod
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          memory: 256Mi
+  vlagent:
+    enabled: true
+    spec:
+      k8sCollector:
+        enabled: true
+        extraFields: 'cluster=prod-talos,environment=prod'
+      tolerations:
+        - operator: Exists
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          memory: 256Mi
+  alertmanager:
+    enabled: true
+  vmalert:
+    enabled: true
+  kubeControllerManager:
+    enabled: false
+  kubeScheduler:
+    enabled: false
+  kubeEtcd:
+    enabled: false
+  kubeProxy:
+    enabled: false
+
+vtagent:
+  spec:
+    port: '10429'
+    replicaCount: 1
+    nodeSelector:
+      kubernetes.io/hostname: prod-server2
+    remoteWrite:
+      - url: http://vtsingle-vmks.observability.svc:10428/insert/native
+    remoteWriteSettings:
+      maxDiskUsagePerURL: 8GiB
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: [ReadWriteOnce]
+          resources:
+            requests:
+              storage: 10Gi
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
