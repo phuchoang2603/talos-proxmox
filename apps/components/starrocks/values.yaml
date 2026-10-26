@@ -3,6 +3,9 @@ kube-starrocks:
     timeZone: UTC
     starrocksOperator:
       watchNamespace: starrocks
+      resources:
+        requests: {cpu: 50m, memory: 128Mi}
+        limits: {cpu: 500m, memory: 800Mi}
       imagePullPolicy: IfNotPresent
   starrocks:
     timeZone: UTC
@@ -13,7 +16,7 @@ kube-starrocks:
     starrocksFESpec:
       replicas: 1
       resources:
-        requests: {cpu: 500m, memory: 2Gi}
+        requests: {cpu: 100m, memory: 1536Mi}
         limits: {cpu: "2", memory: 3Gi}
       storageSpec:
         name: fe
@@ -36,7 +39,7 @@ kube-starrocks:
     starrocksBeSpec:
       replicas: 1
       resources:
-        requests: {cpu: "1", memory: 3Gi}
+        requests: {cpu: 250m, memory: 2Gi}
         limits: {cpu: "3", memory: 5Gi}
       storageSpec:
         name: be
