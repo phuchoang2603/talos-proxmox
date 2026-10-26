@@ -61,8 +61,16 @@ jobs:
           TF_WORKSPACE: talos-cluster-${{ inputs.environment }}
         run: |
           tofu init -input=false
-          # shellcheck disable=SC2086
-          tofu plan -input=false -lock-timeout=5m -no-color ${PLAN_FLAGS} -var-file="env/${TF_VAR_env}/main.tfvars" -out=.planfile
+          for attempt in 1 2 3; do
+            # shellcheck disable=SC2086
+            if tofu plan -input=false -lock-timeout=5m -parallelism=2 -no-color ${PLAN_FLAGS} -var-file="env/${TF_VAR_env}/main.tfvars" -out=.planfile 2>&1 | tee "${RUNNER_TEMP}/cluster-plan.log"; then
+              break
+            fi
+            if [ "$attempt" -eq 3 ] || ! grep -q 'received an HTTP 596 response' "${RUNNER_TEMP}/cluster-plan.log"; then
+              exit 1
+            fi
+            sleep "$((attempt * 10))"
+          done
           tofu apply -input=false -lock-timeout=5m -auto-approve .planfile
 
       # Everything the platform root manages lives in the cluster just destroyed, so its state is
