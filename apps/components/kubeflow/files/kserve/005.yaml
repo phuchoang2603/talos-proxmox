@@ -6988,7 +6988,7 @@ data:
     }
   deploy: |-
     {
-      "defaultDeploymentMode": "Serverless"
+      "defaultDeploymentMode": "Standard"
     }
   explainers: |-
     {
@@ -7012,8 +7012,6 @@ data:
       "enableGatewayApi": false,
       "kserveIngressGateway": "kserve/kserve-ingress-gateway",
       "ingressGateway": "kubeflow/kubeflow-gateway",
-      "localGateway": "knative-serving/knative-local-gateway",
-      "localGatewayService": "knative-local-gateway.istio-system.svc.cluster.local",
       "ingressDomain": "example.com",
       "ingressClassName": "istio",
       "domainTemplate": "{{ .Name }}-{{ .Namespace }}.{{ .IngressDomain }}",

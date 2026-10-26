@@ -91,6 +91,7 @@ components:
     releaseName: auth
     clusters: [prod]
   knative:
+    enabled: false
     path: apps/components/knative
     namespace: knative-serving
     syncWave: "1"

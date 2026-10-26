@@ -1,4 +1,4 @@
 tunnel:
   name: prod-talos
 
-replicaCount: 2
+replicaCount: 1

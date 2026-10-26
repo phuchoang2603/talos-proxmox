@@ -8,7 +8,7 @@ components:
   notebooks: true
   trainer: true
   kserve: true
-  kserve-ui: true
+  kserve-ui: false
   hub-catalog: true
 
 tunnel:

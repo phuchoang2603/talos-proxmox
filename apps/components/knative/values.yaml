@@ -1,4 +1,4 @@
 components:
-  knative-serving: true
-  knative-eventing: true
-  cluster-local-gateway: true
+  knative-serving: false
+  knative-eventing: false
+  cluster-local-gateway: false
