@@ -224,7 +224,7 @@ victoria-metrics-k8s-stack:
     spec:
       k8sCollector:
         enabled: true
-        extraFields: 'cluster=prod-talos,environment=prod'
+        extraFields: '{"cluster":"prod-talos","environment":"prod"}'
       tolerations:
         - operator: Exists
       resources:
