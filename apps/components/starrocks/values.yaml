@@ -20,7 +20,7 @@ kube-starrocks:
           valueFrom:
             secretKeyRef: {name: starrocks-setup, key: ROOT_PASSWORD}
       resources:
-        requests: {cpu: 100m, memory: 1536Mi}
+        requests: {cpu: 250m, memory: 1536Mi}
         limits: {cpu: "2", memory: 3Gi}
       storageSpec:
         name: fe
@@ -73,4 +73,6 @@ setup:
   users:
     - name: openmetadata
       passwordKey: STARROCKS_OPENMETADATA_PASSWORD
-      queryTimeoutSeconds: 3600
+      sessionVariables:
+        query_timeout: 3600
+        new_planner_optimize_timeout: 60000

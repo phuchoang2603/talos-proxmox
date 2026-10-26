@@ -57,7 +57,11 @@ data:
   {{- range $i, $u := $s.users }}
     CREATE USER IF NOT EXISTS '{{ $u.name }}'@'%' IDENTIFIED BY '@USER_{{ $i }}_PASSWORD@';
     ALTER USER '{{ $u.name }}'@'%' IDENTIFIED BY '@USER_{{ $i }}_PASSWORD@';
-    ALTER USER '{{ $u.name }}'@'%' SET PROPERTIES ("session.query_timeout" = "{{ $u.queryTimeoutSeconds }}");
+    {{- $properties := list }}
+    {{- range $key, $value := $u.sessionVariables }}
+    {{- $properties = append $properties (printf "\"session.%s\" = \"%v\"" $key $value) }}
+    {{- end }}
+    ALTER USER '{{ $u.name }}'@'%' SET PROPERTIES ({{ join ", " $properties }});
     {{- range $s.catalogs }}
     GRANT USAGE ON CATALOG {{ .name }} TO USER '{{ $u.name }}'@'%';
     SET CATALOG {{ .name }};
