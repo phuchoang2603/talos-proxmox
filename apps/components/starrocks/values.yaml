@@ -47,17 +47,19 @@ kube-starrocks:
         spillStorageClassName: local-path
         spillStorageSize: 20Gi
 
-catalog:
-  name: fraud_lakehouse
-  restUri: https://minio.home.phuchoang.sbs/iceberg
-  warehouse: fraud-lakehouse-prod
-  signingName: s3
-  region: us-east-1
-  s3Endpoint: https://minio.home.phuchoang.sbs
-  setupImage: starrocks/fe-ubuntu:4.1.6
+setup:
+  image: starrocks/fe-ubuntu:4.1.6
+  rootPasswordKey: STARROCKS_ROOT_PASSWORD
+  catalogs:
+    - name: lakehouse
+      uri: https://minio.home.phuchoang.sbs/iceberg
+      warehouse: fraud-lakehouse-prod
+      region: us-east-1
+      signingName: s3
+      s3Endpoint: https://minio.home.phuchoang.sbs
+      accessKey: STARROCKS_RUSTFS_ACCESS_KEY
+      secretKey: STARROCKS_RUSTFS_SECRET_KEY
   users:
-    dp1: DP1_STARROCKS_PASSWORD
-  secrets:
-    rootPassword: STARROCKS_ROOT_PASSWORD
-    accessKey: STARROCKS_RUSTFS_ACCESS_KEY
-    secretKey: STARROCKS_RUSTFS_SECRET_KEY
+    - name: openmetadata
+      passwordKey: STARROCKS_OPENMETADATA_PASSWORD
+      queryTimeoutSeconds: 3600
