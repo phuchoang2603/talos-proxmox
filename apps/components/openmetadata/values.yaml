@@ -69,6 +69,14 @@ openmetadata:
         value: ""
         secretRef: openmetadata-fernet
         secretKey: key
+  startupProbe:
+    periodSeconds: 30
+    failureThreshold: 30
+    timeoutSeconds: 5
+  livenessProbe:
+    timeoutSeconds: 5
+  readinessProbe:
+    timeoutSeconds: 5
   resources:
     requests: {cpu: 150m, memory: 1280Mi}
     limits: {cpu: "2", memory: 3Gi}
