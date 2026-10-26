@@ -1,14 +1,14 @@
 apiVersion: networking.cfargotunnel.com/v1alpha1
 kind: TunnelBinding
 metadata:
-  name: hyperdx
+  name: grafana
   namespace: {{ .Release.Namespace }}
 subjects:
   - kind: Service
-    name: hyperdx-auth
+    name: grafana
     spec:
-      fqdn: {{ .Values.global.hyperdxHostname }}
-      target: http://hyperdx-auth.{{ .Release.Namespace }}.svc.cluster.local:80
+      fqdn: {{ .Values.tunnel.hostname }}
+      target: http://grafana.{{ .Release.Namespace }}.svc.cluster.local:80
 tunnelRef:
   kind: ClusterTunnel
   name: {{ .Values.tunnel.clusterTunnel }}

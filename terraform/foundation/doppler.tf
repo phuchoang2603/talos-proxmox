@@ -48,30 +48,14 @@ resource "doppler_secret" "eso_token" {
   value   = each.value.key
 }
 
-resource "random_password" "observability" {
-  for_each = toset([
-    "CLICKHOUSE_DEFAULT_PASSWORD",
-    "CLICKHOUSE_OTEL_PASSWORD",
-    "CLICKHOUSE_APP_PASSWORD",
-    "HYPERDX_ADMIN_PASSWORD",
-    "HYPERDX_MONGODB_PASSWORD",
-    "HYPERDX_API_KEY",
-  ])
-
-  length           = 32
-  special          = each.key == "HYPERDX_ADMIN_PASSWORD"
-  override_special = each.key == "HYPERDX_ADMIN_PASSWORD" ? "!@#$%^&*()-_+=" : null
-  min_special      = each.key == "HYPERDX_ADMIN_PASSWORD" ? 1 : 0
-  min_upper        = each.key == "HYPERDX_ADMIN_PASSWORD" ? 1 : 0
-  min_lower        = each.key == "HYPERDX_ADMIN_PASSWORD" ? 1 : 0
-  min_numeric      = each.key == "HYPERDX_ADMIN_PASSWORD" ? 1 : 0
+resource "random_password" "grafana_admin" {
+  length  = 32
+  special = false
 }
 
-resource "doppler_secret" "observability" {
-  for_each = { for name, password in random_password.observability : name => password.result }
-
+resource "doppler_secret" "grafana_admin" {
   project = doppler_project.this.name
   config  = doppler_environment.this["prod"].slug
-  name    = each.key
-  value   = each.value
+  name    = "GRAFANA_ADMIN_PASSWORD"
+  value   = random_password.grafana_admin.result
 }

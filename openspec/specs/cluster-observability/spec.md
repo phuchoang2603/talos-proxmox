@@ -2,71 +2,71 @@
 
 ## Purpose
 
-Collect logs, metrics, traces, and Kubernetes events from the prod cluster into one ClickHouse store on prod, and make them searchable from an internal-only UI.
+Collect prod logs, metrics, and traces with the Victoria Kubernetes stack, and make them searchable in Grafana through authenticated LAN and public access.
 
 ## Requirements
 
 ### Requirement: Single telemetry store in prod
-The platform SHALL run exactly one telemetry store, on prod, backed by ClickHouse, holding prod's logs, metrics, and traces. Grafana on prod SHALL be the only telemetry UI. Dev MUST NOT run any telemetry component. The platform MUST NOT run VictoriaMetrics, VictoriaLogs, VictoriaTraces, Prometheus, HyperDX, or another parallel telemetry store or UI in either environment.
+The platform SHALL run VictoriaMetrics for metrics, VictoriaLogs for logs, and VictoriaTraces for traces in prod using victoria-metrics-k8s-stack. Grafana SHALL be the telemetry UI. Dev MUST NOT run telemetry components. The platform MUST NOT run ClickHouse, HyperDX, or their operators, credentials, or archive jobs. Existing telemetry MAY be discarded during replacement.
 
 #### Scenario: Reconcile the platform definition
 - **WHEN** both environments' Argo CD instances converge
-- **THEN** prod runs the ClickHouse store, Grafana, its ingest collector, and its telemetry agents, dev runs no telemetry component, and neither runs a Victoria component, Prometheus, or HyperDX
+- **THEN** prod runs the Victoria stores, Grafana, VMAgent, VTAgent, and VLAgent, dev runs no telemetry component, and neither runs ClickHouse or HyperDX
 
 #### Scenario: Search telemetry
 - **WHEN** an operator searches logs, metrics, or traces in Grafana
 - **THEN** results come from prod's store
 
 ### Requirement: Telemetry collection in prod
-Prod SHALL collect container logs from every node, node and kubelet resource metrics, cluster object metrics, and Kubernetes events, and SHALL accept OTLP traces, metrics, and logs from applications at a stable in-cluster endpoint. Collection MUST include AWS burst workers while they exist. Collectors MUST NOT use PersistentVolumeClaims.
+Prod SHALL collect container logs from every node, node and kubelet resource metrics, cluster object metrics, and SHALL accept OTLP traces, cumulative metrics, and logs from applications at separate in-cluster HTTP endpoints. Collection MUST include AWS burst workers while they exist. VMAgent and VTAgent SHALL accept application metrics and traces, remote-write them to their respective stores, and buffer pending writes on separate persistent local-path volumes on prod-server2. Each queue SHALL be bounded to 8 GiB per destination, survive pod restarts, and replay when the store recovers. VLAgent SHALL collect container logs. The platform MUST NOT run OpenTelemetry collectors or gateways.
 
 #### Scenario: Application sends OTLP
-- **WHEN** a prod workload exports OTLP over gRPC or HTTP to the in-cluster telemetry endpoint
+- **WHEN** a prod workload exports OTLP over HTTP/protobuf to the matching in-cluster signal endpoint
 - **THEN** its traces, metrics, and logs appear in the store
 
 #### Scenario: Pod writes to stdout
 - **WHEN** a container on any fixed Proxmox node or AWS burst worker writes a log line
 - **THEN** the line appears in the store with its namespace, pod, and container
 
-#### Scenario: Cluster events and state
-- **WHEN** a Kubernetes event is emitted or a node's resource usage changes
-- **THEN** the event and the node, pod, and container metrics appear in the store
+#### Scenario: Cluster state
+- **WHEN** a node's resource usage changes
+- **THEN** the node, pod, and container metrics appear in the store
 
 ### Requirement: Telemetry source labels
-Every stored log, metric, and span SHALL carry the Kubernetes cluster name and environment it came from, set by the collector rather than by applications.
+Agents SHALL label collected logs and scraped metrics with the prod cluster and environment. Applications SHALL set the cluster and environment resource attributes when exporting directly.
 
-#### Scenario: Collector labels telemetry
-- **WHEN** a workload emits telemetry without cluster or environment attributes
+#### Scenario: Telemetry source labels
+- **WHEN** an agent collects telemetry or a workload exports it
 - **THEN** it is stored with prod's cluster name and environment
 
 ### Requirement: In-cluster ingest only
-The ingest collector SHALL be reachable only from inside prod's cluster. It MUST NOT have a LoadBalancer or LAN address, a public hostname, or a Cloudflare tunnel route. No ingest credential SHALL exist, and no other environment MAY send telemetry to it.
+The ingest endpoints SHALL be reachable only from inside prod's cluster. It MUST NOT have a LoadBalancer or LAN address, a public hostname, or a Cloudflare tunnel route. No ingest credential SHALL exist, and no other environment MAY send telemetry to it.
 
 #### Scenario: Prod agent sends telemetry
-- **WHEN** a prod agent exports telemetry to the ingest collector's in-cluster Service
+- **WHEN** a prod agent or workload exports telemetry to the appropriate in-cluster Service
 - **THEN** the telemetry is stored
 
 #### Scenario: Client on the LAN
 - **WHEN** a host outside prod's cluster looks for an OTLP endpoint on prod
 - **THEN** no LAN address accepts OTLP
 
-### Requirement: Seven-day retention with bounded disk use
-The store SHALL keep logs, metrics, and traces for 7 days and delete older data automatically. ClickHouse's own server logs and system log tables MUST also be bounded to 7 days or less. The store MUST stop accepting writes before its disk is completely full.
+### Requirement: Three-day retention with bounded disk use
+The stores SHALL keep logs, metrics, and traces for 3 days and delete older data automatically. Each store MUST reserve free disk space and stop accepting writes before the node's disk is completely full. Telemetry SHALL NOT be archived to S3; the old Doppler archive credentials SHALL be deleted, and RustFS bucket, identity, and policy cleanup SHALL be handled by the operator.
 
 #### Scenario: Data ages out
-- **WHEN** telemetry is older than 7 days
+- **WHEN** telemetry is older than 3 days
 - **THEN** it is no longer stored or returned by queries, without manual cleanup
 
 #### Scenario: Disk nearly full
 - **WHEN** the store's disk reaches its reserved free-space threshold
-- **THEN** new inserts fail visibly at the collector instead of the node's disk filling completely
+- **THEN** new inserts fail visibly at the exporter instead of the node's disk filling completely
 
 ### Requirement: Telemetry UI access
-The platform SHALL serve Grafana on prod at a fixed internal LoadBalancer address from prod's LoadBalancer pool, on port 80, and at the public hostname `grafana.phuchoang.sbs` through prod's Cloudflare tunnel. The UI SHALL support searching logs and traces, querying metrics, and navigating between a trace and its logs, and SHALL provide the OpenTelemetry logs, traces, and service dashboards and the ClickHouse health dashboards shipped with its ClickHouse data source plugin. The UI MUST require a login through Dex or with the admin password at both addresses. It MUST NOT allow anonymous access or password sign-up, and it MUST create accounts only for Dex identities it maps to a role.
+The platform SHALL serve Grafana on prod at a fixed internal LoadBalancer address from prod's LoadBalancer pool, on port 80, and at the public hostname `grafana.phuchoang.sbs` through prod's Cloudflare tunnel. The UI SHALL support searching logs and traces, querying metrics, and navigating between a trace and its logs, and SHALL provide the Kubernetes and Victoria dashboards shipped with the stack. The UI MUST require a login through Dex or with the admin password at both addresses. It MUST NOT allow anonymous access or password sign-up, and it MUST create accounts only for Dex identities it maps to a role.
 
 #### Scenario: Operator opens the UI
 - **WHEN** an operator on the LAN opens the UI's internal address and logs in with the admin credential
-- **THEN** Grafana loads with the ClickHouse data source as the default and the provisioned dashboards present
+- **THEN** Grafana loads with VictoriaMetrics as the default data source and VictoriaLogs and VictoriaTraces configured and the provisioned dashboards present
 
 #### Scenario: Operator opens the UI remotely
 - **WHEN** the operator opens `https://grafana.phuchoang.sbs` and logs in through Dex
@@ -81,7 +81,7 @@ The platform SHALL serve Grafana on prod at a fixed internal LoadBalancer addres
 - **THEN** the UI shows only the login page and no account is created
 
 ### Requirement: Single-replica store on a fixed node
-The ClickHouse server and its coordination service SHALL each run as a single replica on one designated fixed prod Proxmox node, on that node's local disk. The store is not replicated or backed up; losing that node's disk loses stored telemetry.
+VictoriaMetrics, VictoriaLogs, and VictoriaTraces SHALL each run as a single replica on prod-server1 with separate local-path volumes. The store is not replicated or backed up; losing that node's disk loses stored telemetry.
 
 #### Scenario: Designated node restarts
 - **WHEN** the designated node reboots
@@ -96,13 +96,13 @@ Every credential used by the store and its UI SHALL be delivered through the clu
 
 #### Scenario: Inspect the repository
 - **WHEN** a user reads the observability components in Git
-- **THEN** no ClickHouse or Grafana credential value appears
+- **THEN** no Grafana credential value appears
 
-### Requirement: Stateless UI provisioned from Git
-The UI SHALL keep no state that is not defined in Git or the secret store. Its data source, dashboards, and admin account MUST be provisioned when it starts, and it MUST NOT use a PersistentVolumeClaim. Restarting or rescheduling the UI SHALL lose only login sessions and edits made in the UI.
+### Requirement: UI provisioned from Git
+The UI's data sources, dashboards, and admin account SHALL be provisioned from Git or the secret store. Grafana SHALL use a local-path PersistentVolumeClaim on prod-server1 for its application state.
 
 #### Scenario: UI pod restarts
-- **WHEN** the UI pod is deleted and recreated on any prod node
+- **WHEN** the UI pod is deleted and recreated on prod-server1
 - **THEN** the same data source and dashboards are present and the admin credential still logs in
 
 #### Scenario: Dashboard changed in Git
@@ -110,12 +110,12 @@ The UI SHALL keep no state that is not defined in Git or the secret store. Its d
 - **THEN** the UI shows the changed dashboard without an import step
 
 ### Requirement: Bounded UI queries
-Queries from the UI SHALL run as a read-only store user whose per-query memory and execution time are limited. A query that exceeds a limit MUST fail on its own without stopping the store or other queries.
+The UI SHALL use the stores' query APIs, with bounded query execution time and concurrent query limits. A query that exceeds a limit MUST fail on its own without stopping the store or other queries.
 
 #### Scenario: Expensive dashboard query
 - **WHEN** a UI query needs more memory or time than the UI user's limits allow
 - **THEN** that query returns an error in the UI, and the store keeps accepting inserts and other queries
 
 #### Scenario: UI attempts a write
-- **WHEN** a query from the UI tries to insert, alter, or drop data
+- **WHEN** a query from the UI attempts a write through a query endpoint
 - **THEN** the store rejects it

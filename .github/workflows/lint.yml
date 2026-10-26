@@ -59,11 +59,11 @@ jobs:
             done
           done
 
-      - name: Check HyperDX's operator email matches the Dex user
+      - name: Check Grafana's operator email matches the Dex user
         run: |
           dex=$(yq '.identity.email' apps/components/auth/values.yaml)
-          hyperdx=$(yq '.global.operatorEmail' apps/components/observability/values.yaml)
-          if [ "${dex}" != "${hyperdx}" ]; then
-            echo "::error::observability global.operatorEmail (${hyperdx}) must equal auth identity.email (${dex})"
+          grafana=$(yq '.global.operatorEmail' apps/components/observability/values.yaml)
+          if [ "${dex}" != "${grafana}" ]; then
+            echo "::error::observability global.operatorEmail (${grafana}) must equal auth identity.email (${dex})"
             exit 1
           fi

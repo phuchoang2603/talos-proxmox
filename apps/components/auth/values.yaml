@@ -39,7 +39,7 @@ identity:
   issuer: https://auth.phuchoang.sbs/dex
   internalIssuer: http://dex.auth.svc.cluster.local:5556/dex
   redirectURI: https://kubeflow.phuchoang.sbs/oauth2/callback
-  hyperdxRedirectURI: https://hyperdx.phuchoang.sbs/oauth2/callback
+  grafanaRedirectURI: https://grafana.phuchoang.sbs/login/generic_oauth
   openmetadataRedirectURI: https://openmetadata.phuchoang.sbs/callback
 
 tunnel:

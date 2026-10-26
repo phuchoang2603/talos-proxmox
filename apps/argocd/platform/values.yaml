@@ -169,12 +169,6 @@ components:
     syncWave: "0"
     releaseName: redis-operator
     clusters: [dev, prod]
-  clickhouse-operator:
-    path: apps/components/clickhouse-operator
-    namespace: operators
-    syncWave: "0"
-    releaseName: clickhouse-operator
-    clusters: [prod]
   gpu-operator:
     path: apps/components/gpu-operator
     namespace: operators

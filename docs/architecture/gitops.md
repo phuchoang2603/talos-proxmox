@@ -45,9 +45,8 @@ The source of truth is [`apps/argocd/platform/values.yaml`](../../apps/argocd/pl
 | -1 | Burst admission policy, Cilium network resources, metrics-server | dev, prod |
 | -1 | Shared Argo Workflows controller and CRDs; native lifecycle guard for `fraud-data-prod` Workflows (stop and complete cleanup before deletion; no hard termination while running) | prod |
 | 0 | local-path, Talos CCM, cert-manager, CNPG, Strimzi, MongoDB operator | dev, prod |
-| 0 | ClickHouse operator | prod |
 | 1 | GPU operator, NVIDIA DRA | dev, prod |
-| 1 | Observability: ClickHouse, Grafana, OTLP gateway, node agents, cluster collector | prod |
+| 1 | Observability: VictoriaMetrics operator, VictoriaMetrics, VictoriaLogs, VictoriaTraces, Grafana, VMAgent, VTAgent and VLAgent | prod |
 | 2 | Cloudflare operator and tunnel | dev, prod |
 
 Dev runs no telemetry components and has no dependency on prod.
