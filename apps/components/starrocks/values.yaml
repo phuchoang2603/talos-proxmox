@@ -15,6 +15,10 @@ kube-starrocks:
           tag: 4.1.6
     starrocksFESpec:
       replicas: 1
+      feEnvVars:
+        - name: MYSQL_PWD
+          valueFrom:
+            secretKeyRef: {name: starrocks-setup, key: ROOT_PASSWORD}
       resources:
         requests: {cpu: 100m, memory: 1536Mi}
         limits: {cpu: "2", memory: 3Gi}
@@ -38,6 +42,10 @@ kube-starrocks:
         default_replication_num = 1
     starrocksBeSpec:
       replicas: 1
+      beEnvVars:
+        - name: MYSQL_PWD
+          valueFrom:
+            secretKeyRef: {name: starrocks-setup, key: ROOT_PASSWORD}
       resources:
         requests: {cpu: 250m, memory: 2Gi}
         limits: {cpu: "3", memory: 5Gi}
