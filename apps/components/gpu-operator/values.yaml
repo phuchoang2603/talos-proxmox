@@ -33,7 +33,10 @@ gpu-operator:
       requests: {cpu: 25m, memory: 128Mi}
       limits: {memory: 512Mi}
     serviceMonitor:
-      enabled: false
+      enabled: true
+      interval: 60s
+      scrapeTimeout: 10s
+      honorLabels: true
   gfd:
     enabled: false
   migManager:

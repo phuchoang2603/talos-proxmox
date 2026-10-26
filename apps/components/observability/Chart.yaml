@@ -4,6 +4,9 @@ description: VictoriaMetrics, VictoriaLogs, VictoriaTraces, and Grafana for prod
 type: application
 version: 0.2.0
 dependencies:
+  - name: prometheus-operator-crds
+    version: 32.0.2
+    repository: https://prometheus-community.github.io/helm-charts
   - name: victoria-metrics-k8s-stack
     version: 0.97.0
     repository: https://victoriametrics.github.io/helm-charts/

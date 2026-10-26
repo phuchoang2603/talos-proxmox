@@ -8,9 +8,24 @@ tunnel:
 global:
   operatorEmail: xuanphuc.a1gv@gmail.com
 
+prometheus-operator-crds:
+  crds:
+    alertmanagerconfigs:
+      enabled: false
+    alertmanagers:
+      enabled: false
+    prometheusagents:
+      enabled: false
+    prometheuses:
+      enabled: false
+    thanosrulers:
+      enabled: false
+
 victoria-metrics-k8s-stack:
   fullnameOverride: vmks
   victoria-metrics-operator:
+    operator:
+      disable_prometheus_converter: false
     admissionWebhooks:
       certManager:
         enabled: true
