@@ -1,0 +1,73 @@
+{{- $c := .Values.catalog }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: starrocks-setup
+data:
+  setup.sh: |
+    set -eu
+    host=kube-starrocks-fe-service
+    sr() { mysql -h "$host" -P 9030 -uroot -p"$ROOT_PASSWORD" --batch "$@"; }
+    until mysql -h "$host" -P 9030 -uroot --connect-timeout=5 -e 'SELECT 1' >/dev/null 2>&1 \
+       || sr -e 'SELECT 1' >/dev/null 2>&1; do sleep 10; done
+    if ! sr -e 'SELECT 1' >/dev/null 2>&1; then
+      mysql -h "$host" -P 9030 -uroot -e "ALTER USER root IDENTIFIED BY '$ROOT_PASSWORD'"
+    fi
+    sr <<SQL
+    CREATE EXTERNAL CATALOG IF NOT EXISTS {{ $c.name }} PROPERTIES (
+      "type" = "iceberg",
+      "iceberg.catalog.type" = "rest",
+      "iceberg.catalog.uri" = "{{ $c.restUri }}",
+      "iceberg.catalog.warehouse" = "{{ $c.warehouse }}",
+      "iceberg.catalog.rest.sigv4-enabled" = "true",
+      "iceberg.catalog.rest.signing-name" = "{{ $c.signingName }}",
+      "iceberg.catalog.rest.access-key-id" = "$S3_ACCESS_KEY",
+      "iceberg.catalog.rest.secret-access-key" = "$S3_SECRET_KEY",
+      "iceberg.catalog.vended-credentials-enabled" = "false",
+      "aws.s3.use_instance_profile" = "false",
+      "aws.s3.access_key" = "$S3_ACCESS_KEY",
+      "aws.s3.secret_key" = "$S3_SECRET_KEY",
+      "aws.s3.region" = "{{ $c.region }}",
+      "aws.s3.endpoint" = "{{ $c.s3Endpoint }}",
+      "aws.s3.enable_path_style_access" = "true"
+    );
+    SQL
+  {{- range $user, $_ := $c.users }}
+    sr <<SQL
+    CREATE USER IF NOT EXISTS '{{ $user }}'@'%' IDENTIFIED BY '$PASSWORD_{{ $user | upper }}';
+    ALTER USER '{{ $user }}'@'%' IDENTIFIED BY '$PASSWORD_{{ $user | upper }}';
+    GRANT USAGE ON CATALOG {{ $c.name }} TO USER '{{ $user }}'@'%';
+    SET CATALOG {{ $c.name }};
+    GRANT SELECT ON ALL TABLES IN ALL DATABASES TO USER '{{ $user }}'@'%';
+    SQL
+  {{- end }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: starrocks-setup
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 20
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: apply
+          image: {{ $c.setupImage }}
+          command: [bash, /setup/setup.sh]
+          envFrom:
+            - secretRef:
+                name: starrocks-setup
+          volumeMounts:
+            - {name: setup, mountPath: /setup}
+          resources:
+            requests: {cpu: 50m, memory: 128Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+      volumes:
+        - name: setup
+          configMap:
+            name: starrocks-setup

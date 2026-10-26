@@ -1,0 +1,60 @@
+kube-starrocks:
+  operator:
+    timeZone: UTC
+    starrocksOperator:
+      watchNamespace: starrocks
+      imagePullPolicy: IfNotPresent
+  starrocks:
+    timeZone: UTC
+    starrocksCluster:
+      componentValues:
+        image:
+          tag: 4.1.6
+    starrocksFESpec:
+      replicas: 1
+      resources:
+        requests: {cpu: 500m, memory: 2Gi}
+        limits: {cpu: "2", memory: 3Gi}
+      storageSpec:
+        storageClassName: local-path
+        storageSize: 10Gi
+        logStorageClassName: local-path
+        logStorageSize: 2Gi
+      config: |
+        LOG_DIR = ${STARROCKS_HOME}/log
+        DATE = "$(date +%Y%m%d-%H%M%S)"
+        JAVA_OPTS="-Dlog4j2.formatMsgNoLookups=true -Xmx1536m -XX:+UseG1GC -Xlog:gc*:${LOG_DIR}/fe.gc.log.$DATE:time"
+        http_port = 8030
+        rpc_port = 9020
+        query_port = 9030
+        edit_log_port = 9010
+        mysql_service_nio_enabled = true
+        sys_log_level = INFO
+        min_graceful_exit_time_second = 25
+    starrocksBeSpec:
+      replicas: 1
+      resources:
+        requests: {cpu: "1", memory: 3Gi}
+        limits: {cpu: "3", memory: 5Gi}
+      storageSpec:
+        storageClassName: local-path
+        storageSize: 20Gi
+        logStorageClassName: local-path
+        logStorageSize: 2Gi
+        spillStorageClassName: local-path
+        spillStorageSize: 20Gi
+
+catalog:
+  name: fraud_lakehouse
+  restUri: https://minio.home.phuchoang.sbs/iceberg
+  warehouse: fraud-lakehouse-prod
+  signingName: s3
+  region: us-east-1
+  s3Endpoint: https://minio.home.phuchoang.sbs
+  setupImage: starrocks/fe-ubuntu:4.1.6
+  users:
+    dp1: DP1_STARROCKS_PASSWORD
+  secrets:
+    rootPassword: STARROCKS_ROOT_PASSWORD
+    accessKey: STARROCKS_RUSTFS_ACCESS_KEY
+    secretKey: STARROCKS_RUSTFS_SECRET_KEY

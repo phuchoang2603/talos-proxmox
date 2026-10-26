@@ -32,6 +32,7 @@ Set these directly in the matching Doppler config before deployment. They are no
 | `CLICKHOUSE_DEFAULT_PASSWORD` (prod) | Foundation | ClickHouse `default` user |
 | `CLICKHOUSE_OTEL_PASSWORD` (prod) | Foundation | ClickHouse `otelcollector` user; OTLP gateway's ClickHouse exporter |
 | `CLICKHOUSE_APP_PASSWORD` (prod) | Foundation | ClickHouse `app` user; Grafana's ClickHouse data source |
+| `STARROCKS_ROOT_PASSWORD`, `DP1_STARROCKS_PASSWORD`, `STARROCKS_RUSTFS_ACCESS_KEY`, `STARROCKS_RUSTFS_SECRET_KEY` (prod) | Operator | StarRocks setup Job: root and `dp1` passwords, catalog and S3 access; `DP1_STARROCKS_PASSWORD` is mirrored in the fraud Doppler project |
 | `ML_AWS_ACCESS_KEY_ID`, `ML_AWS_SECRET_ACCESS_KEY` (prod) | Foundation | IAM user `talos-proxmox-ml`; ExternalSecret `fraud-ml-prod/ml-s3` |
 | `ML_BUCKET` (prod) | Foundation | ML staging bucket name (contains the account ID); same `ml-s3` Secret |
 

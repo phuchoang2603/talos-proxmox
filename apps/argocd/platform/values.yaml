@@ -72,6 +72,12 @@ components:
     syncWave: "0"
     releaseName: spark-operator
     clusters: [prod]
+  starrocks:
+    path: apps/components/starrocks
+    namespace: starrocks
+    syncWave: "1"
+    releaseName: starrocks
+    clusters: [prod]
   ml-access:
     path: apps/components/ml-access
     namespace: fraud-ml-prod
