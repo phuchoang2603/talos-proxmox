@@ -15,6 +15,7 @@ kube-starrocks:
           tag: 4.1.6
     starrocksFESpec:
       replicas: 1
+      startupProbeFailureSeconds: 900
       feEnvVars:
         - name: MYSQL_PWD
           valueFrom:
