@@ -19,49 +19,25 @@ type: kubernetes.io/service-account-token
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: workflows-operator-discovery
-rules:
-  - apiGroups: [""]
-    resources: [namespaces]
-    verbs: [get, list, watch]
-  - apiGroups: [argoproj.io]
-    resources: [clusterworkflowtemplates]
-    verbs: [get, list, watch]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: workflows-operator-discovery
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: workflows-operator-discovery
-subjects:
-  - kind: ServiceAccount
-    name: workflows-operator
-    namespace: {{ .Release.Namespace }}
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
   name: workflows-operator
 rules:
   - apiGroups: [argoproj.io]
-    resources: [workflows, workflowtemplates, cronworkflows, workfloweventbindings]
+    resources: [workflows, workflowtemplates, clusterworkflowtemplates, cronworkflows, workfloweventbindings, eventsources, sensors]
     verbs: [get, list, watch, create, update, patch, delete]
+  - apiGroups: [argoproj.io]
+    resources: [workflowtaskresults]
+    verbs: [get, list, watch]
   - apiGroups: [""]
-    resources: [pods, events, configmaps]
+    resources: [namespaces, pods, events, configmaps]
     verbs: [get, list, watch]
   - apiGroups: [""]
     resources: [pods/log]
     verbs: [get]
-{{- range append (index .Values "argo-workflows").controller.workflowNamespaces .Release.Namespace | uniq }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   name: workflows-operator
-  namespace: {{ . }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -69,5 +45,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: workflows-operator
-    namespace: {{ $.Release.Namespace }}
-{{- end }}
+    namespace: {{ .Release.Namespace }}
