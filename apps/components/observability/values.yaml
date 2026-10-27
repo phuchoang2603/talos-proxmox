@@ -134,6 +134,7 @@ victoria-metrics-k8s-stack:
       nodeSelector:
         kubernetes.io/hostname: prod-server1
       extraArgs:
+        memory.allowedBytes: 512MiB
         storage.minFreeDiskSpaceBytes: '21474836480'
       storage:
         storageClassName: local-path
@@ -144,7 +145,7 @@ victoria-metrics-k8s-stack:
       resources:
         requests:
           cpu: 100m
-          memory: 768Mi
+          memory: 512Mi
         limits:
           memory: 1536Mi
   vmcluster:
@@ -211,6 +212,7 @@ victoria-metrics-k8s-stack:
       remoteWriteSettings:
         maxDiskUsagePerURL: 513MiB
       extraArgs:
+        memory.allowedBytes: 128MiB
         promscrape.maxScrapeSize: 64MiB
       scrapeInterval: 60s
       externalLabels:
@@ -221,7 +223,7 @@ victoria-metrics-k8s-stack:
           cpu: 50m
           memory: 128Mi
         limits:
-          memory: 1Gi
+          memory: 512Mi
   vlagent:
     enabled: true
     spec:
@@ -240,6 +242,46 @@ victoria-metrics-k8s-stack:
     enabled: true
   vmalert:
     enabled: true
+  kubelet:
+    vmScrapes:
+      probes:
+        enabled: false
+      cadvisor:
+        spec:
+          metricRelabelConfigs:
+            - action: keep
+              source_labels: [__name__]
+              regex: 'container_cpu_(usage_seconds_total|cfs_periods_total|cfs_throttled_periods_total|cfs_throttled_seconds_total)|container_memory_(working_set_bytes|rss|cache|swap|usage_bytes|failures_total)|container_network_(receive|transmit)_(bytes_total|packets_dropped_total|errors_total)|container_fs_(reads_bytes_total|writes_bytes_total|usage_bytes|limit_bytes)|container_spec_(cpu_quota|cpu_period|memory_limit_bytes)|machine_(cpu_cores|memory_bytes)'
+            - action: labeldrop
+              regex: 'uid|id|name'
+    vmScrape:
+      spec:
+        interval: 60s
+        relabelConfigs:
+          - sourceLabels: [__meta_kubernetes_node_name]
+            targetLabel: node
+          - sourceLabels: [__metrics_path__]
+            targetLabel: metrics_path
+          - targetLabel: job
+            replacement: kubelet
+  kubeApiServer:
+    vmScrape:
+      spec:
+        endpoints:
+          - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+            port: https
+            scheme: https
+            interval: 120s
+            tlsConfig:
+              caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+              serverName: kubernetes
+            metricRelabelConfigs:
+              - action: keep
+                source_labels: [__name__]
+                regex: 'apiserver_(request_total|request(_sli)?_duration_seconds_(bucket|sum|count)|current_inflight_requests|current_inqueue_requests|longrunning_requests|storage_objects)|process_(cpu_seconds_total|resident_memory_bytes|start_time_seconds)|go_goroutines'
+              - action: drop
+                source_labels: [__name__, le]
+                regex: 'apiserver_request(_sli)?_duration_seconds_bucket;(0\.005|0\.025|0\.05|0\.2|0\.4|0\.6|0\.8|1\.25|1\.5|3|4|6|8|15|20|45)'
   kubeControllerManager:
     enabled: false
   kubeScheduler:
