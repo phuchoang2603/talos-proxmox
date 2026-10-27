@@ -49,7 +49,7 @@ jobs:
             echo "::add-mask::${v}"
             echo "${pair#*:}=${v}" >> "$GITHUB_ENV"
           done
-      - uses: tailscale/github-action@v2
+      - uses: tailscale/github-action@v4
         with:
           oauth-client-id: ${{ env.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ env.TS_OAUTH_SECRET }}
