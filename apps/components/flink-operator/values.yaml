@@ -1,0 +1,50 @@
+flink-kubernetes-operator:
+  image:
+    tag: 1.16.1
+  watchNamespaces: [payment-gateway]
+  defaultConfiguration:
+    config.yaml: |+
+      kubernetes.operator.default-configuration.namespace.payment-gateway.execution.checkpointing.storage: filesystem
+      kubernetes.operator.default-configuration.namespace.payment-gateway.execution.checkpointing.dir: s3://fraud-flink-prod/checkpoints
+      kubernetes.operator.default-configuration.namespace.payment-gateway.execution.checkpointing.savepoint-dir: s3://fraud-flink-prod/savepoints
+      kubernetes.operator.default-configuration.namespace.payment-gateway.s3.endpoint: https://minio.home.phuchoang.sbs
+      kubernetes.operator.default-configuration.namespace.payment-gateway.s3.path.style.access: true
+      kubernetes.operator.default-configuration.namespace.payment-gateway.kubernetes.env.secretKeyRef: env:AWS_ACCESS_KEY_ID,secret:flink-checkpoint-storage,key:AWS_ACCESS_KEY_ID;env:AWS_SECRET_ACCESS_KEY,secret:flink-checkpoint-storage,key:AWS_SECRET_ACCESS_KEY
+  jobServiceAccount:
+    create: false
+  rbac:
+    jobRole:
+      create: false
+    jobRoleBinding:
+      create: false
+  operatorPod:
+    labels:
+      istio.io/dataplane-mode: ambient
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 1Gi
+    webhook:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          memory: 512Mi
+  jvmArgs:
+    operator: -Xmx512m
+    webhook: -Xmx256m
+  podSecurityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+  operatorSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: [ALL]
+  webhookSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: [ALL]

@@ -1,0 +1,6 @@
+dependencies:
+- name: flink-kubernetes-operator
+  repository: https://downloads.apache.org/flink/flink-kubernetes-operator-1.16.1
+  version: 1.16.1
+digest: sha256:75727d3b236be88652d9631e7b6b8d9b85828f8579931887678ce5c1f4b13824
+generated: "2026-10-26T22:06:50.446801279-04:00"

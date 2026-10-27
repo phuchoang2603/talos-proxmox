@@ -72,6 +72,12 @@ components:
     syncWave: "0"
     releaseName: spark-operator
     clusters: [prod]
+  flink-operator:
+    path: apps/components/flink-operator
+    namespace: operators
+    syncWave: "1"
+    releaseName: flink-kubernetes-operator
+    clusters: [prod]
   starrocks:
     path: apps/components/starrocks
     namespace: starrocks

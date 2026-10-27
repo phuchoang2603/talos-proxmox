@@ -46,6 +46,7 @@ The source of truth is [`apps/argocd/platform/values.yaml`](../../apps/argocd/pl
 | -1 | Shared Argo Workflows controller and CRDs; native lifecycle guard for `fraud-data-prod` Workflows (stop and complete cleanup before deletion; no hard termination while running) | prod |
 | 0 | local-path, Talos CCM, cert-manager, CNPG, Strimzi, MongoDB operator | dev, prod |
 | 1 | GPU operator, NVIDIA DRA | dev, prod |
+| 1 | Apache Flink Kubernetes Operator in `operators`, watching `payment-gateway` | prod |
 | 1 | Observability: VictoriaMetrics operator, VictoriaMetrics, VictoriaLogs, VictoriaTraces, Grafana, VMAgent, VTAgent and VLAgent | prod |
 | 2 | Cloudflare operator and tunnel | dev, prod |
 
@@ -54,6 +55,10 @@ Dev runs no telemetry components and has no dependency on prod.
 Waves order submission of child Applications; they do not wait for each child's resources to become healthy. Children converge asynchronously. Unlimited retries with backoff and `SkipDryRunOnMissingResource` handle dependencies such as CRDs arriving later. Automated prune removes resources deleted from Git, and self-heal repairs drift.
 
 Argo CD uses server-side apply and server-side diff. Privileged component namespaces get labels through `managedNamespaceMetadata`. Cilium runs in `kube-system`; Istio runs in privileged `istio-system`.
+
+The `flink-operator` component pins Apache Flink Kubernetes Operator 1.16.1, with namespace-scoped controller RBAC and cert-manager webhook certificates. The fraud application owns Flink jobs and their service accounts/RBAC, plus the Feast server, ordered writer and dedicated Redis. Installing the controller does not start those workloads. The operator supplies filesystem checkpoint defaults at `s3://fraud-flink-prod/checkpoints` and savepoints at `s3://fraud-flink-prod/savepoints`, using `https://minio.home.phuchoang.sbs` with path-style access. Jobs must include the matching Flink S3 filesystem plugin; checkpoint scheduling and epoch-specific overrides remain application-owned. Flink creates job-ID subdirectories; replay must use a separate job and must not restore live state.
+
+Before starting jobs, a storage administrator must create the dedicated `fraud-flink-prod` bucket and user on the existing MinIO-compatible service, attach the [bucket-scoped policy](../../apps/components/flink-operator/storage-policy.json), and store that user's keys in Doppler `talos-proxmox/prod` as `FLINK_RUSTFS_ACCESS_KEY` and `FLINK_RUSTFS_SECRET_KEY`. The platform ExternalSecret delivers them to `payment-gateway/flink-checkpoint-storage`; Flink injects them into JobManager/TaskManager environment variables, without credential files or credential PVCs. Restart jobs after rotation. Do not reuse Kubeflow credentials or apply age-based object expiration: retained incremental checkpoints/savepoints may still reference older objects. Bucket/user provisioning and restore acceptance remain pending.
 
 ## Secret delivery
 
