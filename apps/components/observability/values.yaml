@@ -251,7 +251,7 @@ victoria-metrics-k8s-stack:
           metricRelabelConfigs:
             - action: keep
               source_labels: [__name__]
-              regex: 'container_cpu_(usage_seconds_total|cfs_periods_total|cfs_throttled_periods_total|cfs_throttled_seconds_total)|container_memory_(working_set_bytes|rss|cache|swap|usage_bytes|failures_total)|container_network_(receive|transmit)_(bytes_total|packets_dropped_total|errors_total)|container_fs_(reads_bytes_total|writes_bytes_total|usage_bytes|limit_bytes)|container_spec_(cpu_quota|cpu_period|memory_limit_bytes)|machine_(cpu_cores|memory_bytes)'
+              regex: 'container_cpu_(usage_seconds_total|cfs_periods_total|cfs_throttled_periods_total|cfs_throttled_seconds_total)|container_memory_(working_set_bytes|rss|cache|swap|usage_bytes|failures_total)|container_network_(receive|transmit)_(bytes_total|packets_total|packets_dropped_total|errors_total)|container_fs_(reads_bytes_total|writes_bytes_total|reads_total|writes_total|io_time_seconds_total|usage_bytes|limit_bytes)|container_spec_(cpu_quota|cpu_period|memory_limit_bytes)|machine_(cpu_cores|memory_bytes)'
             - action: labeldrop
               regex: 'uid|id|name'
     vmScrape:
