@@ -164,12 +164,6 @@ components:
     syncWave: "0"
     releaseName: strimzi-cluster-operator
     clusters: [dev, prod]
-  mongodb-operator:
-    path: apps/components/mongodb
-    namespace: operators
-    syncWave: "0"
-    releaseName: mongodb-operator
-    clusters: [dev, prod]
   redis-operator:
     path: apps/components/redis-operator
     namespace: operators
