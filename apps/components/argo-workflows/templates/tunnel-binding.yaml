@@ -1,0 +1,14 @@
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: argo-workflows
+  namespace: {{ .Release.Namespace }}
+subjects:
+  - kind: Service
+    name: argo-workflows-server
+    spec:
+      fqdn: {{ .Values.tunnel.hostname }}
+      target: http://argo-workflows-server.{{ .Release.Namespace }}.svc.cluster.local:2746
+tunnelRef:
+  kind: ClusterTunnel
+  name: {{ .Values.tunnel.clusterTunnel }}

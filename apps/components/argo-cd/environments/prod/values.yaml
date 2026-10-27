@@ -21,4 +21,21 @@ argo-cd:
       timeoutSeconds: 5
   configs:
     cm:
-      url: http://10.69.12.254
+      url: https://argocd.phuchoang.sbs
+      oidc.config: |
+        name: Dex
+        issuer: https://auth.phuchoang.sbs/dex
+        clientID: argocd
+        clientSecret: $argocd-oidc:client-secret
+        requestedScopes: [openid, profile, email]
+        enablePKCEAuthentication: true
+    rbac:
+      policy.default: ""
+      scopes: '[email]'
+      policy.csv: |
+        g, xuanphuc.a1gv@gmail.com, role:admin
+
+tunnel:
+  enabled: true
+  clusterTunnel: talos-proxmox
+  hostname: argocd.phuchoang.sbs

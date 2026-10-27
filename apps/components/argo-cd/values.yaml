@@ -1,6 +1,4 @@
 argo-cd:
-  # This installation uses local admin authentication and ordinary Argo
-  # Applications; no SSO, notifications, or ApplicationSets are configured.
   dex:
     enabled: false
   notifications:
@@ -31,3 +29,6 @@ argo-cd:
       server.insecure: true
       # Compare against a server-side dry run so API defaults (ExternalSecret, HTTPRoute) are not drift.
       controller.diff.server.side: true
+
+tunnel:
+  enabled: false

@@ -1,0 +1,16 @@
+{{- if .Values.tunnel.enabled }}
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: argocd
+  namespace: {{ .Release.Namespace }}
+subjects:
+  - kind: Service
+    name: argo-cd-argocd-server
+    spec:
+      fqdn: {{ .Values.tunnel.hostname }}
+      target: http://argo-cd-argocd-server.{{ .Release.Namespace }}.svc.cluster.local:80
+tunnelRef:
+  kind: ClusterTunnel
+  name: {{ .Values.tunnel.clusterTunnel }}
+{{- end }}

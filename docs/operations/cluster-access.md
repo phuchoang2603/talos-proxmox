@@ -57,6 +57,8 @@ kubectl -n argo-cd get secret argocd-initial-admin-secret \
 
 Log in as `admin`. This command prints a credential; do not place its output in logs or documentation. If the initial Secret was removed or the password changed, use the current admin credential instead.
 
+Prod also exposes Argo CD at <https://argocd.phuchoang.sbs> with a **Log in via Dex** option. The configured operator email receives the admin role. Argo Workflows at <https://workflows.phuchoang.sbs> uses Dex exclusively; that email can manage workflows in `kubeflow`, `fraud-ml-prod`, and `fraud-data-prod`. Both use the shared Dex credential from Doppler through ExternalSecrets.
+
 ## Check convergence
 
 ```bash
@@ -91,13 +93,15 @@ VictoriaMetrics, VictoriaLogs, and VictoriaTraces retain telemetry for 3 days on
 
 ## Public URLs (prod)
 
-The prod Cloudflare tunnel publishes three hostnames. Cloudflare terminates TLS and redirects `http://` to HTTPS.
+The prod Cloudflare tunnel publishes the following hostnames. Cloudflare terminates TLS and redirects `http://` to HTTPS.
 
 | URL | Service | Login |
 | --- | --- | --- |
 | <https://auth.phuchoang.sbs/dex> | Dex, the shared login | The Dex user (`identity.email` in [`apps/components/auth/values.yaml`](../../apps/components/auth/values.yaml)) and `AUTH_DEX_PASSWORD` |
 | <https://kubeflow.phuchoang.sbs> | Kubeflow Dashboard, through the Istio ingress gateway | Redirects to Dex; see [Kubeflow](kubeflow.md) |
 | <https://grafana.phuchoang.sbs> | Grafana | Dex or the local admin account |
+| <https://argocd.phuchoang.sbs> | Argo CD | Dex or the local admin account |
+| <https://workflows.phuchoang.sbs> | Argo Workflows | Dex |
 
 Grafana grants the configured operator email an Admin role through Dex and rejects unmapped identities. The public tunnel and LAN service both require login. The local account is `admin`, with `GRAFANA_ADMIN_PASSWORD` from prod Doppler; anonymous access and password sign-up are disabled.
 

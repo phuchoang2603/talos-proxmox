@@ -13,4 +13,35 @@ argo-workflows:
       limits:
         memory: 1Gi
   server:
-    enabled: false
+    enabled: true
+    replicas: 1
+    authModes: [sso]
+    resources:
+      requests:
+        cpu: 25m
+        memory: 128Mi
+      limits:
+        memory: 512Mi
+    sso:
+      enabled: true
+      issuer: https://auth.phuchoang.sbs/dex
+      clientId:
+        name: argo-workflows-sso
+        key: client-id
+      clientSecret:
+        name: argo-workflows-sso
+        key: client-secret
+      redirectUrl: https://workflows.phuchoang.sbs/oauth2/callback
+      scopes: [profile, email]
+      rbac:
+        enabled: true
+        secretWhitelist:
+          - argo-workflows-sso
+          - workflows-operator.service-account-token
+
+identity:
+  email: xuanphuc.a1gv@gmail.com
+
+tunnel:
+  clusterTunnel: talos-proxmox
+  hostname: workflows.phuchoang.sbs
