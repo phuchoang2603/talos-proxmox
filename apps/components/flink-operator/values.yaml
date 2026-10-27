@@ -1,0 +1,42 @@
+flink-kubernetes-operator:
+  image:
+    tag: 1.16.1
+  watchNamespaces: [payment-gateway]
+  jobServiceAccount:
+    create: false
+  rbac:
+    jobRole:
+      create: false
+    jobRoleBinding:
+      create: false
+  operatorPod:
+    labels:
+      istio.io/dataplane-mode: ambient
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 1Gi
+    webhook:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          memory: 512Mi
+  jvmArgs:
+    operator: -Xmx512m
+    webhook: -Xmx256m
+  podSecurityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+  operatorSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: [ALL]
+  webhookSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: [ALL]

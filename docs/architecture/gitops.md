@@ -46,6 +46,7 @@ The source of truth is [`apps/argocd/platform/values.yaml`](../../apps/argocd/pl
 | -1 | Shared Argo Workflows controller and CRDs; native lifecycle guard for `fraud-data-prod` Workflows (stop and complete cleanup before deletion; no hard termination while running) | prod |
 | 0 | local-path, Talos CCM, cert-manager, CNPG, Strimzi, MongoDB operator | dev, prod |
 | 1 | GPU operator, NVIDIA DRA | dev, prod |
+| 1 | Apache Flink Kubernetes Operator in `operators`, watching `payment-gateway` | prod |
 | 1 | Observability: VictoriaMetrics operator, VictoriaMetrics, VictoriaLogs, VictoriaTraces, Grafana, VMAgent, VTAgent and VLAgent | prod |
 | 2 | Cloudflare operator and tunnel | dev, prod |
 
@@ -54,6 +55,8 @@ Dev runs no telemetry components and has no dependency on prod.
 Waves order submission of child Applications; they do not wait for each child's resources to become healthy. Children converge asynchronously. Unlimited retries with backoff and `SkipDryRunOnMissingResource` handle dependencies such as CRDs arriving later. Automated prune removes resources deleted from Git, and self-heal repairs drift.
 
 Argo CD uses server-side apply and server-side diff. Privileged component namespaces get labels through `managedNamespaceMetadata`. Cilium runs in `kube-system`; Istio runs in privileged `istio-system`.
+
+The `flink-operator` component pins Apache Flink Kubernetes Operator 1.16.1, with namespace-scoped controller RBAC and cert-manager webhook certificates. The fraud application owns Flink jobs, their service accounts/RBAC and checkpoint/savepoint configuration, plus the Feast server, ordered writer and dedicated Redis. Installing the controller does not start those workloads. Durable checkpoint storage requires a separately owned bucket and credentials; the Kubeflow artifact bucket is not a default. Application credentials come from its Doppler store through ExternalSecrets.
 
 ## Secret delivery
 
