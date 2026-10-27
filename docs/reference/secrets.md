@@ -17,6 +17,7 @@ Set these directly in the matching Doppler config before deployment. They are no
 | `TS_OAUTH_CLIENT_ID`, `TS_OAUTH_SECRET` | GitHub runner's Tailscale connection | Both |
 | `CLOUDFLARE_API_TOKEN` | Cloudflare operator, through the `cloudflare-credentials` ExternalSecret | Both |
 | `CLOUDFLARE_TUNNEL_TOKEN` | `cloudflared`, through the same ExternalSecret | Both |
+| `FLINK_RUSTFS_ACCESS_KEY`, `FLINK_RUSTFS_SECRET_KEY` | Dedicated `fraud-flink-prod` bucket user, delivered to Flink JobManager/TaskManager through `payment-gateway/flink-checkpoint-storage` | Prod |
 
 `CLOUDFLARE_API_TOKEN` is a custom Cloudflare API token with **Account > Cloudflare Tunnel > Read**, **Account > Account Settings > Read**, and **Zone > DNS > Edit**, limited to the account and the `phuchoang.sbs` zone. `CLOUDFLARE_TUNNEL_TOKEN` is the token of the environment's tunnel (`dev-talos` or `prod-talos`); the ExternalSecret extracts the tunnel secret from it.
 
