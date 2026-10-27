@@ -56,7 +56,7 @@ HCP state holds generated credentials and Talos bootstrap material. Doppler prov
 
 | Kubernetes Secret | Namespace | Refresh |
 | --- | --- | --- |
-| `cloudflare-credentials` | `cloudflare-operator-system` | 1 hour |
+| `cloudflare-credentials` | `operators` | 1 hour |
 | `grafana-admin`, `grafana-oidc` | `observability` (prod) | 1 hour |
 | `dex-config`, `oauth2-proxy-credentials` | `auth` (prod) | 1 hour |
 

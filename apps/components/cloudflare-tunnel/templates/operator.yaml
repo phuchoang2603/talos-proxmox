@@ -1,6 +1,12 @@
 {{- /*
-Upstream ships no Helm chart, so its kustomize output is vendored and pins the namespace to
-cloudflare-operator-system. Regenerate after changing the tag:
+Upstream ships no Helm chart, so its kustomize output is vendored. Substitute the release
+namespace and prefix certificate secrets to avoid collisions with other operators.
+Regenerate after changing the tag:
 kubectl kustomize 'https://github.com/adyanth/cloudflare-operator.git/config/default?ref=v0.13.1' > files/cloudflare-operator.yaml
 */}}
-{{ .Files.Get "files/cloudflare-operator.yaml" }}
+{{ .Files.Get "files/cloudflare-operator.yaml"
+  | replace "cloudflare-operator-system" .Release.Namespace
+  | replace "webhook-server-cert" "cloudflare-operator-webhook-server-cert"
+  | replace "metrics-server-cert" "cloudflare-operator-metrics-server-cert"
+  | replace "- --leader-elect" (printf "- --leader-elect\n        - --cluster-resource-namespace=%s" .Release.Namespace)
+}}

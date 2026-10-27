@@ -18,9 +18,3 @@ spec:
               kubernetes.io/metadata.name: fraud-data-prod
       ports:
         - {port: 8585, protocol: TCP}
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: cloudflare-operator-system
-      ports:
-        - {port: 8585, protocol: TCP}
