@@ -68,7 +68,7 @@ components:
     clusters: [prod]
   spark-operator:
     path: apps/components/spark-operator
-    namespace: spark-operator
+    namespace: operators
     syncWave: "0"
     releaseName: spark-operator
     clusters: [prod]
@@ -194,7 +194,7 @@ components:
   cloudflare-tunnel:
     path: apps/components/cloudflare-tunnel
     releaseName: cloudflare-tunnel
-    namespace: cloudflare-operator-system
+    namespace: operators
     syncWave: "2"
     clusters: [dev, prod]
     valueFilesByCluster:
