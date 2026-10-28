@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 1234 1288" role="img" lang="en" aria-labelledby="archify-diagram-title archify-diagram-description" data-animation="trace" data-preset="classic" data-quality-profile="showcase" data-node-ui="" data-reader-fit="intrinsic-height" data-reader-min-text="7.5" data-reader-primary-text="14" style="--flow-cycle: 8.138s; width: 1234px; height: 1288px; min-width: 0px;" width="1234" height="1288" xmlns="http://www.w3.org/2000/svg"><style>
+<svg viewBox="0 0 1234 1288" role="img" lang="en" aria-labelledby="archify-diagram-title archify-diagram-description" data-animation="trace" data-preset="classic" data-quality-profile="showcase" data-node-ui="" data-reader-fit="intrinsic-height" data-reader-min-text="7.5" data-reader-primary-text="14" style="--flow-cycle: 8.443s; width: 1234px; height: 1288px; min-width: 0px;" width="1234" height="1288" xmlns="http://www.w3.org/2000/svg"><style>
 /*
 JetBrains Mono variable WOFF2 subsets from Google Fonts service revision v24.
 These fixed bytes are shared by the viewer and its SVG/raster exports.
@@ -399,340 +399,385 @@ svg[data-preset="editorial"] { --flow-halo-peak: 0.07; --flow-glow-peak: 0.28; -
 }
 @keyframes archify-relay-ripple {
   0% { r: 2px; opacity: var(--flow-peak, 0.6); }
-  9.216%, 100% { r: 20px; opacity: 0; }
+  8.883%, 100% { r: 20px; opacity: 0; }
 }
 @keyframes archify-relay-comet-0 {
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  1.475% { opacity: var(--flow-peak, 0.9); }
-  7.461% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  9.427%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  1.421% { opacity: var(--flow-peak, 0.9); }
+  7.191% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  9.086%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-0 {
   0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  7.461% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
-  18.521%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  7.191% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  17.851%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-1 {
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  1.475% { opacity: var(--flow-peak, 0.9); }
-  9.655% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  11.622%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  1.421% { opacity: var(--flow-peak, 0.9); }
+  9.306% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  11.201%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-1 {
   0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  9.655% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
-  20.715%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  9.306% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  19.966%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-2 {
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  1.053% { opacity: var(--flow-peak, 0.9); }
-  5.267% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  7.233%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  1.015% { opacity: var(--flow-peak, 0.9); }
+  5.076% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  6.971%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-2 {
-  0%, 1.58% { opacity: 0; }
-  5.267% { opacity: var(--flow-peak, 0.3); }
-  16.326%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  0%, 1.523% { opacity: 0; }
+  5.076% { opacity: var(--flow-peak, 0.3); }
+  15.736%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-3 {
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  1.475% { opacity: var(--flow-peak, 0.9); }
-  18.433% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  20.399%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  1.421% { opacity: var(--flow-peak, 0.9); }
+  17.767% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  19.662%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-3 {
   0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  18.433% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
-  29.493%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  17.767% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  28.427%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-4 {
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  1.475% { opacity: var(--flow-peak, 0.9); }
-  18.433% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  20.399%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  1.421% { opacity: var(--flow-peak, 0.9); }
+  17.767% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  19.662%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-4 {
   0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  18.433% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
-  29.493%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  17.767% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  28.427%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-5 {
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  1.475% { opacity: var(--flow-peak, 0.9); }
-  18.301% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  20.267%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  1.421% { opacity: var(--flow-peak, 0.9); }
+  17.639% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  19.534%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-5 {
   0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  18.301% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
-  29.36%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  17.639% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  28.299%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-6 {
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  1.475% { opacity: var(--flow-peak, 0.9); }
-  18.433% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  20.399%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  1.421% { opacity: var(--flow-peak, 0.9); }
+  17.767% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  19.662%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-6 {
   0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  18.433% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
-  29.493%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  17.767% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  28.427%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-7 {
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  1.229% { opacity: var(--flow-peak, 0.9); }
-  6.144% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  8.11%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  1.184% { opacity: var(--flow-peak, 0.9); }
+  5.922% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  7.817%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-7 {
-  0%, 1.843% { opacity: 0; }
-  6.144% { opacity: var(--flow-peak, 0.3); }
-  17.204%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  0%, 1.777% { opacity: 0; }
+  5.922% { opacity: var(--flow-peak, 0.3); }
+  16.582%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-8 {
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  1.229% { opacity: var(--flow-peak, 0.9); }
-  6.144% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  8.11%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  1.184% { opacity: var(--flow-peak, 0.9); }
+  5.922% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  7.817%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-8 {
-  0%, 1.843% { opacity: 0; }
-  6.144% { opacity: var(--flow-peak, 0.3); }
-  17.204%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  0%, 1.777% { opacity: 0; }
+  5.922% { opacity: var(--flow-peak, 0.3); }
+  16.582%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-9 {
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  1.229% { opacity: var(--flow-peak, 0.9); }
-  6.144% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  8.11%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  1.184% { opacity: var(--flow-peak, 0.9); }
+  5.922% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  7.817%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-9 {
   0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  6.144% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
-  17.204%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  5.922% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  16.582%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-10 {
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  1.475% { opacity: var(--flow-peak, 0.9); }
-  13.033% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  15%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  1.421% { opacity: var(--flow-peak, 0.9); }
+  15.1% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  16.995%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-10 {
   0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  13.033% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
-  24.093%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  15.1% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  25.76%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-11 {
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  1.032% { opacity: var(--flow-peak, 0.9); }
-  5.161% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  7.127%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  0.995% { opacity: var(--flow-peak, 0.9); }
+  4.975% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  6.87%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-11 {
   0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  5.161% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
-  16.221%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  4.975% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  15.635%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-12 {
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  1.229% { opacity: var(--flow-peak, 0.9); }
-  6.144% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  8.11%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  1.184% { opacity: var(--flow-peak, 0.9); }
+  5.922% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  7.817%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-12 {
   0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  6.144% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
-  17.204%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  5.922% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  16.582%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-13 {
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  1.229% { opacity: var(--flow-peak, 0.9); }
-  6.144% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  8.11%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  1.184% { opacity: var(--flow-peak, 0.9); }
+  5.922% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  7.817%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-13 {
   0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  6.144% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
-  17.204%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  5.922% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  16.582%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-14 {
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  1.475% { opacity: var(--flow-peak, 0.9); }
-  13.033% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  15%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  1.421% { opacity: var(--flow-peak, 0.9); }
+  12.562% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  14.458%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-14 {
   0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  13.033% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
-  24.093%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  12.562% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  23.222%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-15 {
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  1.032% { opacity: var(--flow-peak, 0.9); }
-  5.161% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  7.127%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  0.995% { opacity: var(--flow-peak, 0.9); }
+  4.975% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  6.87%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-15 {
   0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  5.161% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
-  16.221%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  4.975% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  15.635%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-16 {
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  1.229% { opacity: var(--flow-peak, 0.9); }
-  6.144% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  8.11%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  1.184% { opacity: var(--flow-peak, 0.9); }
+  5.922% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  7.817%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-16 {
   0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  6.144% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
-  17.204%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  5.922% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  16.582%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-17 {
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  1.475% { opacity: var(--flow-peak, 0.9); }
-  15.359% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  17.325%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  1.421% { opacity: var(--flow-peak, 0.9); }
+  14.804% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  16.699%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-17 {
   0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  15.359% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
-  26.419%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  14.804% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  25.464%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-18 {
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  1.229% { opacity: var(--flow-peak, 0.9); }
-  6.144% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  8.11%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  1.184% { opacity: var(--flow-peak, 0.9); }
+  5.922% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  7.817%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-18 {
   0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  6.144% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
-  17.204%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  5.922% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  16.582%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-19 {
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  1.475% { opacity: var(--flow-peak, 0.9); }
-  13.033% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  15%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  1.421% { opacity: var(--flow-peak, 0.9); }
+  12.562% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  14.458%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-19 {
   0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  13.033% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
-  24.093%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  12.562% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  23.222%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-20 {
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  1.475% { opacity: var(--flow-peak, 0.9); }
-  18.433% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  20.399%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  1.421% { opacity: var(--flow-peak, 0.9); }
+  17.767% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  19.662%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-20 {
   0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  18.433% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
-  29.493%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  17.767% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  28.427%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+}
+@keyframes archify-relay-comet-21 {
+  0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
+  1.421% { opacity: var(--flow-peak, 0.9); }
+  12.266% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  14.161%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+}
+@keyframes archify-relay-wake-21 {
+  0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
+  12.266% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  22.926%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+}
+@keyframes archify-relay-comet-22 {
+  0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
+  1.184% { opacity: var(--flow-peak, 0.9); }
+  5.922% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  7.817%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+}
+@keyframes archify-relay-wake-22 {
+  0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
+  5.922% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  16.582%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+}
+@keyframes archify-relay-comet-23 {
+  0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
+  1.421% { opacity: var(--flow-peak, 0.9); }
+  17.767% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  19.662%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+}
+@keyframes archify-relay-wake-23 {
+  0%, 5.33% { opacity: 0; }
+  17.767% { opacity: var(--flow-peak, 0.3); }
+  28.427%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-node-0 {
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
   0% { filter: var(--ambient-node-base-filter, none); }
-  1.475%, 5.161% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
-  14.746% { filter: var(--ambient-node-base-filter, none); }
+  1.421%, 4.975% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  14.213% { filter: var(--ambient-node-base-filter, none); }
 }
 @keyframes archify-relay-node-1 {
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
-  7.461% { filter: var(--ambient-node-base-filter, none); }
-  8.936%, 12.622% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
-  22.207% { filter: var(--ambient-node-base-filter, none); }
+  7.191% { filter: var(--ambient-node-base-filter, none); }
+  8.613%, 12.166% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  21.405% { filter: var(--ambient-node-base-filter, none); }
 }
 @keyframes archify-relay-node-2 {
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
-  18.345% { filter: var(--ambient-node-base-filter, none); }
-  19.82%, 23.506% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
-  33.092% { filter: var(--ambient-node-base-filter, none); }
+  17.682% { filter: var(--ambient-node-base-filter, none); }
+  19.103%, 22.657% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  31.895% { filter: var(--ambient-node-base-filter, none); }
 }
 @keyframes archify-relay-node-3 {
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
-  13.956% { filter: var(--ambient-node-base-filter, none); }
-  15.431%, 19.118% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
-  28.703% { filter: var(--ambient-node-base-filter, none); }
+  13.452% { filter: var(--ambient-node-base-filter, none); }
+  14.873%, 18.427% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  27.665% { filter: var(--ambient-node-base-filter, none); }
 }
 @keyframes archify-relay-node-4 {
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
-  27.123% { filter: var(--ambient-node-base-filter, none); }
-  28.597%, 32.284% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
-  41.869% { filter: var(--ambient-node-base-filter, none); }
+  26.142% { filter: var(--ambient-node-base-filter, none); }
+  27.564%, 31.117% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  40.356% { filter: var(--ambient-node-base-filter, none); }
 }
 @keyframes archify-relay-node-5 {
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
-  27.123% { filter: var(--ambient-node-base-filter, none); }
-  28.597%, 32.284% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
-  41.869% { filter: var(--ambient-node-base-filter, none); }
+  26.142% { filter: var(--ambient-node-base-filter, none); }
+  27.564%, 31.117% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  40.356% { filter: var(--ambient-node-base-filter, none); }
 }
 @keyframes archify-relay-node-6 {
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
-  26.99% { filter: var(--ambient-node-base-filter, none); }
-  28.465%, 32.152% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
-  41.737% { filter: var(--ambient-node-base-filter, none); }
+  26.015% { filter: var(--ambient-node-base-filter, none); }
+  27.436%, 30.99% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  40.228% { filter: var(--ambient-node-base-filter, none); }
 }
 @keyframes archify-relay-node-7 {
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
-  27.123% { filter: var(--ambient-node-base-filter, none); }
-  28.597%, 32.284% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
-  41.869% { filter: var(--ambient-node-base-filter, none); }
+  26.142% { filter: var(--ambient-node-base-filter, none); }
+  27.564%, 31.117% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  40.356% { filter: var(--ambient-node-base-filter, none); }
 }
 @keyframes archify-relay-node-8 {
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
-  34.496% { filter: var(--ambient-node-base-filter, none); }
-  35.971%, 39.657% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
-  49.242% { filter: var(--ambient-node-base-filter, none); }
+  33.249% { filter: var(--ambient-node-base-filter, none); }
+  34.67%, 38.224% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  47.462% { filter: var(--ambient-node-base-filter, none); }
 }
 @keyframes archify-relay-node-9 {
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
-  34.496% { filter: var(--ambient-node-base-filter, none); }
-  35.971%, 39.657% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
-  49.242% { filter: var(--ambient-node-base-filter, none); }
+  33.249% { filter: var(--ambient-node-base-filter, none); }
+  34.67%, 38.224% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  47.462% { filter: var(--ambient-node-base-filter, none); }
 }
 @keyframes archify-relay-node-10 {
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
-  40.886% { filter: var(--ambient-node-base-filter, none); }
-  42.361%, 46.047% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
-  55.632% { filter: var(--ambient-node-base-filter, none); }
+  39.408% { filter: var(--ambient-node-base-filter, none); }
+  40.83%, 44.383% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  53.622% { filter: var(--ambient-node-base-filter, none); }
 }
 @keyframes archify-relay-node-11 {
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
-  41.869% { filter: var(--ambient-node-base-filter, none); }
-  43.344%, 47.03% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
-  56.615% { filter: var(--ambient-node-base-filter, none); }
+  40.356% { filter: var(--ambient-node-base-filter, none); }
+  41.777%, 45.33% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  54.569% { filter: var(--ambient-node-base-filter, none); }
 }
 @keyframes archify-relay-node-12 {
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
-  40.886% { filter: var(--ambient-node-base-filter, none); }
-  42.361%, 46.047% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
-  55.632% { filter: var(--ambient-node-base-filter, none); }
+  46.7% { filter: var(--ambient-node-base-filter, none); }
+  48.121%, 51.675% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  60.913% { filter: var(--ambient-node-base-filter, none); }
 }
 @keyframes archify-relay-node-13 {
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
-  54.158% { filter: var(--ambient-node-base-filter, none); }
-  55.632%, 59.319% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
-  68.904% { filter: var(--ambient-node-base-filter, none); }
+  39.408% { filter: var(--ambient-node-base-filter, none); }
+  40.83%, 44.383% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  53.622% { filter: var(--ambient-node-base-filter, none); }
 }
 @keyframes archify-relay-node-14 {
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
-  48.259% { filter: var(--ambient-node-base-filter, none); }
-  49.734%, 53.42% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
-  63.006% { filter: var(--ambient-node-base-filter, none); }
+  52.2% { filter: var(--ambient-node-base-filter, none); }
+  53.622%, 57.175% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  66.414% { filter: var(--ambient-node-base-filter, none); }
 }
 @keyframes archify-relay-node-15 {
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
-  57.474% { filter: var(--ambient-node-base-filter, none); }
-  58.948%, 62.635% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
-  72.22% { filter: var(--ambient-node-base-filter, none); }
+  46.515% { filter: var(--ambient-node-base-filter, none); }
+  47.936%, 51.49% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  60.728% { filter: var(--ambient-node-base-filter, none); }
 }
 @keyframes archify-relay-node-16 {
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
-  55.632% { filter: var(--ambient-node-base-filter, none); }
-  57.107%, 60.794% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
-  70.379% { filter: var(--ambient-node-base-filter, none); }
+  55.397% { filter: var(--ambient-node-base-filter, none); }
+  56.818%, 60.371% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  69.61% { filter: var(--ambient-node-base-filter, none); }
+}
+@keyframes archify-relay-node-17 {
+  0%, 100% { filter: var(--ambient-node-base-filter, none); }
+  53.622% { filter: var(--ambient-node-base-filter, none); }
+  55.043%, 58.596% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  67.835% { filter: var(--ambient-node-base-filter, none); }
+}
+@keyframes archify-relay-node-18 {
+  0%, 100% { filter: var(--ambient-node-base-filter, none); }
+  53.807% { filter: var(--ambient-node-base-filter, none); }
+  55.228%, 58.781% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  68.02% { filter: var(--ambient-node-base-filter, none); }
 }
 svg[data-node-ui] [data-node-id] &gt; rect:not(.c-mask) { stroke-width: 1.25px; }
 :is([data-theme="dark"] svg[data-node-ui], svg[data-node-ui][data-theme="dark"]) [data-node-id] &gt; rect:not(.c-mask).c-frontend { fill: color-mix(in srgb, var(--frontend-stroke) 13%, var(--mask)); stroke: color-mix(in srgb, var(--frontend-stroke) 72%, var(--mask)); }
@@ -1143,6 +1188,8 @@ been cleared for every commercial, promotional, or redistributive use.</metadata
 
         <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="1" data-composition-frame-label="PROD / AWS us-east-1" x="616" y="436" width="578" height="784" rx="12" class="c-region" stroke-width="1"/>
 
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="2" data-composition-frame-label="DEV / AWS us-east-1" x="326" y="1096" width="268" height="124" rx="12" class="c-region" stroke-width="1"/>
+
         <!-- Connection paths (before components for correct z-order) -->
         <g data-graph-role="automatic-crossover" style="--step:0">
           <path data-graph-role="automatic-crossover-underlay" d="M 260 80 L 430 80" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
@@ -1185,16 +1232,16 @@ been cleared for every commercial, promotional, or redistributive use.</metadata
           <path data-edge-from="proxmox" data-edge-to="dev_talos" data-edge-label="Talos bootstrap" data-edge-key="9" data-composition-points="150,540;150,680" data-composition-crossover="halo" data-composition-independent="true" d="M 150 540 L 150 680" class="a-default" data-animate="edge" style="--step: 9;" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:10">
-          <path data-graph-role="automatic-crossover-underlay" d="M 350 500 L 313 500 Q 305 500 305 508 L 305 705 Q 305 713 297 713 L 260 713" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="dev_services" data-edge-to="dev_talos" data-edge-label="cluster controllers" data-edge-key="10" data-composition-points="350,500;305,500;305,713;260,713" data-composition-crossover="halo" data-composition-independent="true" d="M 350 500 L 313 500 Q 305 500 305 508 L 305 705 Q 305 713 297 713 L 260 713" class="a-default" data-animate="edge" style="--step: 10;" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 350 500 L 334 500 Q 326 500 326 508 L 326 648 Q 326 656 318 656 L 172 656 Q 164 656 164 664 L 164 680" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="dev_services" data-edge-to="dev_talos" data-edge-label="cluster controllers" data-edge-key="10" data-composition-points="350,500;326,500;326,656;164,656;164,680" data-composition-crossover="halo" data-composition-independent="true" d="M 350 500 L 334 500 Q 326 500 326 508 L 326 648 Q 326 656 318 656 L 172 656 Q 164 656 164 664 L 164 680" class="a-default" data-animate="edge" style="--step: 10;" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:11">
-          <path data-graph-role="automatic-crossover-underlay" d="M 260 727 L 350 727" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="dev_talos" data-edge-to="minio" data-edge-label="S3 objects" data-edge-key="11" data-composition-points="260,727;350,727" data-composition-crossover="halo" data-composition-independent="true" d="M 260 727 L 350 727" class="a-default" data-animate="edge" style="--step: 11;" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 260 720 L 350 720" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="dev_talos" data-edge-to="minio" data-edge-label="S3 objects" data-edge-key="11" data-composition-points="260,720;350,720" data-composition-crossover="halo" data-composition-independent="true" d="M 260 720 L 350 720" class="a-default" data-animate="edge" style="--step: 11;" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:12">
-          <path data-graph-role="automatic-crossover-underlay" d="M 150 760 L 150 900" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="dev_talos" data-edge-to="local_path" data-edge-label="PVCs" data-edge-key="12" data-composition-points="150,760;150,900" data-composition-crossover="halo" data-composition-independent="true" d="M 150 760 L 150 900" class="a-default" data-animate="edge" style="--step: 12;" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 143 760 L 143 900" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="dev_talos" data-edge-to="local_path" data-edge-label="PVCs" data-edge-key="12" data-composition-points="143,760;143,900" data-composition-crossover="halo" data-composition-independent="true" d="M 143 760 L 143 900" class="a-default" data-animate="edge" style="--step: 12;" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:13">
           <path data-graph-role="automatic-crossover-underlay" d="M 1060 540 L 1060 680" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
@@ -1228,10 +1275,22 @@ been cleared for every commercial, promotional, or redistributive use.</metadata
           <path data-graph-role="automatic-crossover-underlay" d="M 1060 760 L 1060 889 Q 1060 897 1068 897 L 1165 897 Q 1173 897 1173 905 L 1173 1088 Q 1173 1096 1165 1096 L 1068 1096 Q 1060 1096 1060 1104 L 1060 1120" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
           <path data-edge-from="prod_cp" data-edge-to="s3" data-edge-label="S3 objects" data-edge-key="20" data-composition-points="1060,760;1060,897;1173,897;1173,1096;1060,1096;1060,1120" data-composition-crossover="halo" data-composition-independent="true" d="M 1060 760 L 1060 889 Q 1060 897 1068 897 L 1165 897 Q 1173 897 1173 905 L 1173 1088 Q 1173 1096 1165 1096 L 1068 1096 Q 1060 1096 1060 1104 L 1060 1120" class="a-default" data-animate="edge" style="--step: 12;" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
+        <g data-graph-role="automatic-crossover" style="--step:21">
+          <path data-graph-role="automatic-crossover-underlay" d="M 260 734 L 297 734 Q 305 734 305 742 L 305 932 Q 305 940 313 940 L 350 940" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="dev_talos" data-edge-to="dev_karpenter" data-edge-label="hosts" data-edge-key="21" data-composition-points="260,734;305,734;305,940;350,940" data-composition-crossover="halo" data-composition-independent="true" d="M 260 734 L 297 734 Q 305 734 305 742 L 305 932 Q 305 940 313 940 L 350 940" class="a-default" data-animate="edge" style="--step: 12;" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        </g>
+        <g data-graph-role="automatic-crossover" style="--step:22">
+          <path data-graph-role="automatic-crossover-underlay" d="M 467 980 L 467 1120" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="dev_karpenter" data-edge-to="dev_burst" data-edge-label="scale on demand" data-edge-key="22" data-composition-points="467,980;467,1120" data-composition-crossover="halo" data-composition-independent="true" d="M 467 980 L 467 1120" class="a-default" data-animate="edge" style="--step: 12;" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        </g>
+        <g data-graph-role="automatic-crossover" style="--step:23">
+          <path data-graph-role="automatic-crossover-underlay" d="M 453 1120 L 453 1070 Q 453 1062 445 1062 L 305 1062 Q 297 1062 297 1054 L 297 792 Q 297 784 289 784 L 165 784 Q 157 784 157 776 L 157 760" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="dev_burst" data-edge-to="dev_talos" data-edge-label="KubeSpan join" data-edge-key="23" data-composition-points="453,1120;453,1062;297,1062;297,784;157,784;157,760" data-composition-crossover="halo" data-composition-independent="true" d="M 453 1120 L 453 1070 Q 453 1062 445 1062 L 305 1062 Q 297 1062 297 1054 L 297 792 Q 297 784 289 784 L 165 784 Q 157 784 157 776 L 157 760" class="a-security" data-animate="edge" style="--step: 12;" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+        </g>
 
         <!-- Components -->
-        <g id="node-delivery" data-node-id="delivery" data-node-label="GitHub Actions / operator" tabindex="0" role="button" aria-label="Focus GitHub Actions / operator, PR: dev | main: dev then prod, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="PR: dev | main: dev then prod" data-node-tag="local execution" data-node-context="Architecture component">
-          <title>GitHub Actions / operator · PR: dev | main: dev then prod · Architecture component · local execution</title>
+        <g id="node-delivery" data-node-id="delivery" data-node-label="GitHub Actions / operator" tabindex="0" role="button" aria-label="Focus GitHub Actions / operator, PR: dev | main: dev + prod, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="PR: dev | main: dev + prod" data-node-tag="local execution" data-node-context="Architecture component">
+          <title>GitHub Actions / operator · PR: dev | main: dev + prod · Architecture component · local execution</title>
           <rect x="40" y="40" width="220" height="80" rx="8" class="c-mask"/>
           <rect x="40" y="40" width="220" height="80" rx="8" class="c-external" data-animate="node" style="--step: 0; --flow-node-name: archify-relay-node-0;" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(46 46) scale(0.6875)">
@@ -1239,7 +1298,7 @@ been cleared for every commercial, promotional, or redistributive use.</metadata
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
           </g>
           <text data-node-label="" x="150" y="78" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">GitHub Actions / operator</text>
-        <text x="150" y="94" class="t-muted" font-size="9" text-anchor="middle">PR: dev | main: dev then prod</text>
+        <text x="150" y="94" class="t-muted" font-size="9" text-anchor="middle">PR: dev | main: dev + prod</text>
         <text x="150" y="112" class="t-external" font-size="7" text-anchor="middle">local execution</text>
         </g>
 
@@ -1382,7 +1441,7 @@ been cleared for every commercial, promotional, or redistributive use.</metadata
         <g id="node-karpenter" data-node-id="karpenter" data-node-label="Karpenter controller" tabindex="0" role="button" aria-label="Focus Karpenter controller, Runs on fixed control plane, PROD / AWS us-east-1" aria-pressed="false" data-node-kind="backend" data-node-sublabel="Runs on fixed control plane" data-node-tag="sole worker provisioner" data-node-context="PROD / AWS us-east-1">
           <title>Karpenter controller · Runs on fixed control plane · PROD / AWS us-east-1 · sole worker provisioner</title>
           <rect x="640" y="680" width="220" height="80" rx="8" class="c-mask"/>
-          <rect x="640" y="680" width="220" height="80" rx="8" class="c-backend" data-animate="node" style="--step: 12; --flow-node-name: archify-relay-node-12;" stroke-width="1.5"/>
+          <rect x="640" y="680" width="220" height="80" rx="8" class="c-backend" data-animate="node" style="--step: 12; --flow-node-name: archify-relay-node-13;" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(646 686) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
@@ -1394,7 +1453,7 @@ been cleared for every commercial, promotional, or redistributive use.</metadata
         <g id="node-baseline" data-node-id="baseline" data-node-label="Baseline Talos worker" tabindex="0" role="button" aria-label="Focus Baseline Talos worker, 1 x m6a.xlarge / On-Demand, PROD / AWS us-east-1" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="1 x m6a.xlarge / On-Demand" data-node-tag="aws-workers; static replicas" data-node-context="PROD / AWS us-east-1">
           <title>Baseline Talos worker · 1 x m6a.xlarge / On-Demand · PROD / AWS us-east-1 · aws-workers; static replicas</title>
           <rect x="640" y="900" width="220" height="80" rx="8" class="c-mask"/>
-          <rect x="640" y="900" width="220" height="80" rx="8" class="c-cloud" data-animate="node" style="--step: 12; --flow-node-name: archify-relay-node-14;" stroke-width="1.5"/>
+          <rect x="640" y="900" width="220" height="80" rx="8" class="c-cloud" data-animate="node" style="--step: 12; --flow-node-name: archify-relay-node-15;" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(646 906) scale(0.6875)">
             <path d="M4.3 12.5h7.3a2.4 2.4 0 0 0 .2-4.8 4 4 0 0 0-7.5-1.3A3.1 3.1 0 0 0 4.3 12.5Z"/>
           </g>
@@ -1406,7 +1465,7 @@ been cleared for every commercial, promotional, or redistributive use.</metadata
         <g id="node-spot" data-node-id="spot" data-node-label="Spot Talos burst worker" tabindex="0" role="button" aria-label="Focus Spot Talos burst worker, 0-1 x m6a.xlarge / pending pods, PROD / AWS us-east-1" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="0-1 x m6a.xlarge / pending pods" data-node-tag="aws-cpu-burst; 5m consolidation" data-node-context="PROD / AWS us-east-1">
           <title>Spot Talos burst worker · 0-1 x m6a.xlarge / pending pods · PROD / AWS us-east-1 · aws-cpu-burst; 5m consolidation</title>
           <rect x="950" y="900" width="220" height="80" rx="8" class="c-mask"/>
-          <rect x="950" y="900" width="220" height="80" rx="8" class="c-cloud" data-animate="node" style="--step: 12; --flow-node-name: archify-relay-node-15;" stroke-width="1.5"/>
+          <rect x="950" y="900" width="220" height="80" rx="8" class="c-cloud" data-animate="node" style="--step: 12; --flow-node-name: archify-relay-node-16;" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(956 906) scale(0.6875)">
             <path d="M4.3 12.5h7.3a2.4 2.4 0 0 0 .2-4.8 4 4 0 0 0-7.5-1.3A3.1 3.1 0 0 0 4.3 12.5Z"/>
           </g>
@@ -1418,7 +1477,7 @@ been cleared for every commercial, promotional, or redistributive use.</metadata
         <g id="node-ebs" data-node-id="ebs" data-node-label="Encrypted gp3 EBS" tabindex="0" role="button" aria-label="Focus Encrypted gp3 EBS, EBS CSI / same-AZ reattachment, PROD / AWS us-east-1" aria-pressed="false" data-node-kind="database" data-node-sublabel="EBS CSI / same-AZ reattachment" data-node-tag="PVCs + persistent CP boot disk" data-node-context="PROD / AWS us-east-1">
           <title>Encrypted gp3 EBS · EBS CSI / same-AZ reattachment · PROD / AWS us-east-1 · PVCs + persistent CP boot disk</title>
           <rect x="640" y="1120" width="220" height="80" rx="8" class="c-mask"/>
-          <rect x="640" y="1120" width="220" height="80" rx="8" class="c-database" data-animate="node" style="--step: 12; --flow-node-name: archify-relay-node-16;" stroke-width="1.5"/>
+          <rect x="640" y="1120" width="220" height="80" rx="8" class="c-database" data-animate="node" style="--step: 12; --flow-node-name: archify-relay-node-17;" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(646 1126) scale(0.6875)">
             <ellipse cx="8" cy="4" rx="5" ry="2"/>
             <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
@@ -1431,7 +1490,7 @@ been cleared for every commercial, promotional, or redistributive use.</metadata
         <g id="node-s3" data-node-id="s3" data-node-label="Amazon S3" tabindex="0" role="button" aria-label="Focus Amazon S3, platform-prod-&lt;account&gt;-us-east-1, PROD / AWS us-east-1" aria-pressed="false" data-node-kind="database" data-node-sublabel="platform-prod-&lt;account&gt;-us-east-1" data-node-tag="regional; private + versioned" data-node-context="PROD / AWS us-east-1">
           <title>Amazon S3 · platform-prod-&lt;account&gt;-us-east-1 · PROD / AWS us-east-1 · regional; private + versioned</title>
           <rect x="950" y="1120" width="220" height="80" rx="8" class="c-mask"/>
-          <rect x="950" y="1120" width="220" height="80" rx="8" class="c-database" data-animate="node" style="--step: 12; --flow-node-name: archify-relay-node-13;" stroke-width="1.5"/>
+          <rect x="950" y="1120" width="220" height="80" rx="8" class="c-database" data-animate="node" style="--step: 12; --flow-node-name: archify-relay-node-14;" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(956 1126) scale(0.6875)">
             <ellipse cx="8" cy="4" rx="5" ry="2"/>
             <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
@@ -1439,6 +1498,30 @@ been cleared for every commercial, promotional, or redistributive use.</metadata
           <text data-node-label="" x="1060" y="1158" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Amazon S3</text>
         <text x="1060" y="1174" class="t-muted" font-size="9" text-anchor="middle">platform-prod-&lt;account&gt;-us-east-1</text>
         <text x="1060" y="1192" class="t-database" font-size="7" text-anchor="middle">regional; private + versioned</text>
+        </g>
+
+        <g id="node-dev_karpenter" data-node-id="dev_karpenter" data-node-label="Dev Karpenter controller" tabindex="0" role="button" aria-label="Focus Dev Karpenter controller, Runs on Proxmox control plane, DEV / Homelab" aria-pressed="false" data-node-kind="backend" data-node-sublabel="Runs on Proxmox control plane" data-node-tag="zero EC2 baseline" data-node-context="DEV / Homelab">
+          <title>Dev Karpenter controller · Runs on Proxmox control plane · DEV / Homelab · zero EC2 baseline</title>
+          <rect x="350" y="900" width="220" height="80" rx="8" class="c-mask"/>
+          <rect x="350" y="900" width="220" height="80" rx="8" class="c-backend" data-animate="node" style="--step: 12; --flow-node-name: archify-relay-node-12;" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(356 906) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" x="460" y="938" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Dev Karpenter controller</text>
+        <text x="460" y="954" class="t-muted" font-size="9" text-anchor="middle">Runs on Proxmox control plane</text>
+        <text x="460" y="972" class="t-backend" font-size="7" text-anchor="middle">zero EC2 baseline</text>
+        </g>
+
+        <g id="node-dev_burst" data-node-id="dev_burst" data-node-label="Dev Spot Talos worker" tabindex="0" role="button" aria-label="Focus Dev Spot Talos worker, 0–1 m6a.xlarge · Spot, DEV / AWS us-east-1" aria-pressed="false" data-node-kind="backend" data-node-sublabel="0–1 m6a.xlarge · Spot" data-node-tag="Own VPC / IAM / SQS" data-node-context="DEV / AWS us-east-1">
+          <title>Dev Spot Talos worker · 0–1 m6a.xlarge · Spot · DEV / AWS us-east-1 · Own VPC / IAM / SQS</title>
+          <rect x="350" y="1120" width="220" height="80" rx="8" class="c-mask"/>
+          <rect x="350" y="1120" width="220" height="80" rx="8" class="c-backend" data-animate="node" style="--step: 12; --flow-node-name: archify-relay-node-18;" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(356 1126) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" x="460" y="1158" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Dev Spot Talos worker</text>
+        <text x="460" y="1174" class="t-muted" font-size="9" text-anchor="middle">0–1 m6a.xlarge · Spot</text>
+        <text x="460" y="1192" class="t-backend" font-size="7" text-anchor="middle">Own VPC / IAM / SQS</text>
         </g>
 
         <!-- Connection labels -->
@@ -1483,16 +1566,16 @@ been cleared for every commercial, promotional, or redistributive use.</metadata
           <text x="103" y="613" class="t-edge-default" font-size="8" text-anchor="middle">Talos bootstrap</text>
         </g>
         <g data-edge-from="dev_services" data-edge-to="dev_talos" data-edge-label="cluster controllers" data-edge-key="10">
-          <rect x="254.4" y="586.5" width="101.2" height="14" rx="3" class="c-mask"/>
-          <text x="305" y="596.5" class="t-edge-default" font-size="8" text-anchor="middle">cluster controllers</text>
+          <rect x="275.4" y="558" width="101.2" height="14" rx="3" class="c-mask"/>
+          <text x="326" y="568" class="t-edge-default" font-size="8" text-anchor="middle">cluster controllers</text>
         </g>
         <g data-edge-from="dev_talos" data-edge-to="minio" data-edge-label="S3 objects" data-edge-key="11">
-          <rect x="276" y="737" width="58" height="14" rx="3" class="c-mask"/>
-          <text x="305" y="747" class="t-edge-default" font-size="8" text-anchor="middle">S3 objects</text>
+          <rect x="276" y="700" width="58" height="14" rx="3" class="c-mask"/>
+          <text x="305" y="710" class="t-edge-default" font-size="8" text-anchor="middle">S3 objects</text>
         </g>
         <g data-edge-from="dev_talos" data-edge-to="local_path" data-edge-label="PVCs" data-edge-key="12">
-          <rect x="114" y="823" width="30" height="14" rx="3" class="c-mask"/>
-          <text x="129" y="833" class="t-edge-default" font-size="8" text-anchor="middle">PVCs</text>
+          <rect x="107" y="823" width="30" height="14" rx="3" class="c-mask"/>
+          <text x="122" y="833" class="t-edge-default" font-size="8" text-anchor="middle">PVCs</text>
         </g>
         <g data-edge-from="aws_network" data-edge-to="prod_cp" data-edge-label="EC2 + Talos" data-edge-key="13">
           <rect x="991.1999999999999" y="603" width="62.8" height="14" rx="3" class="c-mask"/>
@@ -1526,6 +1609,18 @@ been cleared for every commercial, promotional, or redistributive use.</metadata
           <rect x="1087.5" y="877" width="58" height="14" rx="3" class="c-mask"/>
           <text x="1116.5" y="887" class="t-edge-default" font-size="8" text-anchor="middle">S3 objects</text>
         </g>
+        <g data-edge-from="dev_talos" data-edge-to="dev_karpenter" data-edge-label="hosts" data-edge-key="21">
+          <rect x="265.5" y="744" width="34" height="14" rx="3" class="c-mask"/>
+          <text x="282.5" y="754" class="t-edge-default" font-size="8" text-anchor="middle">hosts</text>
+        </g>
+        <g data-edge-from="dev_karpenter" data-edge-to="dev_burst" data-edge-label="scale on demand" data-edge-key="22">
+          <rect x="473" y="1043" width="82" height="14" rx="3" class="c-mask"/>
+          <text x="514" y="1053" class="t-edge-default" font-size="8" text-anchor="middle">scale on demand</text>
+        </g>
+        <g data-edge-from="dev_burst" data-edge-to="dev_talos" data-edge-label="KubeSpan join" data-edge-key="23">
+          <rect x="338.8" y="1042" width="72.4" height="14" rx="3" class="c-mask"/>
+          <text x="375" y="1052" class="t-edge-security" font-size="8" text-anchor="middle">KubeSpan join</text>
+        </g>
 
         <!-- Boundary labels (foreground masks keep routes out of titles) -->
         <g data-graph-role="structural-frame-label" data-composition-frame-id="0" data-composition-frame-kind="region" data-composition-frame-label="DEV / Homelab">
@@ -1536,6 +1631,11 @@ been cleared for every commercial, promotional, or redistributive use.</metadata
         <g data-graph-role="structural-frame-label" data-composition-frame-id="1" data-composition-frame-kind="region" data-composition-frame-label="PROD / AWS us-east-1">
           <rect data-graph-role="structural-frame-label-mask" x="765" y="440" width="118" height="16" rx="3" class="c-mask"/>
           <text data-boundary-label="" x="769" y="453" class="t-cloud" font-size="9" font-weight="600">PROD / AWS us-east-1</text>
+        </g>
+
+        <g data-graph-role="structural-frame-label" data-composition-frame-id="2" data-composition-frame-kind="region" data-composition-frame-label="DEV / AWS us-east-1">
+          <rect data-graph-role="structural-frame-label-mask" x="330" y="1100" width="112.6" height="16" rx="3" class="c-mask"/>
+          <text data-boundary-label="" x="334" y="1113" class="t-cloud" font-size="9" font-weight="600">DEV / AWS us-east-1</text>
         </g>
 
         <!-- Legend -->

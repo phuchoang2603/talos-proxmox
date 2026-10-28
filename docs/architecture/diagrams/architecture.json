@@ -8,7 +8,7 @@
     "quality_profile": "showcase",
     "repository": {
       "url": "https://github.com/phuchoang2603/talos-proxmox",
-      "revision": "d492dba9ebb60980f1bb76b5662f2c8b580e3162"
+      "revision": "a5cbd7858b431e4126f28513c77c4c2e98b918a6"
     }
   },
   "components": [
@@ -16,7 +16,7 @@
       "id": "delivery",
       "type": "external",
       "label": "GitHub Actions / operator",
-      "sublabel": "PR: dev | main: dev then prod",
+      "sublabel": "PR: dev | main: dev + prod",
       "pos": [
         40,
         40
@@ -29,12 +29,12 @@
         {
           "path": ".github/workflows/terraform.yml",
           "line": 17,
-          "end_line": 45
+          "end_line": 43
         },
         {
           "path": ".github/workflows/provision.yml",
-          "line": 77,
-          "end_line": 103
+          "line": 42,
+          "end_line": 82
         },
         {
           "path": "terraform/foundation/main.tf",
@@ -60,8 +60,8 @@
       "sources": [
         {
           "path": ".github/workflows/provision.yml",
-          "line": 117,
-          "end_line": 149
+          "line": 95,
+          "end_line": 127
         },
         {
           "path": "terraform/foundation/main.tf",
@@ -515,6 +515,65 @@
         }
       ],
       "tag": "regional; private + versioned"
+    },
+    {
+      "id": "dev_karpenter",
+      "type": "backend",
+      "label": "Dev Karpenter controller",
+      "sublabel": "Runs on Proxmox control plane",
+      "pos": [
+        350,
+        900
+      ],
+      "size": [
+        220,
+        80
+      ],
+      "tag": "zero EC2 baseline",
+      "sources": [
+        {
+          "path": "terraform/platform/karpenter.tf",
+          "line": 17,
+          "end_line": 39
+        },
+        {
+          "path": "apps/components/karpenter/values.yaml",
+          "line": 1,
+          "end_line": 41
+        }
+      ]
+    },
+    {
+      "id": "dev_burst",
+      "type": "backend",
+      "label": "Dev Spot Talos worker",
+      "sublabel": "0\u20131 m6a.xlarge \u00b7 Spot",
+      "pos": [
+        350,
+        1120
+      ],
+      "size": [
+        220,
+        80
+      ],
+      "tag": "Own VPC / IAM / SQS",
+      "sources": [
+        {
+          "path": "terraform/cluster/dev/main.tf",
+          "line": 17,
+          "end_line": 34
+        },
+        {
+          "path": "apps/components/karpenter-nodes/environments/dev/values.yaml",
+          "line": 1,
+          "end_line": 4
+        },
+        {
+          "path": "terraform/aws/main.tf",
+          "line": 12,
+          "end_line": 55
+        }
+      ]
     }
   ],
   "boundaries": [
@@ -526,7 +585,8 @@
         "dev_services",
         "dev_talos",
         "minio",
-        "local_path"
+        "local_path",
+        "dev_karpenter"
       ],
       "pad": 24
     },
@@ -542,6 +602,14 @@
         "spot",
         "ebs",
         "s3"
+      ],
+      "pad": 24
+    },
+    {
+      "kind": "region",
+      "label": "DEV / AWS us-east-1",
+      "wraps": [
+        "dev_burst"
       ],
       "pad": 24
     }
@@ -672,6 +740,24 @@
       "to": "s3",
       "label": "S3 objects",
       "variant": "default"
+    },
+    {
+      "from": "dev_talos",
+      "to": "dev_karpenter",
+      "label": "hosts",
+      "variant": "default"
+    },
+    {
+      "from": "dev_karpenter",
+      "to": "dev_burst",
+      "label": "scale on demand",
+      "variant": "default"
+    },
+    {
+      "from": "dev_burst",
+      "to": "dev_talos",
+      "label": "KubeSpan join",
+      "variant": "security"
     }
   ],
   "cards": [
@@ -679,25 +765,25 @@
       "dot": "cyan",
       "title": "Provisioning and ownership",
       "items": [
-        "Operator applies foundation: identities, S3, Doppler and HCP setup. CI applies cluster then platform.",
+        "Operator applies foundation. After lint, CI applies dev and prod independently; each runs cluster then platform.",
         "OpenTofu owns the fixed control plane and bootstrap; Karpenter owns every AWS worker. No ASG.",
-        "Argo CD and ESO run independently in both clusters. Applications are intentionally omitted."
+        "Argo CD and ESO run independently. argocd-post owns namespaces and Argo access; Kubeflow owns ML credentials. Apps are omitted."
       ]
     },
     {
       "dot": "amber",
       "title": "Capacity and scaling",
       "items": [
-        "Dev: pve 8 CPU / 32 GiB + GPU; pve2 8 / 16; pve3 4 / 16. VM allocations stay fixed.",
+        "Dev: pve 8 CPU / 32 GiB + GPU; pve2 8 / 16; pve3 4 / 16. Independent AWS Spot pool scales from zero.",
         "Prod baseline: two m6a.xlarge nodes, 8 vCPU / 32 GiB total. One control plane, not HA.",
-        "Spot scales from pending pod requests, up to one extra worker; one additional baseline node is allowed during replacement. GPU pool disabled."
+        "Each Spot pool scales from pending pod requests up to one worker. Prod permits one extra baseline node during replacement. GPU pools disabled."
       ]
     },
     {
       "dot": "violet",
       "title": "Storage and access boundaries",
       "items": [
-        "Dev uses external MinIO and node-local PVCs. Prod uses regional S3 and same-AZ gp3 PVCs; EBS is not multi-AZ HA.",
+        "Dev uses external MinIO and node-local PVCs; a Spot disk is ephemeral. Prod uses regional S3 and same-AZ gp3 PVCs, without multi-AZ HA.",
         "S3 prefixes hold lakehouse, artifacts, datasets, runs and backups. PVCs are separate; selected storage paths are shown.",
         "Dev management uses LAN/Tailscale; prod uses allowlisted EIP ports. Cloudflare tunnels expose ClusterIP services. No API VIP or LAN load balancer."
       ]
