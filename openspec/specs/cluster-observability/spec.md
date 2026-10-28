@@ -7,18 +7,18 @@ Collect prod logs, metrics, and traces with the Victoria Kubernetes stack, and m
 ## Requirements
 
 ### Requirement: Single telemetry store in prod
-The platform SHALL run VictoriaMetrics for metrics, VictoriaLogs for logs, and VictoriaTraces for traces in prod using victoria-metrics-k8s-stack. Grafana SHALL be the telemetry UI. Dev MUST NOT run telemetry components. The platform MUST NOT run ClickHouse, HyperDX, or their operators, credentials, or archive jobs. Existing telemetry MAY be discarded during replacement.
+The platform SHALL run VictoriaMetrics for metrics, VictoriaLogs for logs, and VictoriaTraces for traces in prod using victoria-metrics-k8s-stack. Grafana SHALL be the telemetry UI. Dev SHALL run the same telemetry components with minimal replicas and bounded activity. The platform MUST NOT run ClickHouse, HyperDX, or their operators, credentials, or archive jobs. Existing telemetry MAY be discarded during replacement.
 
 #### Scenario: Reconcile the platform definition
 - **WHEN** both environments' Argo CD instances converge
-- **THEN** prod runs the Victoria stores, Grafana, VMAgent, VTAgent, and VLAgent, dev runs no telemetry component, and neither runs ClickHouse or HyperDX
+- **THEN** prod runs the Victoria stores, Grafana, VMAgent, VTAgent, and VLAgent, dev runs an independent equivalent stack, and neither runs ClickHouse or HyperDX
 
 #### Scenario: Search telemetry
 - **WHEN** an operator searches logs, metrics, or traces in Grafana
-- **THEN** results come from prod's store
+- **THEN** results come from their own environment store
 
 ### Requirement: Telemetry collection in prod
-Prod SHALL collect container logs from every node, node and kubelet resource metrics, cluster object metrics, and SHALL accept OTLP traces, cumulative metrics, and logs from applications at separate in-cluster HTTP endpoints. Collection MUST include AWS burst workers while they exist. VMAgent and VTAgent SHALL accept application metrics and traces, remote-write them to their respective stores, and buffer pending writes on separate persistent local-path volumes on prod-server2. Each queue SHALL be bounded to 8 GiB per destination, survive pod restarts, and replay when the store recovers. VLAgent SHALL collect container logs. The platform MUST NOT run OpenTelemetry collectors or gateways.
+Each environment SHALL collect container logs from every node, node and kubelet resource metrics, cluster object metrics, and SHALL accept OTLP traces, cumulative metrics, and logs from applications at separate in-cluster HTTP endpoints. Collection MUST include AWS burst workers while they exist. VMAgent and VTAgent SHALL accept application metrics and traces, remote-write them to their respective stores, and buffer pending writes on separate persistent volumes using the environment storage class. Each queue SHALL be bounded to 513 MiB per destination, survive pod restarts, and replay when the store recovers. VLAgent SHALL collect container logs. The platform MUST NOT run OpenTelemetry collectors or gateways.
 
 #### Scenario: Application sends OTLP
 - **WHEN** a prod workload exports OTLP over HTTP/protobuf to the matching in-cluster signal endpoint
@@ -33,11 +33,11 @@ Prod SHALL collect container logs from every node, node and kubelet resource met
 - **THEN** the node, pod, and container metrics appear in the store
 
 ### Requirement: Telemetry source labels
-Agents SHALL label collected logs and scraped metrics with the prod cluster and environment. Applications SHALL set the cluster and environment resource attributes when exporting directly.
+Agents SHALL label collected logs and scraped metrics with their own cluster and environment. Applications SHALL set the cluster and environment resource attributes when exporting directly.
 
 #### Scenario: Telemetry source labels
 - **WHEN** an agent collects telemetry or a workload exports it
-- **THEN** it is stored with prod's cluster name and environment
+- **THEN** it is stored with their own cluster name and environment
 
 ### Requirement: In-cluster ingest only
 The ingest endpoints SHALL be reachable only from inside prod's cluster. It MUST NOT have a LoadBalancer or LAN address, a public hostname, or a Cloudflare tunnel route. No ingest credential SHALL exist, and no other environment MAY send telemetry to it.
@@ -62,10 +62,10 @@ The stores SHALL keep logs, metrics, and traces for 3 days and delete older data
 - **THEN** new inserts fail visibly at the exporter instead of the node's disk filling completely
 
 ### Requirement: Telemetry UI access
-The platform SHALL serve Grafana on prod at a fixed internal LoadBalancer address from prod's LoadBalancer pool, on port 80, and at the public hostname `grafana.phuchoang.sbs` through prod's Cloudflare tunnel. The UI SHALL support searching logs and traces, querying metrics, and navigating between a trace and its logs, and SHALL provide the Kubernetes and Victoria dashboards shipped with the stack. The UI MUST require a login through Dex or with the admin password at both addresses. It MUST NOT allow anonymous access or password sign-up, and it MUST create accounts only for Dex identities it maps to a role.
+The platform SHALL serve Grafana in both environments at their own public hostnames through their own tunnels and internally through ClusterIP Services. Both environments SHALL support management port-forward and SHALL NOT provision UI LoadBalancer Services. The UI SHALL support searching logs and traces, querying metrics, and navigating between a trace and its logs, and SHALL provide the Kubernetes and Victoria dashboards shipped with the stack. The UI MUST require a login through Dex or with the admin password at both addresses. It MUST NOT allow anonymous access or password sign-up, and it MUST create accounts only for Dex identities it maps to a role.
 
 #### Scenario: Operator opens the UI
-- **WHEN** an operator on the LAN opens the UI's internal address and logs in with the admin credential
+- **WHEN** an operator uses the UI through management port-forward and logs in with the admin credential
 - **THEN** Grafana loads with VictoriaMetrics as the default data source and VictoriaLogs and VictoriaTraces configured and the provisioned dashboards present
 
 #### Scenario: Operator opens the UI remotely
@@ -81,7 +81,7 @@ The platform SHALL serve Grafana on prod at a fixed internal LoadBalancer addres
 - **THEN** the UI shows only the login page and no account is created
 
 ### Requirement: Single-replica store on a fixed node
-VictoriaMetrics, VictoriaLogs, and VictoriaTraces SHALL each run as a single replica on prod-server1 with separate local-path volumes. The store is not replicated or backed up; losing that node's disk loses stored telemetry.
+VictoriaMetrics, VictoriaLogs, and VictoriaTraces SHALL each run as a single replica on the PVC-selected node with separate volumes using the environment storage class. The store is not replicated or backed up; losing that node's disk loses stored telemetry.
 
 #### Scenario: Designated node restarts
 - **WHEN** the designated node reboots
@@ -99,10 +99,10 @@ Every credential used by the store and its UI SHALL be delivered through the clu
 - **THEN** no Grafana credential value appears
 
 ### Requirement: UI provisioned from Git
-The UI's data sources, dashboards, and admin account SHALL be provisioned from Git or the secret store. Grafana SHALL use a local-path PersistentVolumeClaim on prod-server1 for its application state.
+The UI's data sources, dashboards, and admin account SHALL be provisioned from Git or the secret store. Grafana SHALL use a PersistentVolumeClaim using the environment storage class on the PVC-selected node for its application state.
 
 #### Scenario: UI pod restarts
-- **WHEN** the UI pod is deleted and recreated on prod-server1
+- **WHEN** the UI pod is deleted and recreated on the PVC-selected node
 - **THEN** the same data source and dashboards are present and the admin credential still logs in
 
 #### Scenario: Dashboard changed in Git

@@ -9,11 +9,11 @@ The platform SHALL store generated and operator-issued credentials in the matchi
 
 #### Scenario: Cluster apply
 - **WHEN** a cluster root is applied
-- **THEN** its backend-specific generated credentials reach its Doppler config; only prod receives AWS worker and CSI credentials
+- **THEN** its backend-specific generated credentials reach its Doppler config; both environments receive their own AWS worker credentials and only prod receives CSI credentials
 
 #### Scenario: Autoscaler key creation
-- **WHEN** prod is applied from fresh state
-- **THEN** its autoscaler access key is generated and stored in prod Doppler without manual creation; dev requires no autoscaler key
+- **WHEN** either environment is applied from fresh state
+- **THEN** its independent autoscaler access key is generated and stored in that environment's Doppler config without manual creation
 
 #### Scenario: Telemetry credential generation
 - **WHEN** foundation is applied

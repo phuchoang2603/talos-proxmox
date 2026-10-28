@@ -6,7 +6,11 @@ Provide bounded, stateless AWS GPU workers for distributed training while retain
 ## Requirements
 
 ### Requirement: Dedicated cloud GPU capacity
-The platform SHALL expose an opt-in GPU burst pool alongside existing CPU capacity. Initial acceptance SHALL provision an on-demand AWS GPU worker for a single-node job, and up to two such jobs MAY run concurrently without communicating with each other. Pool configuration SHALL declare finite resource limits, compatible instance types and a pause control.
+Prod SHALL expose an optional bounded GPU NodePool under the same Karpenter controller as CPU workers. It SHALL be disabled by default and idle at zero when enabled without jobs. Dev SHALL retain local GPU allocation.
+
+#### Scenario: Default prod deployment
+- **WHEN** no GPU pool has been explicitly enabled
+- **THEN** no GPU instance is launched
 
 #### Scenario: Train from zero cloud workers
 - **WHEN** a single-GPU workload is submitted within configured limits
@@ -35,14 +39,22 @@ The platform SHALL expose a versioned runtime and scheduling contract supporting
 - **THEN** the workload fails or is canceled with cleanup instead of hanging indefinitely
 
 ### Requirement: Bounded cloud lifecycle
-The GPU pool SHALL scale back to zero after workloads finish or are canceled. Disruption policy SHALL avoid voluntary removal during bounded training runs. Spot training SHALL remain disabled until checkpoint recovery and interruption handling are demonstrated.
+GPU capacity SHALL return to zero after bounded jobs finish. Durable checkpoints SHALL reside in object storage. GPU interruption recovery SHALL be verified before enabling Spot GPU training.
+
+#### Scenario: Training ends
+- **WHEN** the idle interval elapses
+- **THEN** GPU workers terminate while CPU baseline and persistent storage remain available
 
 #### Scenario: Finish or cancel distributed work
 - **WHEN** training resources are removed and the idle interval elapses
-- **THEN** cloud GPU instances and their Node objects are removed while controllers and persistent storage remain on fixed nodes
+- **THEN** GPU nodes terminate while the fixed control plane, CPU baseline and EBS data remain
 
 ### Requirement: Local notebook GPU allocation
-The fixed RTX 5060 Ti SHALL remain usable through the existing GPU allocation path for notebook experiments. Automated AWS training SHALL NOT claim that GPU, and unavailable exclusive allocation SHALL leave a notebook pending rather than substitute CPU fitting.
+The dev RTX 5060 Ti SHALL remain usable through exclusive notebook allocation. AWS training SHALL NOT claim it. Occupied local capacity SHALL leave another GPU notebook pending.
+
+#### Scenario: Local GPU occupied
+- **WHEN** a second notebook requests the exclusive GPU
+- **THEN** it waits without silently substituting CPU training
 
 #### Scenario: Local GPU is occupied
 - **WHEN** another notebook requests the exclusively allocated device

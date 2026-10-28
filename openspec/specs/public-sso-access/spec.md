@@ -7,11 +7,15 @@ Let the operator reach Kubeflow and Grafana on prod from anywhere over HTTPS wit
 ## Requirements
 
 ### Requirement: Single public identity provider
-Prod SHALL run one OIDC identity provider, Dex, reachable at `https://auth.phuchoang.sbs/dex`, and that URL SHALL be its issuer. Its discovery document MUST advertise only browser-reachable HTTPS endpoints. It SHALL authenticate only the identities in its own password store, whose credentials come from the Doppler secret store, and SHALL issue tokens only to the registered Kubeflow and Grafana clients.
+Each environment SHALL run independent Dex with environment-specific HTTPS issuer, registered callbacks and private password-store credentials. Discovery SHALL advertise browser-reachable endpoints. Unregistered clients SHALL be rejected.
+
+#### Scenario: Dev login
+- **WHEN** a dev client requests discovery
+- **THEN** issuer and callbacks use dev hostnames
 
 #### Scenario: Discovery
-- **WHEN** a client fetches `https://auth.phuchoang.sbs/dex/.well-known/openid-configuration`
-- **THEN** the issuer and every advertised endpoint start with `https://auth.phuchoang.sbs/dex`
+- **WHEN** a client fetches discovery from either environment
+- **THEN** the issuer and advertised endpoints use that environment public HTTPS Dex hostname
 
 #### Scenario: Operator signs in
 - **WHEN** the operator enters the Dex password from Doppler on the Dex login page
@@ -22,11 +26,15 @@ Prod SHALL run one OIDC identity provider, Dex, reachable at `https://auth.phuch
 - **THEN** Dex rejects the request without showing a login form
 
 ### Requirement: Publication only through the Cloudflare tunnel
-Dex, Kubeflow, and Grafana SHALL be published at `auth.phuchoang.sbs`, `kubeflow.phuchoang.sbs`, and `grafana.phuchoang.sbs` only through prod's Cloudflare tunnel, with DNS records created declaratively from the cluster. They MUST be served only over HTTPS to clients. The platform MUST NOT open router port forwards or assign public IP addresses for them. Dev MUST NOT publish these hostnames.
+Each environment SHALL publish its own auth, Kubeflow and Grafana HTTPS hostnames through its own Cloudflare tunnel with declarative DNS. Dev SHALL NOT claim prod hostnames. No router forwards or direct public app IPs SHALL be required.
+
+#### Scenario: Both clusters publish
+- **WHEN** their routes converge
+- **THEN** hostnames resolve to the corresponding environment
 
 #### Scenario: HTTPS request
-- **WHEN** a client on the internet requests one of the three hostnames over HTTPS
-- **THEN** the request reaches the corresponding prod service through the tunnel
+- **WHEN** an internet client requests an environment application hostname over HTTPS
+- **THEN** the matching environment tunnel routes to that environment service
 
 #### Scenario: Plain HTTP request
 - **WHEN** a client requests one of the three hostnames over plain HTTP
@@ -59,11 +67,15 @@ Only the operator identity configured for Kubeflow SHALL be granted access throu
 - **THEN** Grafana refuses the login and creates no user
 
 ### Requirement: Token validation independent of the public path
-Apps and gateways in prod SHALL exchange authorization codes and fetch Dex's signing keys through Dex's in-cluster address, not through the public hostname. A Cloudflare outage MUST NOT prevent Grafana's LAN login with the admin password.
+Apps and gateways SHALL exchange codes and signing keys through their own in-cluster Dex address. Cloudflare outage SHALL preserve admin login through management port-forward.
+
+#### Scenario: Public path fails
+- **WHEN** Cloudflare is unavailable
+- **THEN** internal signing-key retrieval and management admin login continue
 
 #### Scenario: Cloudflare is unreachable
-- **WHEN** the tunnel or Cloudflare's edge is unavailable
-- **THEN** the public hostnames fail, and an operator on the LAN can still log in to Grafana at its internal address with the admin password
+- **WHEN** Cloudflare or the tunnel fails
+- **THEN** public access fails but management port-forward supports Grafana admin login
 
 #### Scenario: Token check inside the cluster
 - **WHEN** the Kubeflow gateway validates a Dex token
