@@ -18,13 +18,26 @@ jobs:
   lint:
     uses: ./.github/workflows/lint.yml
 
-  # Dev is built and destroyed only through manual.yml.
-  provision:
-    name: Provision (prod)
-    if: github.event_name == 'push'
+  dev:
+    name: Provision (dev)
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     needs: lint
     permissions:
       contents: read
+      deployments: read
+      id-token: write
+    uses: ./.github/workflows/provision.yml
+    with:
+      environment: dev
+    secrets: inherit
+
+  prod:
+    name: Provision (prod)
+    if: github.event_name == 'push'
+    needs: dev
+    permissions:
+      contents: read
+      deployments: read
       id-token: write
     uses: ./.github/workflows/provision.yml
     with:

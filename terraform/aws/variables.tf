@@ -41,16 +41,12 @@ variable "cluster_name" {
   type = string
 }
 
-variable "cluster_endpoint" {
-  type = string
-}
 
-variable "machine_secrets" {
-  type      = any
-  sensitive = true
-}
 
 variable "gpu_ami_id" {
   type    = string
   default = ""
 }
+
+variable "management_cidrs" { type = set(string) }
+variable "controlplane_instance_type" { type = string }

@@ -2,8 +2,3 @@ repoURL: https://github.com/phuchoang2603/talos-proxmox.git
 targetRevision: main
 # Set by the platform root to the environment this Argo CD runs in.
 cluster: ""
-
-ui:
-  addresses:
-    dev: 10.69.11.254
-    prod: 10.69.12.254

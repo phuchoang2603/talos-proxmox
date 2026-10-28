@@ -1,0 +1,22 @@
+aws-ebs-csi-driver:
+  controller:
+    replicaCount: 1
+    region: us-east-1
+    extraVolumeTags:
+      managed-by: talos-proxmox
+      platform-cluster: prod-talos
+    env:
+      - name: AWS_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef: {name: ebs-csi-aws, key: AWS_ACCESS_KEY_ID}
+      - name: AWS_SECRET_ACCESS_KEY
+        valueFrom:
+          secretKeyRef: {name: ebs-csi-aws, key: AWS_SECRET_ACCESS_KEY}
+    resources:
+      requests: {cpu: 20m, memory: 64Mi}
+      limits: {memory: 256Mi}
+  node:
+    enableWindows: false
+    resources:
+      requests: {cpu: 10m, memory: 40Mi}
+      limits: {memory: 128Mi}

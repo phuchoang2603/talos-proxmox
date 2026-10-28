@@ -3,29 +3,23 @@ output "cluster_name" {
 }
 
 output "machine_secrets" {
-  value     = talos_machine_secrets.this.machine_secrets
+  value     = module.talos.machine_secrets
   sensitive = true
 }
 
-output "cluster_vip" {
-  value = local.cluster_vip
-}
 
 output "cluster_endpoint" {
   value = local.cluster_endpoint
 }
 
-output "lb_range" {
-  value = var.network.lb_range
-}
 
 output "talosconfig" {
-  value     = data.talos_client_configuration.this.talos_config
+  value     = module.talos.talosconfig
   sensitive = true
 }
 
 output "kubeconfig" {
-  value     = talos_cluster_kubeconfig.this.kubeconfig_raw
+  value     = module.bootstrap.kubeconfig
   sensitive = true
 }
 

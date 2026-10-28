@@ -36,13 +36,10 @@ cilium:
   devices: eth0
   # KubeSpan MTU 1420 minus VXLAN overhead for cross-site pod traffic.
   MTU: 1370
-  l2announcements:
-    enabled: true
+  enableLBIPAM: false
   k8sClientRateLimit:
     qps: 20
     burst: 40
-  loadBalancer:
-    acceleration: best-effort
   cni:
     exclusive: false
   socketLB:

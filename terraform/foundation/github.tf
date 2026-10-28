@@ -30,3 +30,9 @@ resource "github_actions_environment_secret" "doppler_token" {
   secret_name     = "DOPPLER_TOKEN"
   plaintext_value = doppler_service_token.ci[each.key].key
 }
+
+resource "github_repository_environment_deployment_policy" "dev_pull_requests" {
+  repository     = local.github_repository
+  environment    = github_repository_environment.this["dev"].environment
+  branch_pattern = "refs/pull/*/merge"
+}

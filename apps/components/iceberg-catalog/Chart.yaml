@@ -1,0 +1,8 @@
+apiVersion: v2
+name: platform-iceberg-catalog
+version: 0.1.0
+type: application
+dependencies:
+  - name: polaris
+    version: 1.8.0
+    repository: https://downloads.apache.org/polaris/helm-chart

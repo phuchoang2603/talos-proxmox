@@ -1,3 +1,4 @@
+dataNamespace: fraud-data-prod
 argo-workflows:
   crds:
     full: false

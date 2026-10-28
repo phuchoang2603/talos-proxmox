@@ -10,7 +10,8 @@
       ],
       "Resource": [
         "arn:aws:iam::ACCOUNT_ID:user/talos-proxmox-karpenter-*",
-        "arn:aws:iam::ACCOUNT_ID:policy/talos-proxmox-karpenter-*"
+        "arn:aws:iam::ACCOUNT_ID:policy/talos-proxmox-karpenter-*",
+        "arn:aws:iam::ACCOUNT_ID:user/platform-prod-ebs-csi"
       ],
       "Condition": {
         "StringEquals": {
@@ -43,7 +44,8 @@
       ],
       "Resource": [
         "arn:aws:iam::ACCOUNT_ID:user/talos-proxmox-karpenter-*",
-        "arn:aws:iam::ACCOUNT_ID:policy/talos-proxmox-karpenter-*"
+        "arn:aws:iam::ACCOUNT_ID:policy/talos-proxmox-karpenter-*",
+        "arn:aws:iam::ACCOUNT_ID:user/platform-prod-ebs-csi"
       ]
     },
     {
@@ -54,7 +56,10 @@
         "iam:DeleteAccessKey",
         "iam:ListAccessKeys"
       ],
-      "Resource": "arn:aws:iam::ACCOUNT_ID:user/talos-proxmox-karpenter-*"
+      "Resource": [
+        "arn:aws:iam::ACCOUNT_ID:user/talos-proxmox-karpenter-*",
+        "arn:aws:iam::ACCOUNT_ID:user/platform-prod-ebs-csi"
+      ]
     },
     {
       "Sid": "AttachOnlyNamedKarpenterPolicies",
@@ -63,7 +68,10 @@
         "iam:AttachUserPolicy",
         "iam:DetachUserPolicy"
       ],
-      "Resource": "arn:aws:iam::ACCOUNT_ID:user/talos-proxmox-karpenter-*",
+      "Resource": [
+        "arn:aws:iam::ACCOUNT_ID:user/talos-proxmox-karpenter-*",
+        "arn:aws:iam::ACCOUNT_ID:user/platform-prod-ebs-csi"
+      ],
       "Condition": {
         "ArnLike": {
           "iam:PolicyARN": "arn:aws:iam::ACCOUNT_ID:policy/talos-proxmox-karpenter-*"
@@ -78,8 +86,8 @@
         "iam:CreateInstanceProfile"
       ],
       "Resource": [
-        "arn:aws:iam::ACCOUNT_ID:role/*-talos-burst-worker",
-        "arn:aws:iam::ACCOUNT_ID:instance-profile/*-talos-burst-worker"
+        "arn:aws:iam::ACCOUNT_ID:role/*-talos-worker",
+        "arn:aws:iam::ACCOUNT_ID:instance-profile/*-talos-worker"
       ],
       "Condition": {
         "StringEquals": {
@@ -109,20 +117,33 @@
         "iam:RemoveRoleFromInstanceProfile"
       ],
       "Resource": [
-        "arn:aws:iam::ACCOUNT_ID:role/*-talos-burst-worker",
-        "arn:aws:iam::ACCOUNT_ID:instance-profile/*-talos-burst-worker"
+        "arn:aws:iam::ACCOUNT_ID:role/*-talos-worker",
+        "arn:aws:iam::ACCOUNT_ID:instance-profile/*-talos-worker"
       ]
     },
     {
       "Sid": "PassOnlyWorkerRoleToInstanceProfile",
       "Effect": "Allow",
       "Action": "iam:PassRole",
-      "Resource": "arn:aws:iam::ACCOUNT_ID:role/*-talos-burst-worker",
+      "Resource": "arn:aws:iam::ACCOUNT_ID:role/*-talos-worker",
       "Condition": {
         "StringEquals": {
           "iam:PassedToService": "ec2.amazonaws.com"
         }
       }
+    },
+    {
+      "Sid": "ManageScopedControllerInlinePolicies",
+      "Effect": "Allow",
+      "Action": [
+        "iam:PutUserPolicy",
+        "iam:GetUserPolicy",
+        "iam:DeleteUserPolicy"
+      ],
+      "Resource": [
+        "arn:aws:iam::ACCOUNT_ID:user/platform-prod-ebs-csi",
+        "arn:aws:iam::ACCOUNT_ID:user/talos-proxmox-karpenter-prod"
+      ]
     }
   ]
 }

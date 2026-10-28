@@ -1,16 +1,15 @@
-# Talos on Proxmox, with AWS burst workers
+# Talos on Proxmox and AWS
 
-Two independent Kubernetes environments, **dev** and **prod**, run Talos on fixed Proxmox VMs. Prod runs continuously. Dev exists only while an operator needs it, to rehearse platform changes, and is built and destroyed on demand. Each can add stateless AWS workers when workloads need more capacity. OpenTofu provisions the infrastructure; each cluster's Argo CD manages its applications; Doppler supplies credentials.
+Two independent Kubernetes environments run Talos: **dev** on the existing Proxmox hosts and **prod** in AWS. OpenTofu provisions infrastructure, each cluster's Argo CD manages applications, and Doppler supplies credentials.
 
-![Production architecture](docs/architecture/diagrams/architecture.svg)
+Dev keeps the former production VM allocations with one control-plane/workload node and two workers. Prod uses one On-Demand `m6a.large` control-plane/workload node and two `m6a.xlarge` Spot workers managed by Karpenter. Both run the same applicable platform, including Knative and Kubeflow. Each has a single control plane and single-instance PostgreSQL; neither is highly available.
 
-Persistent workloads stay on Proxmox, on local-path node storage in both environments. Prod runs three control-plane VMs, one per Proxmox host, that also run workloads; only `prod-server1` sits on SSD, so write-heavy volumes belong there. Each environment has its own state workspaces, Doppler config, AWS worker group, and Argo CD. Neither cluster manages the other.
+Dev uses local-path and existing MinIO. Prod uses encrypted gp3 EBS and generic private S3 storage. An authenticated PostgreSQL-backed Polaris catalog provides the shared Iceberg REST interface. State, application credentials and public domains remain independent.
 
 ## Start here
 
 | I want to… | Read |
 | --- | --- |
-| View the production architecture diagram | [Production architecture SVG](docs/architecture/diagrams/architecture.svg) |
 | Contribute, validate, or deploy | [Contributing and setup](CONTRIBUTING.md) |
 | Understand provisioning, state, and CI | [Terraform and CI architecture](docs/architecture/terraform-ci.md) |
 | Understand AWS networking and autoscaling | [Hybrid AWS worker architecture](docs/architecture/hybrid-aws-workers.md) |
@@ -24,7 +23,7 @@ Persistent workloads stay on Proxmox, on local-path node storage in both environ
 | Path | Contents |
 | --- | --- |
 | [`terraform/foundation/`](terraform/foundation/) | Operator-applied identities, Doppler tokens, GitHub Environments, HCP workspaces |
-| [`terraform/cluster/`](terraform/cluster/) | Per-environment infrastructure root and node/network inventory |
+| [`terraform/cluster/`](terraform/cluster/) | Separate dev/prod infrastructure entrypoints and environment inventory |
 | [`terraform/platform/`](terraform/platform/) | Per-environment CNI, Gateway API CRDs, ESO authentication, Argo CD bootstrap |
 | [`terraform/proxmox/`](terraform/proxmox/) and [`terraform/aws/`](terraform/aws/) | Modules called by the cluster root |
 | [`apps/argocd/`](apps/argocd/) | Bootstrap and shared platform Application charts |

@@ -1,5 +1,6 @@
 {
   pkgs,
+  inputs,
   ...
 }:
 
@@ -27,6 +28,7 @@
   languages = {
     opentofu = {
       enable = true;
+      package = inputs.opentofu-nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system}.opentofu;
       lsp = {
         enable = true;
       };

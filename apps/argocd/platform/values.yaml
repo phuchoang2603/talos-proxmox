@@ -26,17 +26,6 @@ components:
     syncWave: "-3"
     releaseName: external-secrets
     clusters: [dev, prod]
-  cilium-network:
-    path: apps/components/cilium-network
-    namespace: kube-system
-    syncWave: "-1"
-    releaseName: cilium-network
-    clusters: [dev, prod]
-    valueFilesByCluster:
-      dev:
-        - environments/dev/values.yaml
-      prod:
-        - environments/prod/values.yaml
   istio:
     path: apps/components/istio
     namespace: istio-system
@@ -65,44 +54,68 @@ components:
     namespace: argo-workflows
     syncWave: "-1"
     releaseName: argo-workflows
-    clusters: [prod]
+    clusters: [dev, prod]
+    valueFilesByCluster:
+      dev:
+        - environments/dev/values.yaml
   spark-operator:
     path: apps/components/spark-operator
     namespace: operators
     syncWave: "0"
     releaseName: spark-operator
-    clusters: [prod]
+    clusters: [dev, prod]
+    valueFilesByCluster:
+      dev:
+        - environments/dev/values.yaml
   flink-operator:
     path: apps/components/flink-operator
     namespace: operators
     syncWave: "1"
     releaseName: flink-kubernetes-operator
-    clusters: [prod]
+    clusters: [dev, prod]
+  iceberg-catalog:
+    path: apps/components/iceberg-catalog
+    namespace: iceberg
+    syncWave: "1"
+    releaseName: iceberg-catalog
+    clusters: [dev, prod]
+    valueFilesByCluster:
+      prod:
+        - environments/prod/values.yaml
   starrocks:
     path: apps/components/starrocks
     namespace: starrocks
     syncWave: "1"
     releaseName: starrocks
-    clusters: [prod]
+    clusters: [dev, prod]
+    valueFilesByCluster:
+      prod:
+        - environments/prod/values.yaml
   ml-access:
     path: apps/components/ml-access
-    namespace: fraud-ml-prod
+    namespace: fraud-ml
     syncWave: "1"
     releaseName: ml-access
-    clusters: [prod]
+    clusters: [dev, prod]
+    valueFilesByCluster:
+      dev:
+        - environments/dev/values.yaml
   auth:
     path: apps/components/auth
     namespace: auth
     syncWave: "0"
     releaseName: auth
-    clusters: [prod]
+    clusters: [dev, prod]
+    valueFilesByCluster:
+      dev:
+        - environments/dev/values.yaml
   knative:
-    enabled: false
+    enabled: true
     path: apps/components/knative
     namespace: knative-serving
     syncWave: "1"
     releaseName: knative
-    clusters: [prod]
+    clusters: [dev, prod]
     # The Serving webhook rewrites its own rules, client path, CA bundle and selectors.
     ignoreDifferences:
       - group: admissionregistration.k8s.io
@@ -120,25 +133,42 @@ components:
     namespace: kubeflow
     syncWave: "2"
     releaseName: kubeflow
-    clusters: [prod]
+    clusters: [dev, prod]
+    valueFilesByCluster:
+      dev:
+        - environments/dev/values.yaml
+      prod:
+        - environments/prod/values.yaml
   openmetadata:
     path: apps/components/openmetadata
     namespace: openmetadata
     syncWave: "3"
     releaseName: openmetadata
-    clusters: [prod]
+    clusters: [dev, prod]
+    valueFilesByCluster:
+      dev:
+        - environments/dev/values.yaml
+      prod:
+        - environments/prod/values.yaml
   metrics-server:
     path: apps/components/metrics-server
     namespace: kube-system
     syncWave: "-1"
     releaseName: metrics-server
     clusters: [dev, prod]
+  ebs-csi:
+    path: apps/components/ebs-csi
+    namespace: kube-system
+    syncWave: "0"
+    releaseName: ebs-csi
+    clusters: [prod]
+    managedNamespaceMetadata: *privileged
   local-path-provisioner:
     path: apps/components/local-path-provisioner
     namespace: local-path-storage
     syncWave: "0"
     releaseName: local-path-provisioner
-    clusters: [dev, prod]
+    clusters: [dev]
     managedNamespaceMetadata: *privileged
   talos-ccm:
     path: apps/components/talos-ccm
@@ -183,8 +213,13 @@ components:
     namespace: observability
     syncWave: "1"
     releaseName: observability
-    clusters: [prod]
+    clusters: [dev, prod]
     managedNamespaceMetadata: *privileged
+    valueFilesByCluster:
+      dev:
+        - environments/dev/values.yaml
+      prod:
+        - environments/prod/values.yaml
   cloudflare-tunnel:
     path: apps/components/cloudflare-tunnel
     releaseName: cloudflare-tunnel

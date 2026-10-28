@@ -1,3 +1,4 @@
+storageClass: local-path
 components:
   namespace: true
   roles: true
@@ -14,3 +15,11 @@ components:
 tunnel:
   clusterTunnel: talos-proxmox
   hostname: kubeflow.phuchoang.sbs
+
+objectStorage:
+  bucket: platform-dev
+  endpoint: https://minio.home.phuchoang.sbs
+  host: minio.home.phuchoang.sbs
+  region: us-east-1
+  forcePathStyle: true
+  artifactPrefix: artifacts/kubeflow

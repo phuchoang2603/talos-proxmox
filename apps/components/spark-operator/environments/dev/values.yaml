@@ -1,0 +1,5 @@
+spark-kubernetes-operator:
+  workloadResources:
+    namespaces:
+      data:
+      - fraud-data-dev

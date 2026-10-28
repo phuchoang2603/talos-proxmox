@@ -1,47 +1,83 @@
 base:
   global:
     istioNamespace: istio-system
-
 istiod:
+  resources:
+    requests: {cpu: 100m, memory: 256Mi}
+    limits: {memory: 1Gi}
   profile: ambient
   global:
     variant: distroless
   pilot:
     env:
-      PILOT_ENABLE_AMBIENT: "true"
-      # Lets Services opt into waypoint routing from ingress with istio.io/ingress-use-waypoint.
-      ENABLE_INGRESS_WAYPOINT_ROUTING: "true"
+      PILOT_ENABLE_AMBIENT: 'true'
+      ENABLE_INGRESS_WAYPOINT_ROUTING: 'true'
+      PILOT_JWT_PUB_KEY_REFRESH_INTERVAL: 1m
+    cni:
+      enabled: true
   meshConfig:
-    # Envoy otherwise retries every route, including non-idempotent POSTs; routes opt in explicitly.
     defaultHttpRetryPolicy:
       attempts: 0
     defaultConfig:
       proxyMetadata:
-        ISTIO_META_ENABLE_HBONE: "true"
-      # Retry, overflow, and ejection counters; applied when a proxy starts.
+        ISTIO_META_ENABLE_HBONE: 'true'
       proxyStatsMatcher:
         inclusionRegexps:
-          - ".*outlier_detection.*"
-          - ".*upstream_rq_retry.*"
+        - .*outlier_detection.*
+        - .*upstream_rq_retry.*
         inclusionSuffixes:
-          - upstream_rq_pending_overflow
-          - upstream_cx_overflow
+        - upstream_rq_pending_overflow
+        - upstream_cx_overflow
     serviceScopeConfigs:
-      - servicesSelector:
-          matchExpressions:
-            - key: istio.io/global
-              operator: In
-              values: ["true"]
-        scope: GLOBAL
-
+    - servicesSelector:
+        matchExpressions:
+        - key: istio.io/global
+          operator: In
+          values:
+          - 'true'
+      scope: GLOBAL
+    extensionProviders:
+    - name: oauth2-proxy
+      envoyExtAuthzHttp:
+        service: oauth2-proxy.auth.svc.cluster.local
+        port: 80
+        pathPrefix: /oauth2/auth
+        includeRequestHeadersInCheck:
+        - authorization
+        - cookie
+        headersToUpstreamOnAllow:
+        - authorization
+        - x-auth-request-email
+        - x-auth-request-groups
+        - x-auth-request-user
+        headersToDownstreamOnDeny:
+        - content-type
+        - set-cookie
 cni:
+  resources:
+    requests: {cpu: 25m, memory: 64Mi}
+    limits: {memory: 256Mi}
   profile: ambient
   cniBinDir: /opt/cni/bin
   cniConfDir: /etc/cni/net.d
   ambient:
     enabled: true
-
-ztunnel: {}
-
+ztunnel:
+  resources:
+    requests: {cpu: 25m, memory: 128Mi}
+    limits: {memory: 512Mi}
 ingress-gateway:
-  enabled: false
+  resources:
+    requests: {cpu: 25m, memory: 64Mi}
+    limits: {memory: 512Mi}
+  enabled: true
+  name: istio-ingressgateway
+  serviceAccount:
+    name: istio-ingressgateway-service-account
+  labels:
+    app: istio-ingressgateway
+    istio: ingressgateway
+  service:
+    type: ClusterIP
+  autoscaling:
+    enabled: false

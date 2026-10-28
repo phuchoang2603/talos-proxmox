@@ -11,7 +11,7 @@ flowchart TD
     TF["Platform OpenTofu root"] --> CNI["Gateway API CRDs + Cilium"]
     CNI --> Argo["Argo CD Helm release"]
     TF --> Auth["ESO bootstrap authentication Secret"]
-    Argo --> Bootstrap["Bootstrap chart: AppProject + root Application + Argo CD UI LoadBalancer"]
+    Argo --> Bootstrap["Bootstrap chart: AppProject + root Application"]
     Bootstrap --> Root["platform Application: cluster=dev or prod"]
     Root --> Shared["apps/argocd/platform"]
     Shared --> Apps["One Application per enabled component"]
@@ -19,14 +19,14 @@ flowchart TD
     Components --> Local["Local Kubernetes cluster"]
 ```
 
-The [bootstrap chart](../../apps/argocd/bootstrap/) creates the `talos-proxmox` AppProject, the `platform` root Application and an Argo CD UI LoadBalancer Service. Cilium assigns and announces the reserved address once its GitOps-managed IP pool and L2 policy converge. The [platform chart](../../apps/argocd/platform/) creates child Applications from its component table. Every destination is `https://kubernetes.default.svc`; there are no remote-cluster registrations or cross-environment kubeconfigs.
+The [bootstrap chart](../../apps/argocd/bootstrap/) creates the `talos-proxmox` AppProject, the `platform` root Application. The [platform chart](../../apps/argocd/platform/) creates child Applications from its component table. Every destination is `https://kubernetes.default.svc`; there are no remote-cluster registrations or cross-environment kubeconfigs.
 
 ## One owner per resource
 
 | Owner | Components |
 | --- | --- |
-| Platform OpenTofu root | Gateway API CRDs, Cilium, ESO token namespace/Secret, Karpenter (CRDs, controller, `EC2NodeClass`, `NodePool`, and its AWS key Secret), Argo CD and bootstrap AppProject/root Application/UI LoadBalancer Service |
-| Argo CD | ESO/store, Cilium address pools/L2 policies, storage, metrics, cloud controller, GPU components, Istio, operators, observability and its telemetry agents, Cloudflare operator/CRDs and `ClusterTunnel`, and the Grafana UI LoadBalancer Service |
+| Platform OpenTofu root | Gateway API CRDs, Cilium, ESO token namespace/Secret, Karpenter (CRDs, controller, `EC2NodeClass`, `NodePool`, and its AWS key Secret), Argo CD and bootstrap AppProject/root Application |
+| Argo CD | ESO/store, storage, metrics, cloud controller, GPU components, Istio, operators, observability and its telemetry agents, Cloudflare operator/CRDs and `ClusterTunnel` |
 
 Cilium and Argo CD remain OpenTofu-owned after bring-up. Changes to them go through a platform apply. Application changes go through Git and Argo CD.
 
@@ -44,7 +44,7 @@ The source of truth is [`apps/argocd/platform/values.yaml`](../../apps/argocd/pl
 | -2 | Doppler ClusterSecretStore, Istio ambient (base, istiod, CNI, ztunnel) | dev, prod |
 | -1 | Burst admission policy, Cilium network resources, metrics-server | dev, prod |
 | -1 | Shared Argo Workflows controller and CRDs; native lifecycle guard for `fraud-data-prod` Workflows (stop and complete cleanup before deletion; no hard termination while running) | prod |
-| 0 | local-path, Talos CCM, cert-manager, CNPG, Strimzi | dev, prod |
+| 0 | local-path (dev) or EBS CSI (prod), Talos CCM, cert-manager, CNPG, Strimzi | dev, prod |
 | 1 | GPU operator, NVIDIA DRA | dev, prod |
 | 1 | Apache Flink Kubernetes Operator in `operators`, watching `payment-gateway` | prod |
 | 1 | Observability: VictoriaMetrics operator, VictoriaMetrics, VictoriaLogs, VictoriaTraces, Grafana, VMAgent, VTAgent and VLAgent | prod |
@@ -85,7 +85,7 @@ Application Secrets refresh hourly. Workloads that read credentials only at star
 
 Each environment has one Cloudflare tunnel, created once outside the cluster and named after it (`dev-talos`, `prod-talos`). The [`cloudflare-tunnel`](../../apps/components/cloudflare-tunnel/) chart installs the [Cloudflare operator](https://github.com/adyanth/cloudflare-operator) and a `ClusterTunnel` named `talos-proxmox` that runs that tunnel (`existingTunnel`) with the operator and a `cloudflared` Deployment in `operators`. The operator manifests and CRDs are vendored together from upstream kustomize output, since upstream ships no Helm chart. Never add public hostnames or other configuration to these tunnels in the Cloudflare dashboard: Cloudflare pushes dashboard configuration to `cloudflared`, replacing the ingress rules the operator writes.
 
-Argo CD is exposed only on LAN LoadBalancer Services: `10.69.11.254` (dev) and `10.69.12.254` (prod). Grafana keeps its LAN LoadBalancer at `10.69.12.128` (prod) as a fallback. Each UI LoadBalancer exposes only HTTP port 80.
+Argo CD uses ClusterIP Services in both environments, published through the environment tunnel at `argocd-dev.phuchoang.sbs` or `argocd.phuchoang.sbs`. Grafana follows the same pattern. No LAN LoadBalancer Services, address pools or L2 announcements are provisioned.
 
 A `TunnelBinding` lives in its origin Service's namespace, and the component that owns the routing also owns its binding. The platform publishes three prod hostnames of its own:
 

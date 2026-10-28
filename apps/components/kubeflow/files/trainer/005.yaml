@@ -28,7 +28,6 @@ spec:
                   burst.talos.dev/compute: aws
                   burst.talos.dev/workload: gpu-training
                 tolerations:
-                - {key: burst.talos.dev/stateless, operator: Equal, value: "true", effect: NoSchedule}
                 - {key: burst.talos.dev/gpu-training, operator: Equal, value: "true", effect: NoSchedule}
                 containers:
                 - image: pytorch/pytorch:2.13.0-cuda13.0-cudnn9-runtime

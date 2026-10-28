@@ -1,13 +1,39 @@
 {
   "dev-server1": {
-    "vm_id": 1111,
+    "vm_id": 1211,
     "node": "pve",
     "role": "servers",
-    "address": "10.69.11.11/16",
+    "address": "10.69.12.11/16",
+    "cpu_cores": 8,
+    "cpu_type": "host",
+    "memory_mb": 32768,
+    "disk_size_gb": 364,
+    "datastore_id": "local-lvm",
+    "pci": [
+      "0000:b3:00.0",
+      "0000:b3:00.1"
+    ]
+  },
+  "dev-server2": {
+    "vm_id": 1212,
+    "node": "pve2",
+    "role": "worker",
+    "address": "10.69.12.12/16",
+    "cpu_cores": 8,
+    "cpu_type": "host",
+    "memory_mb": 16384,
+    "disk_size_gb": 364,
+    "datastore_id": "local-lvm"
+  },
+  "dev-server3": {
+    "vm_id": 1213,
+    "node": "pve3",
+    "role": "worker",
+    "address": "10.69.12.13/16",
     "cpu_cores": 4,
     "cpu_type": "host",
     "memory_mb": 16384,
-    "disk_size_gb": 64,
+    "disk_size_gb": 364,
     "datastore_id": "local-lvm"
   }
 }

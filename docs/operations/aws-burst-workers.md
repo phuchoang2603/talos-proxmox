@@ -1,37 +1,19 @@
 # AWS worker operations
 
-[Documentation home](../../README.md) · [Hybrid AWS architecture](../architecture/hybrid-aws-workers.md)
+[Documentation home](../../README.md) · [AWS architecture](../architecture/hybrid-aws-workers.md)
 
-Use this guide to place a stateless workload on AWS, observe scaling, pause bursting, or rotate the Karpenter key. First [select the cluster](cluster-access.md#select-an-environment). AWS inspection commands also require the AWS CLI and an operator AWS session; the CLI is not included in `devenv.nix`.
+These operations apply to prod. Dev uses fixed Proxmox VMs and creates no AWS workers. First [select the cluster](cluster-access.md#select-an-environment), and enter `devenv shell`.
 
 ## Schedule a workload
 
-Add this to the workload's Pod spec (`spec.template.spec` for a Deployment):
-
-```yaml
-tolerations:
-  - key: burst.talos.dev/stateless
-    operator: Equal
-    value: "true"
-    effect: NoSchedule
-affinity:
-  nodeAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-      nodeSelectorTerms:
-        - matchExpressions:
-            - key: burst.talos.dev/compute
-              operator: In
-              values: [aws]
-```
-
-The toleration permits AWS placement; the affinity requires it, so the Pod waits for burst capacity rather than landing on Proxmox. Set CPU and memory requests on its containers. Karpenter chooses an allowed instance that fits them and can use spot capacity. To require on-demand capacity for a workload that cannot tolerate a sudden spot reclaim, add a node selector:
+Ordinary workloads may use any eligible node, including EBS-backed workloads. No stateless admission restriction or CPU worker taint exists. To require a Karpenter CPU worker, use this Pod selector and declare container CPU/memory requests:
 
 ```yaml
 nodeSelector:
-  karpenter.sh/capacity-type: on-demand
+  karpenter.sh/nodepool: aws-burst
 ```
 
-Use no PVCs, generic ephemeral volumes, or persistent claim templates. `emptyDir` is allowed but disappears with the worker. The admission policy rejects persistent workloads opting into AWS. Store the workload definition in its usual Git-managed location so Argo CD can reconcile it.
+Spark job definitions are owned by the application repository; installing the Spark operator starts no jobs. Prod maintains two `m6a.xlarge` Spot CPU workers even when idle. It never falls back to On-Demand workers.
 
 ## Observe scaling
 
@@ -42,118 +24,53 @@ kubectl get nodes -l burst.talos.dev/compute=aws -o wide
 kubectl -n kube-system logs deploy/karpenter --tail=200
 ```
 
-No NodeClaims and no AWS nodes is normal when idle. After workloads finish, Karpenter drains and removes unneeded workers once the five-minute consolidation delay has passed; eviction constraints such as PodDisruptionBudgets can delay it. The Node object is removed along with the instance.
-
-If a Pod stays Pending, inspect its events and the NodeClaim, and check:
-
-| Check | Why it matters |
-| --- | --- |
-| Requests fit an allowed instance | Pods larger than one `m7i-flex.large`, or than the NodePool's remaining limit, cannot be scheduled |
-| Taint toleration and node affinity | Scheduling intent must match the NodePool's taint and label |
-| `kubectl describe nodepool aws-burst` shows any configured limit not reached; Karpenter logs show no `VcpuLimitExceeded` | A NodePool limit or the account's vCPU quota can stop launches |
-| Karpenter logs show no `AccessDenied` or launch errors | Stale credentials, insufficient capacity, and a wrong AMI all fail at launch |
-| New node has mesh connectivity, cloud identity, and Cilium | A launched EC2 instance is not yet a Ready Kubernetes node |
-
-If Karpenter launches a node that a pod does not fit on, compare `kubectl get nodeclaim -o yaml` allocatable with the Node's allocatable and adjust the `kubelet` values in [`apps/components/karpenter-nodes/values.yaml`](../../apps/components/karpenter-nodes/values.yaml).
-
-See [the join sequence](../architecture/hybrid-aws-workers.md#scale-from-zero-then-return-to-zero) for the responsibilities of each component.
+Two CPU workers are desired; a third is allowed temporarily during replacement. Check Pending pod events, instance capacity/quota, Karpenter permissions, the interruption queue, cloud provider IDs and Cilium readiness. Instance requests must fit allocatable capacity after Talos/system reservations and DaemonSets. Karpenter's predicted kubelet reservations must match Talos.
 
 ## GPU training pool
 
-The `aws-gpu-training` NodePool is opt-in (`gpu.enabled` in the environment values) and separate from `aws-burst`. It is on-demand only, limited to the zones in `gpu.zones` and the single-GPU types in `gpu.instanceTypes`, and its `gpu.limits` cover two concurrent single-GPU jobs. The `aws-gpu-training` runtime runs one node and one GPU per job; two jobs run independently and do not communicate. Nodes carry the `burst.talos.dev/stateless` taint plus `burst.talos.dev/gpu-training=true:NoSchedule` and the label `burst.talos.dev/workload=gpu-training`. CPU workloads do not tolerate the GPU taint, so they cannot consume this capacity.
+The `aws-gpu-training` pool shares the same controller and is disabled by default. Before enabling it, select a compatible pinned GPU image, allowed zones/types and finite limits. GPU jobs must select its label, tolerate its GPU taint and request a GPU. The pool is On-Demand only; enable Spot GPU training only after checkpoint/interruption recovery is verified. Idle GPU capacity returns to zero. The CPU baseline remains two workers.
 
-A GPU workload must tolerate both taints, select `burst.talos.dev/workload=gpu-training`, and request one GPU per pod. Nodes are removed only when empty, after `gpu.consolidateAfter`, and expire after `gpu.expireAfter`. To stop new GPU capacity without removing the configuration, set `gpu.paused: true`, which renders the pool limits as zero.
+## Object storage and Iceberg
 
-The pool is on-demand only: the template fixes the capacity type, so no value can enable Spot, and the `aws-gpu-training` Trainer runtime selects only the pool labels. There is no Spot interruption queue, so Spot needs one plus demonstrated recovery before it is enabled separately. A zone can lack `g6.xlarge` capacity (`InsufficientInstanceCapacity` in the Karpenter log); with several zones allowed Karpenter tries the next one, but a group can still stay Pending for minutes, so set `activeDeadlineSeconds` accordingly. The Trainer runtime does not restart a failed group automatically (`backoffLimit: 0`): after losing a worker the TrainJob fails within seconds, and resubmitting it with the same run ID resumes from the newest S3 checkpoint that has a manifest.
+Prod uses the generic bucket `platform-prod-<account>-<region>`, with purpose-scoped `OBJECT_<PURPOSE>_*` credentials for `artifacts/`, `lakehouse/`, `datasets/`, `runs/` and `backups/`. Worker instance roles grant no object access. Dev uses `platform-dev` on external MinIO; import the prefix policies from `terraform/cluster/env/dev/minio-*-policy.json` into MinIO and attach them to the matching identities.
 
-## ML staging storage
-
-The private bucket `ML_BUCKET` (foundation-owned, versioned, encrypted, non-TLS denied, protected by `prevent_destroy`) holds `datasets/<export-id>/` and `runs/<run-id>/{checkpoints,outputs}/`. The S3 gateway endpoint keeps AWS worker traffic to it inside the region.
-
-- **Copy:** data moves only by explicit copy (source to S3, S3 to RustFS). There is no live Iceberg or catalog replication, and RustFS bucket replication has not been tested against AWS.
-- **Retention:** nothing under `datasets/` or `images/` expires. Objects under `runs/` expire after 14 days only when tagged `expire=true`, which the run-end step must set. Noncurrent `runs/` versions expire after 30 days, and incomplete multipart uploads after 7.
-- **Credentials:** one IAM user (`talos-proxmox-ml`) limited to `datasets/*` and `runs/*`, delivered as Secret `fraud-ml-prod/ml-s3`. Rotate with `tofu apply -replace=aws_iam_access_key.ml` in `terraform/foundation`. EC2 worker roles have no S3 access, and IAM does not isolate one run's prefix from another's.
-- **Readiness:** the bucket existing means storage is ready, never that a dataset is. Consumers verify object inventories and hashes.
-
-## Return to zero or pause bursting
-
-For normal scale-down, remove or scale down the burst workloads through their Git owner and let Karpenter remove unneeded nodes. Leaving AWS-only workloads Pending can trigger new capacity.
-
-To stop new AWS capacity for an environment, set the NodePool limits to zero in `apps/components/karpenter-nodes/environments/<env>/values.yaml`:
-
-```yaml
-nodePool:
-  limits:
-    cpu: "0"
-    memory: 0Gi
-```
-
-Merge it and let the platform apply run. Existing workers keep running until their workloads finish and consolidation removes them. To remove them immediately, delete the workloads or drain the nodes and let Karpenter terminate them:
-
-```bash
-kubectl drain -l burst.talos.dev/compute=aws \
-  --ignore-daemonsets --delete-emptydir-data
-```
-
-Draining removes their disposable local data. Restore the limits to resume bursting. Deleting the AWS module is a larger infrastructure removal: it also removes the IAM user, key, and worker role.
+Apache Polaris provides authenticated Iceberg REST at `http://iceberg-catalog.iceberg.svc.cluster.local:8181/api/catalog`, with warehouse `lakehouse`. Table files and metadata JSON live in MinIO/S3; catalog state lives in single-instance CNPG. Clients use OAuth and their own scoped object credentials. Catalog availability does not prove an exported dataset is complete.
 
 ## Rotate the Karpenter key
 
-Start at the repository root and follow [local OpenTofu setup](../../CONTRIBUTING.md#run-opentofu-locally). Select the same environment as your kubeconfig:
+With prod selected, initialize the cluster root and replace its key:
 
 ```bash
-export TF_VAR_env="$CLUSTER_ENV"
-export TF_WORKSPACE="talos-cluster-${TF_VAR_env}"
-tofu -chdir=terraform/cluster init
-tofu -chdir=terraform/cluster apply \
-  -var-file="env/${TF_VAR_env}/main.tfvars" \
+export TF_VAR_env=prod
+export TF_WORKSPACE=talos-cluster-prod
+tofu -chdir=terraform/cluster/prod init
+tofu -chdir=terraform/cluster/prod apply \
+  -var-file=../env/prod/main.tfvars \
   -replace=module.aws.aws_iam_access_key.karpenter
 ```
 
-Review the replacement before approving it. OpenTofu creates the replacement key and updates Doppler as part of the apply. Then apply the platform root for the same environment:
-
-```bash
-export TF_WORKSPACE="talos-platform-${TF_VAR_env}"
-tofu -chdir=terraform/platform init
-tofu -chdir=terraform/platform apply
-```
-
-The platform apply updates the `kube-system/karpenter-aws` Secret and restarts the controller, so there is no Argo CD restart. Check the controller logs for launches without `AccessDenied` or `InvalidClientTokenId`.
-
-CI's OIDC session is independent of this key. Do not create a replacement key manually in AWS or copy it into Kubernetes.
+Then apply the platform root with `TF_WORKSPACE=talos-platform-prod` and `TF_VAR_target_revision` set to the full tested Git SHA. This updates the controller Secret and restarts Karpenter. No manual AWS key or Kubernetes Secret is needed.
 
 ## Destroy an environment
 
-Use the **Manual Provision** destroy workflow. It does not uninstall anything from the cluster, and it works when the cluster is broken or unreachable:
+Use **Manual Provision** on main, selecting the environment and destroy. Select `purge_data` only when environment-owned EBS volumes/snapshots should also be deleted. Foundation S3 remains separately owned.
 
-1. The cluster root destroy detaches the Karpenter policy, so the controller can no longer launch instances. It then terminates the environment's Karpenter instances without draining them, waits until they are terminated, and deletes Karpenter's launch templates. Only then does it remove the subnets, security group, internet gateway, and worker instance profile, alongside the Proxmox VMs.
-2. After the cluster destroy succeeds, the workflow removes every resource from the platform root's state. Everything the platform root manages was inside the destroyed cluster. The next apply provisions the platform as it would a fresh environment.
+Cluster cleanup revokes Karpenter/CSI permissions, terminates workers, removes launch templates and the fixed control plane, and removes the network. It uses AWS APIs even when Kubernetes is unavailable. Platform state resets only after successful cleanup. A failed cleanup preserves state for retry. Normal destroy retains tagged persistent disks and snapshots.
 
-If the cluster destroy fails, the platform state is left as it was; rerun the workflow. If the sweep fails, list the environment's remaining instances before retrying:
-
-```bash
-aws ec2 describe-instances --region us-east-1 \
-  --filters "Name=tag:kubernetes.io/cluster/${CLUSTER_ENV}-talos,Values=owned" \
-  --query 'Reservations[].Instances[?State.Name!=`terminated`].InstanceId'
-```
-
-To destroy locally, follow [local OpenTofu setup](../../CONTRIBUTING.md#run-opentofu-locally) with an AWS session that can terminate instances, and run the same two steps. Do not run `tofu destroy` on the platform root.
+For local destroy:
 
 ```bash
-export TF_VAR_env="$CLUSTER_ENV"
-TF_WORKSPACE="talos-cluster-${TF_VAR_env}" tofu -chdir=terraform/cluster destroy \
-  -var-file="env/${TF_VAR_env}/main.tfvars"
-export TF_WORKSPACE="talos-platform-${TF_VAR_env}"
-tofu -chdir=terraform/platform init
-tofu -chdir=terraform/platform state list | xargs -r tofu -chdir=terraform/platform state rm
+export TF_VAR_env=prod
+export TF_WORKSPACE=talos-cluster-prod
+tofu -chdir=terraform/cluster/prod destroy -var-file=../env/prod/main.tfvars
 ```
+
+Set `PURGE_DATA=true` explicitly for a purge. After successful cluster destroy, select the matching platform workspace and remove its resources from state; do not attempt platform destroy against a vanished API. Never empty state after failed cloud cleanup.
 
 ## Inspect AWS resources in state
 
-With the environment's cluster workspace initialized:
-
 ```bash
-tofu -chdir=terraform/cluster state list module.aws
+tofu -chdir=terraform/cluster/prod state list module.aws
 ```
 
-AWS resources share cluster state with Proxmox and Talos. They do not have a separate root or workspace. Karpenter-launched instances and launch templates are not in state; Karpenter owns them.
+Karpenter instances and launch templates are controller-owned and do not appear in OpenTofu state. See [control-plane recovery](../architecture/hybrid-aws-workers.md#control-plane-recovery) before replacing the fixed instance or its AMI.

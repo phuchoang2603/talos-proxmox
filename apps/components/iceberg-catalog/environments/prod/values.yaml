@@ -1,0 +1,6 @@
+clientNamespaces: [starrocks, openmetadata, fraud-data-prod, fraud-ml-prod]
+storageClass: gp3
+catalog:
+  bucket: platform-prod-142737101504-us-east-1
+  endpoint: https://s3.us-east-1.amazonaws.com
+  pathStyle: false

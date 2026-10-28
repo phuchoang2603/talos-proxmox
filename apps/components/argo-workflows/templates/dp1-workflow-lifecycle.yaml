@@ -12,7 +12,7 @@ spec:
         resources: [workflows]
   matchConditions:
     - name: dp1-namespace
-      expression: request.namespace == 'fraud-data-prod'
+      expression: request.namespace == '{{ .Values.dataNamespace }}'
   validations:
     - expression: >-
         request.operation != 'DELETE' ||

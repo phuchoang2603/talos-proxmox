@@ -53,6 +53,7 @@ resource "terraform_data" "karpenter_sweep" {
   }
 
   depends_on = [
+    terraform_data.storage_cleanup,
     aws_subnet.worker,
     aws_security_group.worker,
     aws_internet_gateway.worker,

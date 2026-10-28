@@ -23,6 +23,7 @@ spec:
       ebs:
         volumeSize: {{ .Values.rootVolumeSize }}
         volumeType: gp3
+        encrypted: true
         deleteOnTermination: true
   kubelet:
     {{- toYaml .Values.kubelet | nindent 4 }}
@@ -36,13 +37,12 @@ kind: NodePool
 metadata:
   name: aws-burst
 spec:
+  replicas: {{ .Values.nodePool.replicas }}
   {{- with .Values.nodePool.limits }}
   limits:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   disruption:
-    consolidationPolicy: WhenEmptyOrUnderutilized
-    consolidateAfter: {{ .Values.nodePool.consolidateAfter }}
     budgets:
       - nodes: "1"
   template:
@@ -56,10 +56,6 @@ spec:
         name: aws-burst
       expireAfter: {{ .Values.nodePool.expireAfter }}
       terminationGracePeriod: {{ .Values.nodePool.terminationGracePeriod }}
-      taints:
-        - key: {{ .Values.burst.taintKey }}
-          value: {{ .Values.burst.taintValue | quote }}
-          effect: NoSchedule
       startupTaints:
         - key: node.cloudprovider.kubernetes.io/uninitialized
           value: "true"
@@ -68,6 +64,9 @@ spec:
           value: "true"
           effect: NoSchedule
       requirements:
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values: {{ toJson .Values.nodePool.zones }}
         - key: kubernetes.io/arch
           operator: In
           values: [amd64]

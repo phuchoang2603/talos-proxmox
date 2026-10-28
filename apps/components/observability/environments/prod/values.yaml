@@ -1,0 +1,28 @@
+victoria-metrics-k8s-stack:
+  grafana:
+    persistence:
+      storageClassName: gp3
+  vmsingle:
+    spec:
+      storage:
+        storageClassName: gp3
+  vlsingle:
+    spec:
+      storage:
+        storageClassName: gp3
+  vtsingle:
+    spec:
+      storage:
+        storageClassName: gp3
+  vmagent:
+    spec:
+      statefulStorage:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: gp3
+vtagent:
+  spec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3

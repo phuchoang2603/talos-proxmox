@@ -15,6 +15,6 @@ spec:
     - from:
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: fraud-data-prod
+              kubernetes.io/metadata.name: {{ .Values.dataNamespace }}
       ports:
         - {port: 8585, protocol: TCP}

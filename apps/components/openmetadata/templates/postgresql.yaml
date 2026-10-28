@@ -12,7 +12,7 @@ spec:
       secret:
         name: openmetadata-postgres-credentials
   storage:
-    storageClass: local-path
+    storageClass: {{ .Values.storageClass | quote }}
     size: 10Gi
   resources:
     requests: {cpu: 100m, memory: 256Mi}

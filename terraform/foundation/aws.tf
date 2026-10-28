@@ -66,3 +66,21 @@ resource "aws_iam_role_policy_attachment" "ci_iam" {
 output "ci_role_arn" {
   value = aws_iam_role.ci.arn
 }
+
+resource "aws_iam_policy" "ci_compute" {
+  name = "talos-proxmox-ci-compute"
+  policy = replace(
+    file("${path.module}/ci-compute-policy.json"),
+    "ACCOUNT_ID", data.aws_caller_identity.current.account_id
+  )
+}
+
+resource "aws_iam_role_policy_attachment" "ci_compute" {
+  role       = aws_iam_role.ci.name
+  policy_arn = aws_iam_policy.ci_compute.arn
+}
+
+resource "aws_iam_service_linked_role" "spot" {
+  aws_service_name = "spot.amazonaws.com"
+  description      = "EC2 Spot capacity for production Talos workers"
+}

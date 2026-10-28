@@ -5,6 +5,9 @@ metadata:
   namespace: kubeflow
 spec:
   instances: 1
+  resources:
+    requests: {cpu: 50m, memory: 256Mi}
+    limits: {memory: 1Gi}
   bootstrap:
     initdb:
       database: mlpipeline
@@ -22,7 +25,7 @@ spec:
         login: true
         createdb: true
   storage:
-    storageClass: local-path
+    storageClass: {{ .Values.storageClass | quote }}
     size: 35Gi
 ---
 apiVersion: postgresql.cnpg.io/v1
@@ -32,6 +35,9 @@ metadata:
   namespace: kubeflow
 spec:
   instances: 1
+  resources:
+    requests: {cpu: 50m, memory: 256Mi}
+    limits: {memory: 1Gi}
   bootstrap:
     initdb:
       database: katib
@@ -39,5 +45,5 @@ spec:
       secret:
         name: katib-postgres-secret
   storage:
-    storageClass: local-path
+    storageClass: {{ .Values.storageClass | quote }}
     size: 10Gi

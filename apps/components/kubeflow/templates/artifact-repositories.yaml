@@ -9,10 +9,10 @@ data:
   default-v1: |
     archiveLogs: true
     s3:
-      endpoint: minio.home.phuchoang.sbs:443
-      bucket: kubeflow-prod-pipelines
+      endpoint: {{ .Values.objectStorage.host }}:443
+      bucket: {{ .Values.objectStorage.bucket | quote }}
       insecure: false
-      keyFormat: "private-artifacts/{{`{{workflow.namespace}}`}}/{{`{{workflow.name}}`}}/{{`{{pod.name}}`}}"
+      keyFormat: "{{ .Values.objectStorage.artifactPrefix }}/private/{{`{{workflow.namespace}}`}}/{{`{{workflow.name}}`}}/{{`{{pod.name}}`}}"
       accessKeySecret:
         name: mlpipeline-minio-artifact
         key: accesskey

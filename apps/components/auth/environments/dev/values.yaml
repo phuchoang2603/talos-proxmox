@@ -1,0 +1,15 @@
+oauth2-proxy:
+  extraArgs:
+    oidc-issuer-url: https://auth-dev.phuchoang.sbs/dex
+    login-url: https://auth-dev.phuchoang.sbs/dex/auth
+    redirect-url: https://kubeflow-dev.phuchoang.sbs/oauth2/callback
+    cookie-domain: kubeflow-dev.phuchoang.sbs
+identity:
+  issuer: https://auth-dev.phuchoang.sbs/dex
+  redirectURI: https://kubeflow-dev.phuchoang.sbs/oauth2/callback
+  grafanaRedirectURI: https://grafana-dev.phuchoang.sbs/login/generic_oauth
+  argocdRedirectURI: https://argocd-dev.phuchoang.sbs/auth/callback
+  workflowsRedirectURI: https://workflows-dev.phuchoang.sbs/oauth2/callback
+  openmetadataRedirectURI: https://openmetadata-dev.phuchoang.sbs/callback
+tunnel:
+  hostname: auth-dev.phuchoang.sbs

@@ -6988,7 +6988,7 @@ data:
     }
   deploy: |-
     {
-      "defaultDeploymentMode": "Standard"
+      "defaultDeploymentMode": "Serverless"
     }
   explainers: |-
     {

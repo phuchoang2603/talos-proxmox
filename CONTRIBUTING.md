@@ -9,19 +9,19 @@ Use this guide to make changes, validate them, and deploy dev and prod. Commands
 1. Create a branch and enter `devenv shell`.
 2. Update the relevant Terraform root or component chart. Use the [repository map](README.md#repository-map) and [ownership guide](docs/architecture/gitops.md#one-owner-per-resource) to choose the right location.
 3. Run the relevant checks below and update documentation or OpenSpec requirements when behavior changes.
-4. Open a pull request targeting `main`, describing the change and validation performed. PR checks run without deployment credentials or state access.
-5. After review, merging to `main` triggers provisioning for both environments. Foundation changes still require a local operator apply.
+4. Open a pull request targeting `main`, describing the change and validation performed. Validation runs without state or deployment credentials. Trusted repository PRs then deploy dev; fork PRs validate only.
+5. After review, repository PRs deploy dev after validation; merging to `main` deploys dev and then prod after dev succeeds. Foundation changes still require a local operator apply.
 
 Editing documentation and running static checks do not require deployment credentials. The account setup below is for provisioning and authenticated plans.
 
 ## Validate locally
 
-For a changed Terraform root, replace `cluster` with `foundation` or `platform` as appropriate:
+For a changed Terraform root, replace `cluster/dev` with `cluster/prod`, `foundation` or `platform` as appropriate:
 
 ```bash
-tofu -chdir=terraform/cluster fmt -check -recursive
-tofu -chdir=terraform/cluster init -backend=false
-tofu -chdir=terraform/cluster validate
+tofu -chdir=terraform/cluster/dev fmt -check -recursive
+tofu -chdir=terraform/cluster/dev init -backend=false
+tofu -chdir=terraform/cluster/dev validate
 ```
 
 For a component chart, lint its base values and any changed environment overlay. For example:
@@ -59,14 +59,14 @@ The checked-in configuration targets GitHub owner and HCP organization `phuchoan
 | Setting | File |
 | --- | --- |
 | HCP organization and GitHub owner | [`terraform/foundation/main.tf`](terraform/foundation/main.tf) |
-| HCP organization for cluster/platform state | [`cluster/provider.tf`](terraform/cluster/provider.tf), [`platform/provider.tf`](terraform/platform/provider.tf) |
+| HCP organization for cluster/platform state | [`cluster/dev/provider.tf`](terraform/cluster/dev/provider.tf), [`cluster/prod/provider.tf`](terraform/cluster/prod/provider.tf), [`platform/provider.tf`](terraform/platform/provider.tf) |
 | GitHub repository and OIDC subject, including immutable owner/repository IDs | [`foundation/github.tf`](terraform/foundation/github.tf), [`foundation/aws.tf`](terraform/foundation/aws.tf) |
 | CI AWS role ARN and region | [`provision.yml`](.github/workflows/provision.yml) |
 | Git repository reconciled by Argo CD | [`platform/variables.tf`](terraform/platform/variables.tf) |
 
 ## 2. Prepare Doppler and HCP Terraform
 
-The foundation root **imports an existing Doppler project and its dev/prod environments**. Make sure project `talos-proxmox` and root configs `dev` and `prod` exist before applying it.
+The foundation root creates the Doppler project and dev/prod configs from empty state. Supply operator-issued and recovered credentials through a private `operator_secrets` variable file outside Git.
 
 1. Create the HCP Terraform organization and set its default execution mode to **Local** before initializing foundation. Plans will run on your machine or the CI runner; HCP stores and locks state.
 2. Create an HCP user token for an operator with access to the organization. Store it as `HCP_TERRAFORM_TOKEN` in both Doppler configs. This deployment uses an operator user token shared across the workspaces.
@@ -78,17 +78,14 @@ Foundation creates the CI and ESO service tokens. Cluster applies generate kubec
 
 | Configuration | Location |
 | --- | --- |
-| VM placement, sizing, addresses, roles, PCI passthrough | [`terraform/cluster/env/`](terraform/cluster/env/), each environment's `k8s_nodes.json` |
-| API VIP and LoadBalancer address range | Each environment's `network.json` |
+| VM placement, sizing, addresses, roles, PCI passthrough | [`terraform/cluster/env/`](terraform/cluster/env/), dev's `k8s_nodes.json` |
 | Proxmox bridge, datastore, gateway, versions, AWS AMI and VPC CIDR | Each environment's `main.tfvars` |
-| Cilium address pools and L2 announcement nodes | [`cilium-network/environments/`](apps/components/cilium-network/environments/) |
-| Argo CD UI addresses | [`argocd/bootstrap/environments/`](apps/argocd/bootstrap/environments/) |
 
 Inventory role `servers` means a control-plane node that also runs workloads; `worker` means a general worker. A node's `pci` entries enable GPU passthrough and select the Talos image with NVIDIA extensions.
 
-Keep Cilium's address pools consistent with `network.json`, choose UI addresses from those pools, and keep L2 announcement selectors consistent with node names. These settings are maintained in separate files.
+Dev addresses its single control-plane node directly; prod uses a stable Elastic IP. Application UIs use ClusterIP Services, Cloudflare tunnels and management port-forward.
 
-AWS workers use a dedicated VPC per environment and a public subnet. Check the pinned AMI, availability zone, and [network prerequisites](docs/architecture/hybrid-aws-workers.md#network-path) before provisioning.
+Prod uses a dedicated single-AZ VPC and public subnet; dev provisions no AWS resources. Check the pinned AMI, availability zone, and [network prerequisites](docs/architecture/hybrid-aws-workers.md#network-path) before provisioning.
 
 ## 4. Apply foundation locally
 
@@ -100,31 +97,32 @@ export DOPPLER_TOKEN="$(doppler configure get token --plain)"
 export GITHUB_TOKEN="$(gh auth token)"
 
 tofu -chdir=terraform/foundation init
-tofu -chdir=terraform/foundation plan
-tofu -chdir=terraform/foundation apply
+tofu -chdir=terraform/foundation plan -var-file="$OPERATOR_VARS_FILE"
+tofu -chdir=terraform/foundation apply -var-file="$OPERATOR_VARS_FILE"
 ```
 
-Review the plan before approving the apply. Existing Doppler project/environment resources should be imported, not replaced. Foundation creates the four cluster/platform HCP workspaces in local execution mode, AWS CI identity, main-only GitHub Environments, and Doppler tokens. Its own state uses workspace `talos-proxmox`.
+Review the plan before approving the apply. Pass the same private operator variable file on every foundation plan/apply. Foundation creates the four cluster/platform HCP workspaces in local execution mode, AWS CI identity, main-only GitHub Environments, and Doppler tokens. Its own state uses workspace `talos-proxmox`.
 
 ## 5. Deploy through GitHub Actions
 
-Push the reviewed configuration to `main`. The **Provision** workflow validates the repository, then applies prod's cluster root followed by its platform root. Pushes never touch dev.
+Push the reviewed configuration to `main`. **Provision** validates trusted repository PRs and deploys them to dev. Main deploys dev and then prod only after dev succeeds. An intentionally absent dev cluster must be recreated manually. Manual production applies require a full main commit SHA successfully deployed to dev; root and child Argo Applications stay pinned to that SHA.
 
-Dev exists only on demand. To build it, or to rehearse a change before merging it to prod, use **Actions → Manual Provision → Run workflow**, select `main`, `dev`, and **apply**. Select **destroy** when you are done. The same workflow can also apply or destroy prod. A dispatch from another branch cannot provision.
+To build dev or update it manually, use **Actions → Manual Provision → Run workflow**, select `main`, `dev`, and **apply**. Select **destroy** when you are done. The same workflow can also apply or destroy prod. A dispatch from another branch cannot provision.
 
-A green workflow means the OpenTofu applies completed. Check Argo CD convergence separately using [cluster access](docs/operations/cluster-access.md#check-convergence): the root Application and its children should become Synced and Healthy, including storage and SPIRE.
+A green workflow means the OpenTofu applies completed. Check Argo CD convergence separately using [cluster access](docs/operations/cluster-access.md#check-convergence): the root Application and its children should become Synced and Healthy, including storage, Knative and Kubeflow.
 
 ## Run OpenTofu locally
 
-Use this for inspection or an operator-driven change. Start at the repository root with a local AWS session for the cluster root, a Doppler login, and HCP credentials from `tofu login`:
+Use this for inspection or an operator-driven change. Start at the repository root with a local AWS session for prod (dev needs Proxmox access), a Doppler login, and HCP credentials from `tofu login`:
 
 ```bash
 export TF_VAR_env=dev
+export TF_VAR_target_revision="$(git rev-parse HEAD)"
 export DOPPLER_TOKEN="$(doppler configure get token --plain)"
 export TF_WORKSPACE="talos-cluster-${TF_VAR_env}"
 
-tofu -chdir=terraform/cluster init
-tofu -chdir=terraform/cluster plan -var-file="env/${TF_VAR_env}/main.tfvars"
+tofu -chdir=terraform/cluster/${TF_VAR_env} init
+tofu -chdir=terraform/cluster/${TF_VAR_env} plan -var-file="../env/${TF_VAR_env}/main.tfvars"
 ```
 
 For platform, select its workspace and use no variable file:

@@ -1,36 +1,32 @@
 # Set by the platform root from the environment's Doppler config.
-clusterName: dev-talos
+clusterName: prod-talos
 amiId: ami-00000000000000000
-instanceProfile: dev-talos-burst-worker
+instanceProfile: prod-talos-worker
 userData: "# set by the platform root"
 
 burst:
   labelKey: burst.talos.dev/compute
   labelValue: aws
-  taintKey: burst.talos.dev/stateless
-  taintValue: "true"
 
 rootVolumeSize: 40Gi
 
 # Karpenter uses these only to predict allocatable capacity; they are not applied to Talos.
-# Measured on c7i-flex.large workers: Talos allocates 1950m CPU, ~477Mi less memory than capacity,
-# and ~8Gi less ephemeral storage than a 40Gi disk. Keep the prediction at or below the real value.
 kubelet:
   kubeReserved:
-    cpu: 50m
-    memory: 400Mi
+    cpu: 500m
+    memory: 1536Mi
   evictionHard:
     memory.available: 100Mi
     nodefs.available: 20%
 
 nodePool:
-  # Optional cap on total provisioned resources. Empty means no NodePool cap, so the AWS account's
-  # vCPU quota is the only ceiling. Example: {cpu: "16", memory: 64Gi}. Set cpu "0" to pause bursting.
-  limits: {}
+  replicas: 2
+  zones: [us-east-1a]
+  limits: {nodes: "3"}
   # A small allowlist of cost-effective general-purpose types. Widen this list, or switch to
   # category/generation requirements, to let Karpenter choose from more instances.
-  instanceTypes: [m7i-flex.large, c7i-flex.large]
-  capacityTypes: [spot, on-demand]
+  instanceTypes: [m6a.xlarge]
+  capacityTypes: [spot]
   consolidateAfter: 5m
   expireAfter: 720h
   terminationGracePeriod: 30m

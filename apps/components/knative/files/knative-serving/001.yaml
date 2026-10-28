@@ -3300,7 +3300,14 @@ data:
     # Please use the new configuration format `local-gateways` for future compatibility.
     # This configuration will raise an error if either `external-gateways` or `local-gateways` is defined.
     local-gateway.knative-serving.knative-local-gateway: "knative-local-gateway.istio-system.svc.cluster.local"
-  gateway.kubeflow.kubeflow-gateway: istio-ingressgateway.istio-system.svc.cluster.local
+  external-gateways: |
+    - name: kubeflow-gateway
+      namespace: kubeflow
+      service: istio-ingressgateway.istio-system.svc.cluster.local
+  local-gateways: |
+    - name: cluster-local-gateway
+      namespace: istio-system
+      service: cluster-local-gateway.istio-system.svc.cluster.local
 kind: ConfigMap
 metadata:
   labels:
