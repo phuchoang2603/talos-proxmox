@@ -32,7 +32,7 @@ The `aws-gpu-training` pool shares the same controller and is disabled by defaul
 
 ## Object storage and Iceberg
 
-Prod uses the generic bucket `platform-prod-<account>-<region>`, with purpose-scoped `OBJECT_<PURPOSE>_*` credentials for `artifacts/`, `lakehouse/`, `datasets/`, `runs/` and `backups/`. Worker instance roles grant no object access. Dev uses `platform-dev` on external MinIO; import the prefix policies from `terraform/cluster/env/dev/minio-*-policy.json` into MinIO and attach them to the matching identities.
+Prod uses the generic bucket `platform-prod-<account>-<region>`, with purpose-scoped `OBJECT_<PURPOSE>_*` credentials for `artifacts/`, `lakehouse/`, `datasets/`, `runs/` and `backups/`. Worker instance roles grant no object access. Dev uses `platform-dev` on external MinIO; attach `terraform/cluster/env/dev/minio-artifacts-policy.json` to the shared Kubeflow/training identity for `artifacts/`, `datasets/` and `runs/`, and `minio-lakehouse-policy.json` to the separate lakehouse identity. Dev's `OBJECT_TRAINING_*` and `OBJECT_ARTIFACTS_*` values use the same access key and secret key.
 
 Apache Polaris provides authenticated Iceberg REST at `http://iceberg-catalog.iceberg.svc.cluster.local:8181/api/catalog`, with warehouse `lakehouse`. Table files and metadata JSON live in MinIO/S3; catalog state lives in single-instance CNPG. Clients use OAuth and their own scoped object credentials. Catalog availability does not prove an exported dataset is complete.
 

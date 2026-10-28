@@ -12,7 +12,14 @@ kubectl kustomize 'https://github.com/adyanth/cloudflare-operator.git/config/def
 }}
 {{- range $manifest := splitList "\n---\n" $manifests }}
 {{- if ne (fromYaml $manifest).kind "Namespace" }}
+{{- $resource := fromYaml $manifest }}
+{{- if has $resource.kind (list "Certificate" "Issuer") }}
+{{- $_ := set $resource.metadata "annotations" (merge (dict "argocd.argoproj.io/sync-wave" "-1") ($resource.metadata.annotations | default dict)) }}
+---
+{{ toYaml $resource }}
+{{- else }}
 ---
 {{ $manifest }}
+{{- end }}
 {{- end }}
 {{- end }}

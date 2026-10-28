@@ -15,7 +15,7 @@ resource "helm_release" "cilium" {
   namespace       = "kube-system"
   chart           = "${local.components}/cilium"
   values          = local.chart_values["cilium"]
-  wait            = false
+  wait            = true
   timeout         = 900
   upgrade_install = true
 

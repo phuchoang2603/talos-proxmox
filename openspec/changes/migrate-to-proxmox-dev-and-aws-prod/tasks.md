@@ -22,7 +22,7 @@
 
 ## 4. Promotion and rollout
 
-- [ ] 4.1 Update CI for dev deployment, explicit production promotion and consistent Argo revision pinning; verify workflow guards and chart renders.
+- [x] 4.1 Update CI for dev deployment, explicit production promotion and consistent Argo revision pinning; verify workflow guards and chart renders.
 - [x] 4.2 Restore recovered prod application/external secrets into dev, share appropriate operator credentials and generate independent prod application secrets; verify a secret-only foundation apply, matching restored values and absence of deleted-resource keys.
 - [x] 4.6 Complete the remaining foundation resources and verify workspace, IAM, storage and GitHub environment ownership before cluster rollout.
 - [ ] 4.3 Apply and validate dev with MinIO, Knative and the local GPU; record node, application and storage readiness.

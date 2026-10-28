@@ -20,6 +20,15 @@ privilegedNamespace: &privileged
 
 # Components use Helm by default; set sourceType: kustomize for a Git-owned Kustomization path.
 components:
+  workload-namespaces:
+    path: apps/components/workload-namespaces
+    namespace: argo-cd
+    syncWave: "-4"
+    releaseName: workload-namespaces
+    clusters: [dev, prod]
+    valueFilesByCluster:
+      dev:
+        - environments/dev/values.yaml
   external-secrets:
     path: apps/components/external-secrets
     namespace: operators

@@ -25,7 +25,11 @@
         "StringLike": {
           "s3:prefix": [
             "artifacts",
-            "artifacts/*"
+            "artifacts/*",
+            "datasets",
+            "datasets/*",
+            "runs",
+            "runs/*"
           ]
         }
       }
@@ -43,7 +47,9 @@
         "s3:PutObjectTagging"
       ],
       "Resource": [
-        "arn:aws:s3:::platform-dev/artifacts/*"
+        "arn:aws:s3:::platform-dev/artifacts/*",
+        "arn:aws:s3:::platform-dev/datasets/*",
+        "arn:aws:s3:::platform-dev/runs/*"
       ]
     }
   ]

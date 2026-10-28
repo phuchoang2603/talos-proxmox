@@ -4,7 +4,7 @@ data "talos_client_configuration" "this" {
   cluster_name         = var.cluster_name
   client_configuration = talos_machine_secrets.this.client_configuration
   endpoints            = var.controlplane_ips
-  nodes                = var.controlplane_ips
+  nodes                = coalesce(var.controlplane_nodes, var.controlplane_ips)
 }
 
 data "talos_machine_configuration" "controlplane" {

@@ -10,6 +10,7 @@ module "talos" {
   cluster_name       = var.cluster_name
   cluster_endpoint   = local.cluster_endpoint
   controlplane_ips   = [aws_eip.controlplane.public_ip]
+  controlplane_nodes = [aws_instance.controlplane.private_ip]
   talos_version      = var.talos_version
   kubernetes_version = var.kubernetes_version
 }
@@ -72,13 +73,14 @@ resource "aws_eip_association" "controlplane" {
 resource "talos_machine_configuration_apply" "controlplane" {
   client_configuration        = module.talos.client_configuration
   machine_configuration_input = data.talos_machine_configuration.controlplane.machine_configuration
-  node                        = aws_eip.controlplane.public_ip
+  node                        = aws_instance.controlplane.private_ip
   endpoint                    = aws_eip.controlplane.public_ip
-  depends_on                  = [aws_eip_association.controlplane, aws_vpc_security_group_ingress_rule.management]
+  depends_on                  = [module.bootstrap]
 }
 module "bootstrap" {
   source               = "../talos/bootstrap"
   client_configuration = module.talos.client_configuration
   endpoint             = aws_eip.controlplane.public_ip
-  depends_on           = [talos_machine_configuration_apply.controlplane]
+  node                 = aws_instance.controlplane.private_ip
+  depends_on           = [aws_eip_association.controlplane, aws_vpc_security_group_ingress_rule.management]
 }

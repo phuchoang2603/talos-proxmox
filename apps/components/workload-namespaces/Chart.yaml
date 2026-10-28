@@ -1,0 +1,5 @@
+apiVersion: v2
+name: platform-workload-namespaces
+description: Shared application namespaces
+type: application
+version: 0.1.0

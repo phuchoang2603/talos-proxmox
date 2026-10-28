@@ -1,6 +1,8 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
   name: kubeflow-pipelines-db
   namespace: kubeflow
 spec:
@@ -31,6 +33,8 @@ spec:
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
   name: kubeflow-katib-db
   namespace: kubeflow
 spec:

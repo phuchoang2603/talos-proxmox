@@ -1,5 +1,4 @@
-# Karpenter is owned entirely by this root so that a destroy can remove the NodePool, wait for
-# Karpenter to terminate its EC2 instances, and only then remove the controller and CRDs.
+# Karpenter is owned by this root; cluster teardown sweeps its AWS resources before resetting platform state.
 
 # The controller's AWS key is the second Doppler-derived Secret this root owns; ESO does not manage it.
 resource "kubernetes_secret_v1" "karpenter_aws" {
@@ -17,7 +16,6 @@ resource "kubernetes_secret_v1" "karpenter_aws" {
   depends_on = [data.http.apiserver_ready]
 }
 
-# Pods cannot start until Cilium is ready and Cilium itself waits on Argo CD, so do not gate on rollout.
 resource "helm_release" "karpenter" {
   count           = var.env == "prod" ? 1 : 0
   name            = "karpenter"
@@ -25,7 +23,8 @@ resource "helm_release" "karpenter" {
   chart           = "${local.components}/karpenter"
   values          = local.chart_values["karpenter"]
   skip_crds       = true
-  wait            = false
+  wait            = true
+  timeout         = 300
   reset_values    = true
   upgrade_install = true
 

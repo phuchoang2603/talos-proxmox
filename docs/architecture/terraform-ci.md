@@ -82,7 +82,7 @@ The configured HCP operator token is shared across environments and can access t
 
 ## What a successful apply means
 
-The platform first probes the API's authenticated `/readyz` endpoint, installs Gateway API CRDs, and installs Cilium. Argo CD depends directly on the Cilium release. The platform does not enumerate nodes or run Talos, etcd, or Kubernetes node health checks.
+The platform first probes the API's authenticated `/readyz` endpoint, installs Gateway API CRDs, and waits for Cilium's rollout. Talos CCM follows Cilium, then Argo CD and, in prod, Karpenter. The platform does not enumerate nodes or run Talos, etcd, or Kubernetes node health checks.
 
 Cilium does not install SPIRE, LAN address pools or L2 announcements. Argo CD uses a ClusterIP Service in both environments, with Cloudflare access and management port-forward. Its Helm release waits for its own resources and can fail if they cannot become ready. CI finishes after the root Application is installed, without waiting for every child Application or tunnel.
 

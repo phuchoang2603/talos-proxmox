@@ -63,7 +63,7 @@ jobs:
             deployments=$(gh api "repos/$GH_REPO/deployments?environment=dev&sha=$TF_VAR_target_revision&per_page=100" --jq '.[].id')
             validated=false
             for deployment in $deployments; do
-              state=$(gh api "repos/$GH_REPO/deployments/$deployment/statuses?per_page=1" --jq 'any(.[]; .state == "success")')
+              state=$(gh api "repos/$GH_REPO/deployments/$deployment/statuses?per_page=100" --jq 'any(.[]; .state == "success")')
               if [ "$state" = true ]; then validated=true; break; fi
             done
             [ "$validated" = true ] || { echo 'Production requires a successful dev deployment of this SHA.'; exit 1; }
