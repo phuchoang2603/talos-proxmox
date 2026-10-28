@@ -32,7 +32,7 @@ The foundation root accepts a sensitive `operator_secrets` map keyed by environm
 | `AWS_WORKER_MACHINE_CONFIG`, `AWS_WORKER_AMI_ID` | Cluster root's AWS module | Platform passes them to the Karpenter `EC2NodeClass` |
 | `GRAFANA_ADMIN_PASSWORD` (both environments) | Foundation | Grafana local admin login |
 | Application/database passwords, OIDC client secrets, signing keys and catalog credentials | Foundation | Generated independently per environment; recovered dev application values can be retained through `operator_secrets` |
-| `OBJECT_<PURPOSE>_ACCESS_KEY_ID`, `OBJECT_<PURPOSE>_SECRET_ACCESS_KEY` (prod) | Foundation | Separate platform S3 identities for training, artifacts and backups; foundation provisions application S3 identities from policies pinned in application repositories and publishes credentials to their Doppler projects; dev MinIO policies remain application-owned |
+| `OBJECT_<PURPOSE>_ACCESS_KEY_ID`, `OBJECT_<PURPOSE>_SECRET_ACCESS_KEY` (prod) | Foundation | Separate platform S3 identities for training, artifacts and backups; foundation provisions application S3 identities from platform-owned policies and publishes credentials to their Doppler projects; dev MinIO policies are supplied by the platform |
 | `OBJECT_STORAGE_BUCKET` (prod) | Foundation | Generic production object bucket |
 
 Foundation generates application and production object-storage credentials, so they survive environment destroys. HCP state access and the scoped Cloudflare API token may be shared. Tunnel tokens remain specific to each existing tunnel; cluster, autoscaler, ESO and application credentials remain independent. Do not restore kubeconfigs, Talos bootstrap material, AMI IDs or IAM access keys belonging to deleted resources.

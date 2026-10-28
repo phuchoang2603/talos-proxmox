@@ -21,7 +21,7 @@ Pinned catalog and client versions SHALL pass Spark, Flink and StarRocks read/co
 - **THEN** another supported engine reads the committed rows through the catalog
 
 ### Requirement: Consumer-owned storage integration
-The platform SHALL own Polaris service installation, authentication and durable catalog database state. Consumer applications SHALL own catalog registration, storage permission policies, external storage Secret delivery and engine-specific SQL catalog integration. Foundation SHALL provision application AWS identities from pinned application-owned policies and publish credentials to the application Doppler config. The platform SHALL NOT provision a separate lakehouse object identity or register an application warehouse. Polaris SHALL consume its configured externally supplied storage Secret.
+The platform SHALL own Polaris service installation, authentication and durable catalog database state. Consumer applications SHALL own catalog registration, external storage Secret delivery and engine-specific SQL catalog integration. Foundation SHALL own storage permission policies and provision application AWS identities and publish credentials to the application Doppler config. The platform SHALL NOT provision a separate lakehouse object identity or register an application warehouse. Polaris SHALL consume its configured externally supplied storage Secret.
 
 #### Scenario: Reconcile platform before a consumer
 - **WHEN** the platform is reconciled without a consumer integration

@@ -1,9 +1,7 @@
 locals {
   application_storage = {
     gateway = {
-      repository      = "payment-gateway-fraud-detection"
-      revision        = "18aa65506160b6cf14fce5cabbfc7ce849a631a3"
-      policy_file     = "infra/storage/gateway-policy.json.tftpl"
+      policy_file     = "policies/gateway-storage.json.tftpl"
       iam_user        = "payment-gateway-prod-storage"
       doppler_project = "payment-gateway-fraud-detection"
       doppler_config  = "prd"
@@ -24,13 +22,6 @@ locals {
   }]...)
 }
 
-data "github_repository_file" "application_storage_policy" {
-  for_each   = local.application_storage
-  repository = each.value.repository
-  branch     = each.value.revision
-  file       = each.value.policy_file
-}
-
 resource "aws_iam_user" "application_storage" {
   for_each = local.application_storage
   name     = each.value.iam_user
@@ -40,7 +31,7 @@ resource "aws_iam_user_policy" "application_storage" {
   for_each = local.application_storage
   name     = "scoped-object-storage"
   user     = aws_iam_user.application_storage[each.key].name
-  policy = templatestring(data.github_repository_file.application_storage_policy[each.key].content, {
+  policy = templatefile("${path.module}/${each.value.policy_file}", {
     bucket_arn = aws_s3_bucket.platform.arn
   })
 }
