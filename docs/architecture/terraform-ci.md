@@ -49,13 +49,13 @@ flowchart TD
     ProdCluster --> ProdPlatform["prod platform apply"]
 ```
 
-Trusted repository PRs deploy dev; fork PRs validate only. Main updates dev and prod independently after lint succeeds. Manual applies can select a full main commit SHA; all Argo Applications are pinned to the selected SHA. Lint still renders dev's overlays on every PR, so a later dispatch does not start from broken charts.
+Trusted repository PRs deploy dev and independently plan the prod cluster root after lint; fork PRs validate only. Prod PR jobs do not apply, reset state, or plan the platform root, which requires live Kubernetes access and credentials from a completed cluster apply. Main updates dev and prod independently after lint succeeds. Manual applies can select a full main commit SHA; all Argo Applications are pinned to the selected SHA. Lint still renders dev's overlays on every PR, so a later dispatch does not start from broken charts.
 
 | Workflow | Responsibility |
 | --- | --- |
-| [`terraform.yml`](../../.github/workflows/terraform.yml) | Runs only when `terraform/`, `apps/`, or `.github/workflows/` change: PR checks, and trusted PRs deploy dev; main deploys dev and prod independently |
+| [`terraform.yml`](../../.github/workflows/terraform.yml) | Runs only when `terraform/`, `apps/`, or `.github/workflows/` change: PR checks, and trusted PRs deploy dev and plan the prod cluster; main deploys dev and prod independently |
 | [`lint.yml`](../../.github/workflows/lint.yml) | Backend-disabled init, format and validate all roots; lint charts and environment overlays |
-| [`provision.yml`](../../.github/workflows/provision.yml) | Reusable per-environment apply or destroy, restricted to `main` pushes/manual dispatches and trusted PRs targeting dev |
+| [`provision.yml`](../../.github/workflows/provision.yml) | Reusable per-environment apply, cluster plan, or destroy; trusted PRs may apply dev or plan prod, while prod apply/destroy remain restricted to `main` |
 | [`manual.yml`](../../.github/workflows/manual.yml) | Validate, then apply or destroy one selected environment on `main` |
 
 Provisioning runs are serialized per environment and do not cancel an active run. The job timeout is 90 minutes. Destroy runs only the cluster root, which also removes Karpenter's EC2 instances and launch templates, and then empties the platform root's state instead of destroying it, so it does not need the Kubernetes API. Foundation is only validated by CI and must be applied locally.
@@ -73,7 +73,7 @@ Each job gets its environment's `DOPPLER_TOKEN` from GitHub. Both jobs use GitHu
 | Platform Kubernetes access | Generated `KUBECONFIG` read from Doppler |
 | Private API routing | Tailscale runner identity `tag:ci` |
 
-GitHub Environment policies allow main and PR merge refs for dev, and only main for prod; AWS trust is limited to the dev/prod environment subjects. PR validation does not use deployment secrets or remote state. Saved plans remain on the runner. See the [secrets reference](../reference/secrets.md) for ownership and consumers.
+GitHub Environment policies allow main and PR merge refs for both environments; workflow guards restrict prod PRs to planning, and exclude fork PRs. AWS trust is limited to the dev/prod environment subjects. Static PR validation does not use deployment secrets or remote state. Saved plans remain on the runner. See the [secrets reference](../reference/secrets.md) for ownership and consumers.
 
 ## State and environment isolation
 
