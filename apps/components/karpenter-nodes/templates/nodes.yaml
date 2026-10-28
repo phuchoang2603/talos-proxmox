@@ -1,7 +1,7 @@
 apiVersion: karpenter.k8s.aws/v1
 kind: EC2NodeClass
 metadata:
-  name: aws-burst
+  name: aws-cpu
 spec:
   amiFamily: Custom
   amiSelectorTerms:
@@ -35,7 +35,7 @@ spec:
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
-  name: aws-burst
+  name: aws-workers
 spec:
   replicas: {{ .Values.nodePool.replicas }}
   {{- with .Values.nodePool.limits }}
@@ -53,7 +53,7 @@ spec:
       nodeClassRef:
         group: karpenter.k8s.aws
         kind: EC2NodeClass
-        name: aws-burst
+        name: aws-cpu
       expireAfter: {{ .Values.nodePool.expireAfter }}
       terminationGracePeriod: {{ .Values.nodePool.terminationGracePeriod }}
       startupTaints:

@@ -10,10 +10,10 @@ Ordinary workloads may use any eligible node, including EBS-backed workloads. No
 
 ```yaml
 nodeSelector:
-  karpenter.sh/nodepool: aws-burst
+  karpenter.sh/nodepool: aws-cpu-burst
 ```
 
-Spark job definitions are owned by the application repository; installing the Spark operator starts no jobs. Prod maintains two `m6a.xlarge` Spot CPU workers even when idle. It never falls back to On-Demand workers.
+Spark job definitions are owned by the application repository; installing the Spark operator starts no jobs. Prod maintains two On-Demand `m6a.xlarge` CPU workers in `aws-workers` even when idle. The demand-driven `aws-cpu-burst` pool adds up to one `m6a.xlarge` Spot worker for pending workloads and consolidates idle/underutilized burst capacity after five minutes. Both pools share the `aws-cpu` EC2NodeClass and the same Karpenter controller. The baseline permits one extra worker during replacement. Select the burst pool explicitly only when a job must run on Spot.
 
 ## Observe scaling
 

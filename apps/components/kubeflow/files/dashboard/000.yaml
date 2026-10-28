@@ -6006,7 +6006,7 @@ spec:
         - key: kubernetes.io/metadata.name
           operator: In
           values:
-          - kubeflow
+          - ml
     ports:
     - port: http-kfam
       protocol: TCP

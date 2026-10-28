@@ -7,7 +7,7 @@ spec:
   names:
     categories:
     - all
-    - kubeflow
+    - ml
     - katib
     kind: Experiment
     plural: experiments
@@ -43,7 +43,7 @@ spec:
   names:
     categories:
     - all
-    - kubeflow
+    - ml
     - katib
     kind: Suggestion
     plural: suggestions
@@ -85,7 +85,7 @@ spec:
   names:
     categories:
     - all
-    - kubeflow
+    - ml
     - katib
     kind: Trial
     plural: trials

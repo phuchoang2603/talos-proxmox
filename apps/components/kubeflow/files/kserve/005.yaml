@@ -7656,6 +7656,11 @@ spec:
   - ports:
     - port: 9443
       protocol: TCP
+    - port: 15008
+      protocol: TCP
+  - from:
+    - ipBlock:
+        cidr: 169.254.7.127/32
   podSelector:
     matchExpressions:
     - key: control-plane

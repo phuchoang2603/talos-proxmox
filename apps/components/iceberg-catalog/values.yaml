@@ -16,6 +16,9 @@ polaris:
       memory: 512Mi
     limits:
       memory: 1Gi
+  envFrom:
+  - secretRef:
+      name: iceberg-storage
   extraEnv:
   - name: JAVA_TOOL_OPTIONS
     value: -Xms128m -Xmx512m
