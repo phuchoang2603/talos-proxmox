@@ -6,6 +6,10 @@ Dev keeps the former production VM allocations with one control-plane/workload n
 
 Dev uses local-path and existing MinIO. Prod uses encrypted gp3 EBS and generic private S3 storage. An authenticated PostgreSQL-backed Polaris catalog provides the shared Iceberg REST interface. State, application credentials and public domains remain independent.
 
+[![Infrastructure architecture](docs/architecture/diagrams/architecture.png)](docs/architecture/diagrams/architecture.svg?raw=1)
+
+[Interactive HTML](docs/architecture/diagrams/architecture.html) · [Editable Archify source](docs/architecture/diagrams/architecture.json)
+
 ## Start here
 
 | I want to… | Read |
