@@ -32,7 +32,7 @@ Cilium and Argo CD remain OpenTofu-owned after bring-up. Changes to them go thro
 
 An environment destroy removes the cluster and empties the platform root's state; it does not uninstall anything from the cluster. The platform root and Argo CD components must therefore not create external resources requiring removal on destroy, such as tailnet devices or unmanaged cloud resources. The cluster or foundation root owns the removal of external infrastructure, as the cluster root does for Karpenter's EC2 instances and launch templates. Existing Cloudflare tunnels may outlive destroys; see [public hostnames](#public-hostnames).
 
-The platform root installs Talos CCM before Argo CD so AWS cloud-node initialization does not depend on GitOps. Argo CD installs its own OIDC Secret and public tunnel route through the `argo-cd-access` Application after the secret-store and Cloudflare CRDs are available. The initial OpenTofu-owned Argo CD chart does not depend on those CRDs.
+The platform root installs Talos CCM before Argo CD so AWS cloud-node initialization does not depend on GitOps. Argo CD creates shared namespaces and installs its own OIDC Secret and public tunnel route through the `argocd-post` Application after the secret-store and Cloudflare CRDs are available. The initial OpenTofu-owned Argo CD chart does not depend on those CRDs. The `argocd-post` chart also owns shared namespace declarations; Kubeflow owns its `ml-s3` training credential ExternalSecret.
 
 ## Membership, overlays, and ordering
 
@@ -40,15 +40,15 @@ The source of truth is [`apps/argocd/platform/values.yaml`](../../apps/argocd/pl
 
 | Wave | Components | Environments |
 | --- | --- | --- |
-| -4 | Shared workload namespaces | dev, prod |
+| -4 | Argo CD post-install resources and shared namespaces | dev, prod |
 | -3 | External Secrets Operator and Doppler ClusterSecretStore | dev, prod |
 | -2 | Istio ambient (base, istiod, CNI, ztunnel, ingress gateway) | dev, prod |
 | -1 | Metrics-server and shared Argo Workflows with the environment's data-workflow lifecycle guard | dev, prod |
 | 0 | local-path (dev) or EBS CSI (prod), auth, Spark operator, cert-manager, CNPG, Strimzi, Redis operator | dev, prod |
 | 1 | GPU operator, NVIDIA DRA | dev, prod |
-| 1 | Flink operator, Iceberg catalog, StarRocks, ML access, Knative and observability | dev, prod |
-| 2 | Kubeflow, Cloudflare operator and tunnel | dev, prod |
-| 3 | OpenMetadata and Argo CD public access | dev, prod |
+| 1 | Flink operator, Iceberg catalog, StarRocks, Knative and observability | dev, prod |
+| 2 | Kubeflow and ML storage credentials, Cloudflare operator and tunnel | dev, prod |
+| 3 | OpenMetadata | dev, prod |
 
 Both environments run independent telemetry components and have no dependency on each other.
 

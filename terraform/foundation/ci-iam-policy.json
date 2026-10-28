@@ -142,6 +142,7 @@
       ],
       "Resource": [
         "arn:aws:iam::ACCOUNT_ID:user/platform-prod-ebs-csi",
+        "arn:aws:iam::ACCOUNT_ID:user/talos-proxmox-karpenter-dev",
         "arn:aws:iam::ACCOUNT_ID:user/talos-proxmox-karpenter-prod"
       ]
     }

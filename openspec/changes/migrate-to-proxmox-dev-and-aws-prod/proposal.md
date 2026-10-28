@@ -5,14 +5,14 @@ The repository currently defines two Proxmox clusters and treats AWS as stateles
 ## What Changes
 
 - **BREAKING**: Replace Proxmox production with one On-Demand `m6a.xlarge` control-plane/workload node and one `m6a.xlarge` On-Demand worker with optional Spot burst capacity in one AWS availability zone. Use Karpenter as the single CPU/GPU worker provisioner, preserve x86 images and make worker replacement declarative.
-- Rebuild persistent Proxmox dev with one control-plane/workload VM on `pve` and workers on `pve2` and `pve3`, retaining the former production CPU/RAM and local GPU allocation. Minimize application activity, not VM capacity.
+- Rebuild persistent Proxmox dev with one control-plane/workload VM on `pve` and workers on `pve2` and `pve3`, retaining the former production CPU/RAM and local GPU allocation. Minimize application activity, not VM capacity. Restore independent, zero-baseline AWS Spot workers joining dev through KubeSpan under its own Karpenter controller.
 - Extract shared Talos identity, configuration, bootstrap and client-output logic; retain provider-specific machine and network modules and one owner per resource.
 - **BREAKING**: Remove stateless admission restrictions, the stateless scheduling taint and corresponding tolerations. Support normal persistent workloads on AWS workers using EBS CSI.
 - Keep CNPG clusters single-instance. Use local-path in dev and encrypted `gp3` in prod; accept recovery downtime and do not describe the system as highly available.
 - Use existing MinIO in dev and generic, private S3 object storage in prod, with purpose-scoped access and retention. Reuse a common Iceberg REST catalog deployment backed by PostgreSQL; evaluate and pin a compatible catalog before rollout.
 - Enable the same applicable platform services in both clusters, parameterizing environment identity, storage, domains and object-store endpoints. Use minimal dev replicas and on-demand batch/GPU activity.
 - Restore Knative Serving, Eventing and Istio integration before Kubeflow in both environments, including serverless inference and scale-to-zero validation.
-- Rework CI promotion, secrets, management access and teardown for the new provider boundary. Recreate the previously destroyed foundation before provisioning; do not attempt another data migration.
+- Make dev/prod CI deployments independent after lint and rework secrets, management access and teardown for the new provider boundary. Recreate the previously destroyed foundation before provisioning; do not attempt another data migration.
 
 ## Capabilities
 
@@ -23,7 +23,7 @@ The repository currently defines two Proxmox clusters and treats AWS as stateles
 ### Modified Capabilities
 
 - `hybrid-aws-burst-workers`: Provider-specific clusters, unrestricted persistent workers, bounded Spot capacity and scoped lifecycle ownership.
-- `declarative-platform-bootstrap`: Shared platform, deliberate promotion, provider-specific storage and cloud-resource teardown.
+- `declarative-platform-bootstrap`: Shared platform, independent deployments, provider-specific storage and cloud-resource teardown.
 - `doppler-secret-delivery`: Bootstrap from empty foundation and environment-appropriate generated credentials.
 - `cluster-observability`: Independent telemetry in both clusters with portable placement and storage.
 - `ml-object-staging`: General-purpose prod S3, existing dev MinIO and purpose-scoped consumers.

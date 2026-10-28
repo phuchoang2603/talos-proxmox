@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Fixed Proxmox capacity
-Dev SHALL use fixed Proxmox VMs: pve with 8 CPU/32 GiB and GPU as control plane and worker, pve2 with 8 CPU/16 GiB and pve3 with 4 CPU/16 GiB as workers. Prod SHALL use an independent AWS Talos cluster with one On-Demand m6a.xlarge control-plane/workload node and one On-Demand m6a.xlarge worker in one AZ. Cluster identities MUST be independent.
+Dev SHALL use fixed Proxmox VMs: pve with 8 CPU/32 GiB and GPU as control plane and worker, pve2 with 8 CPU/16 GiB and pve3 with 4 CPU/16 GiB as workers. Prod SHALL use an independent AWS Talos cluster with one On-Demand m6a.xlarge control-plane/workload node and one On-Demand m6a.xlarge worker in one AZ. Dev SHALL also have its own zero-baseline AWS Spot CPU pool joining the Proxmox Talos identity over KubeSpan. Cluster identities MUST be independent.
 
 #### Scenario: Fresh deployment
 - **WHEN** both environments are applied
@@ -12,7 +12,7 @@ Dev SHALL use fixed Proxmox VMs: pve with 8 CPU/32 GiB and GPU as control plane 
 - **THEN** they join the independent production identity and leave dev Proxmox allocations unchanged
 
 ### Requirement: Bounded, independently autoscaled AWS workers
-Karpenter SHALL be the sole provisioner for CPU and optional GPU workers. Prod SHALL maintain one On-Demand m6a.xlarge CPU worker with at most one extra baseline replacement node and one additional demand-driven Spot worker. Its controller SHALL run on the On-Demand control plane. The baseline SHALL use On-Demand capacity; the burst CPU pool SHALL use Spot only and return to zero when no longer needed. GPU capacity SHALL be disabled by default and explicitly bounded when enabled. Interruption events SHALL trigger replacement and lost Node cleanup.
+Karpenter SHALL be the sole provisioner for CPU and optional GPU workers. Prod SHALL maintain one On-Demand m6a.xlarge CPU worker with at most one extra baseline replacement node and one additional demand-driven Spot worker. The prod controller SHALL run on the On-Demand control plane. Dev SHALL run its own controller on the Proxmox control plane and enable only the bounded, demand-driven Spot CPU pool, with separate AWS networking, credentials and interruption resources. The baseline SHALL use On-Demand capacity; the burst CPU pool SHALL use Spot only and return to zero when no longer needed. GPU capacity SHALL be disabled by default and explicitly bounded when enabled. Interruption events SHALL trigger replacement and lost Node cleanup.
 
 #### Scenario: Worker interruption
 - **WHEN** a Spot worker is reclaimed
@@ -57,7 +57,7 @@ Each cluster SHALL provide node and pod connectivity within its own network usin
 - **WHEN** a worker cannot reach its own control plane through KubePrism
 - **THEN** it remains NotReady and the connection failure is observable
 
-### Requirement: Persistent storage remains on fixed Proxmox nodes
+### Requirement: Storage follows environment capabilities
 Dev SHALL use local-path as its sole default StorageClass. Prod SHALL use encrypted expandable gp3 EBS through CSI with WaitForFirstConsumer as its sole default. Ordinary PVC-backed workloads SHALL be eligible for AWS workers. All CNPG clusters SHALL initially have one instance. Storage SHALL NOT be described as HA.
 
 #### Scenario: Worker replacement with a volume
@@ -66,7 +66,7 @@ Dev SHALL use local-path as its sole default StorageClass. Prod SHALL use encryp
 
 #### Scenario: Default dev claim
 - **WHEN** a dev workload requests a PVC without a StorageClass
-- **THEN** it receives local-path storage and runs on a fixed Proxmox node
+- **THEN** it receives node-bound local-path storage; data on a Spot worker remains ephemeral
 
 #### Scenario: Default prod claim
 - **WHEN** a prod workload requests a PVC without a StorageClass
@@ -120,11 +120,11 @@ Infrastructure SHALL have separate per-environment state and scoped credentials 
 - **THEN** AWS denies the launch, and no instance for that environment remains after the destroy completes
 
 ### Requirement: Lint PRs and provision from main only
-PR validation SHALL inspect roots and charts without secrets or remote state. Dev deployments SHALL run for trusted repository PRs and main; prod and manual deployments SHALL run only from main. Trusted repository PRs SHALL update dev; main SHALL update dev then prod after dev succeeds. Fork PRs SHALL validate only. CI SHALL have scoped permission to manage the tagged fixed AWS control plane while Karpenter owns worker launch.
+PR validation SHALL inspect roots and charts without secrets or remote state. Dev deployments SHALL run for trusted repository PRs and main; prod and manual deployments SHALL run only from main. Trusted repository PRs SHALL update dev; main SHALL update dev and prod independently after lint succeeds. Fork PRs SHALL validate only. CI SHALL have scoped permission to manage the tagged fixed AWS control plane while Karpenter owns worker launch.
 
-#### Scenario: Production promotion
+#### Scenario: Independent production deployment
 - **WHEN** a production revision is selected
-- **THEN** infrastructure and all Argo applications use that same tested revision
+- **THEN** infrastructure and all Argo applications use that same selected revision without requiring a successful dev deployment
 
 #### Scenario: Pull request
 - **WHEN** a pull request targets `main`
@@ -132,7 +132,7 @@ PR validation SHALL inspect roots and charts without secrets or remote state. De
 
 #### Scenario: Push to main
 - **WHEN** a validated change reaches main
-- **THEN** an existing dev environment receives the selected revision, followed by prod only after dev succeeds; absent dev requires manual recreation
+- **THEN** dev and prod receive the selected revision in independent jobs; an absent cluster can bootstrap during apply
 
 #### Scenario: Manual run from another branch
 - **WHEN** a manual workflow dispatch targets a ref other than `main`
@@ -147,3 +147,8 @@ PR validation SHALL inspect roots and charts without secrets or remote state. De
 ### Requirement: AWS burst capacity is stateless only
 **Reason**: Persistent AWS workloads are now supported.
 **Migration**: Remove the admission policy, stateless taints and corresponding tolerations; use EBS for persistent AWS claims.
+
+## RENAMED Requirements
+
+- FROM: `### Requirement: Persistent storage remains on fixed Proxmox nodes`
+- TO: `### Requirement: Storage follows environment capabilities`

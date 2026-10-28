@@ -2,7 +2,7 @@
 
 [Documentation home](../../README.md) · [AWS architecture](../architecture/hybrid-aws-workers.md)
 
-These operations apply to prod. Dev uses fixed Proxmox VMs and creates no AWS workers. First [select the cluster](cluster-access.md#select-an-environment), and enter `devenv shell`.
+Both environments have independent AWS worker pools. Dev has fixed Proxmox VMs and a zero-baseline Spot pool; prod additionally maintains an On-Demand AWS baseline. First [select the cluster](cluster-access.md#select-an-environment), and enter `devenv shell`.
 
 ## Schedule a workload
 
@@ -13,7 +13,7 @@ nodeSelector:
   karpenter.sh/nodepool: aws-cpu-burst
 ```
 
-Spark job definitions are owned by the application repository; installing the Spark operator starts no jobs. Prod maintains one On-Demand `m6a.xlarge` CPU worker in `aws-workers` even when idle. The demand-driven `aws-cpu-burst` pool adds up to one `m6a.xlarge` Spot worker for pending workloads and consolidates idle/underutilized burst capacity after five minutes. Both pools share the `aws-cpu` EC2NodeClass and the same Karpenter controller. The baseline permits one extra worker during replacement. Select the burst pool explicitly only when a job must run on Spot.
+Spark job definitions are owned by the application repository; installing the Spark operator starts no jobs. Dev enables only the demand-driven CPU pool; its controller stays on the Proxmox control plane. Prod maintains one On-Demand `m6a.xlarge` CPU worker in `aws-workers` even when idle. The demand-driven `aws-cpu-burst` pool adds up to one `m6a.xlarge` Spot worker for pending workloads and consolidates idle/underutilized burst capacity after five minutes. Both pools share the `aws-cpu` EC2NodeClass and the same Karpenter controller. The baseline permits one extra worker during replacement. Select the burst pool explicitly only when a job must run on Spot.
 
 ## Observe scaling
 
@@ -49,7 +49,7 @@ tofu -chdir=terraform/cluster/prod apply \
   -replace=module.aws.aws_iam_access_key.karpenter
 ```
 
-Then apply the platform root with `TF_WORKSPACE=talos-platform-prod` and `TF_VAR_target_revision` set to the full tested Git SHA. This updates the controller Secret and restarts Karpenter. No manual AWS key or Kubernetes Secret is needed.
+Then apply the platform root with `TF_WORKSPACE=talos-platform-prod` and `TF_VAR_target_revision` set to the selected full Git SHA. This updates the controller Secret and restarts Karpenter. No manual AWS key or Kubernetes Secret is needed.
 
 ## Destroy an environment
 

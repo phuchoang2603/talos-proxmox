@@ -79,3 +79,17 @@ variable "talos_network_interface" {
   type        = string
   default     = "eth0"
 }
+
+variable "aws_region" {
+  type    = string
+  default = "us-east-1"
+}
+variable "aws_vpc_cidr" {
+  type = string
+}
+variable "aws_availability_zones" {
+  type = list(string)
+}
+variable "aws_ami_id" {
+  type = string
+}

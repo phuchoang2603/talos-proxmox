@@ -24,6 +24,6 @@ variable "target_revision" {
   type        = string
   validation {
     condition     = can(regex("^[0-9a-f]{40}$", var.target_revision))
-    error_message = "target_revision must be a full tested Git commit SHA."
+    error_message = "target_revision must be a full Git commit SHA."
   }
 }

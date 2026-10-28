@@ -35,7 +35,7 @@ cilium:
     autoMount:
       enabled: false
     hostRoot: /sys/fs/cgroup
-  devices: eth0
+  devices: [ens5, eth0]
   # KubeSpan MTU 1420 minus VXLAN overhead for cross-site pod traffic.
   MTU: 1370
   enableLBIPAM: false

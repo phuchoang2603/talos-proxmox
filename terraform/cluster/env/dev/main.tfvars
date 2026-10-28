@@ -10,3 +10,7 @@ dns_server      = "10.69.0.1"
 
 talos_version      = "v1.13.9"
 kubernetes_version = "v1.36.3"
+
+aws_ami_id             = "ami-09b2293881e8b9139"
+aws_vpc_cidr           = "10.80.0.0/16"
+aws_availability_zones = ["us-east-1a"]

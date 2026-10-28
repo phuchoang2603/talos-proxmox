@@ -58,7 +58,6 @@ jobs:
           tofu_wrapper: false
 
       - uses: aws-actions/configure-aws-credentials@v4
-        if: inputs.environment == 'prod'
         with:
           role-to-assume: arn:aws:iam::142737101504:role/talos-proxmox-ci
           aws-region: us-east-1
@@ -75,10 +74,6 @@ jobs:
             echo "::add-mask::${v}"
             echo "${pair#*:}=${v}" >> "$GITHUB_ENV"
           done
-      - name: Require an existing dev cluster for automatic deployment
-        if: inputs.environment == 'dev' && (github.event_name == 'push' || github.event_name == 'pull_request')
-        run: |
-          doppler secrets get KUBECONFIG --plain >/dev/null 2>&1 || { echo 'Dev is absent. Recreate it with Manual Provision before automatic deployment.'; exit 1; }
       - uses: tailscale/github-action@v4
         if: inputs.environment == 'dev'
         with:

@@ -20,6 +20,7 @@ kubelet:
     nodefs.available: 20%
 
 nodePool:
+  enabled: true
   replicas: 1
   zones: [us-east-1a]
   limits: {nodes: "2"}

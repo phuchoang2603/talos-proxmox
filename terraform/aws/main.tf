@@ -12,14 +12,13 @@ data "talos_machine_configuration" "worker" {
   cluster_name       = var.cluster_name
   cluster_endpoint   = local.cluster_endpoint
   machine_type       = "worker"
-  machine_secrets    = module.talos.machine_secrets
+  machine_secrets    = local.machine_secrets
   talos_version      = var.talos_version
   kubernetes_version = var.kubernetes_version
   docs               = false
   examples           = false
 
-  config_patches = [
-    yamlencode(module.talos.common_patch),
+  config_patches = concat(local.worker_config_patches, [
     yamlencode({
       machine = {
         kubelet = {
@@ -30,7 +29,7 @@ data "talos_machine_configuration" "worker" {
           }
         }
         network = {
-          kubespan = { enabled = false }
+          kubespan = { enabled = !var.create_controlplane }
         }
         features = {
           kubePrism = {
@@ -53,7 +52,7 @@ data "talos_machine_configuration" "worker" {
         proxy = { disabled = true }
       }
     }),
-  ]
+  ])
 }
 
 resource "aws_security_group" "worker" {
@@ -74,7 +73,7 @@ resource "aws_vpc_security_group_ingress_rule" "nodes" {
   tags                         = local.tags
 }
 resource "aws_vpc_security_group_ingress_rule" "management" {
-  for_each          = { for pair in setproduct(var.management_cidrs, ["6443", "50000"]) : "${pair[0]}:${pair[1]}" => pair }
+  for_each          = { for pair in setproduct(var.create_controlplane ? var.management_cidrs : toset([]), ["6443", "50000"]) : "${pair[0]}:${pair[1]}" => pair }
   security_group_id = aws_security_group.worker.id
   cidr_ipv4         = each.value[0]
   from_port         = tonumber(each.value[1])
@@ -88,4 +87,15 @@ resource "aws_vpc_security_group_egress_rule" "all" {
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
   tags              = { managed-by = "talos-proxmox" }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "kubespan" {
+  count             = var.create_controlplane ? 0 : 1
+  security_group_id = aws_security_group.worker.id
+  description       = "Authenticated KubeSpan WireGuard from Proxmox peers"
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 51820
+  to_port           = 51820
+  ip_protocol       = "udp"
+  tags              = local.tags
 }

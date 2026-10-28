@@ -2,7 +2,6 @@
 
 # The controller's AWS key is the second Doppler-derived Secret this root owns; ESO does not manage it.
 resource "kubernetes_secret_v1" "karpenter_aws" {
-  count = var.env == "prod" ? 1 : 0
   metadata {
     name      = "karpenter-aws"
     namespace = "kube-system"
@@ -17,7 +16,6 @@ resource "kubernetes_secret_v1" "karpenter_aws" {
 }
 
 resource "helm_release" "karpenter" {
-  count           = var.env == "prod" ? 1 : 0
   name            = "karpenter"
   namespace       = "kube-system"
   chart           = "${local.components}/karpenter"
@@ -45,7 +43,6 @@ resource "helm_release" "karpenter" {
 # Uninstalling this release deletes the NodePool. Helm waits for its NodeClaims to finalize, which
 # terminates the instances, so the controller and CRDs must outlive it. terminationGracePeriod is 30m.
 resource "helm_release" "karpenter_nodes" {
-  count           = var.env == "prod" ? 1 : 0
   name            = "karpenter-nodes"
   chart           = "${local.components}/karpenter-nodes"
   wait            = true

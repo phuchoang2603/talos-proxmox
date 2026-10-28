@@ -41,7 +41,7 @@ flowchart TD
     Lint --> Trigger{"Event and repository trust"}
     Trigger -->|"Fork PR"| Done["No provisioning"]
     Trigger -->|"Trusted PR"| DevCluster
-    Trigger -->|"Push"| DevCluster["existing dev cluster apply"]
+    Trigger -->|"Push"| DevCluster["dev cluster apply"]
     Trigger -->|"Dispatch"| Selected["selected environment: apply or destroy"]
     DevCluster --> DevPlatform["dev platform apply"]
     DevPlatform --> DevArgo["dev Argo CD converges asynchronously"]
@@ -49,7 +49,7 @@ flowchart TD
     ProdCluster --> ProdPlatform["prod platform apply"]
 ```
 
-Trusted repository PRs update an existing dev cluster; fork PRs validate only. Main updates dev and prod independently after lint succeeds. An intentionally absent dev cluster requires **Manual Provision**. Manual applies can select a full main commit SHA; all Argo Applications are pinned to the selected SHA. Lint still renders dev's overlays on every PR, so a later dispatch does not start from broken charts.
+Trusted repository PRs deploy dev; fork PRs validate only. Main updates dev and prod independently after lint succeeds. Manual applies can select a full main commit SHA; all Argo Applications are pinned to the selected SHA. Lint still renders dev's overlays on every PR, so a later dispatch does not start from broken charts.
 
 | Workflow | Responsibility |
 | --- | --- |
@@ -62,7 +62,7 @@ Provisioning runs are serialized per environment and do not cancel an active run
 
 ## Credentials and network access
 
-Each job gets its environment's `DOPPLER_TOKEN` from GitHub. Prod uses GitHub OIDC for AWS and adds its current public egress /32 to stable operator management CIDRs. Dev reads Tailscale credentials and joins the tailnet. Both read HCP credentials from Doppler with masked exports. Neither needs credentials for the inactive infrastructure backend.
+Each job gets its environment's `DOPPLER_TOKEN` from GitHub. Both jobs use GitHub OIDC for their AWS resources. Prod adds its current public egress /32 to stable operator management CIDRs. Dev reads Tailscale credentials and joins the tailnet. Both read HCP credentials from Doppler with masked exports. Prod does not need Proxmox credentials; dev also uses AWS for its independent burst workers.
 
 | Access | Credential/path |
 | --- | --- |
@@ -83,7 +83,7 @@ The configured HCP operator token is shared across environments and can access t
 
 ## What a successful apply means
 
-The platform first probes the API's authenticated `/readyz` endpoint, installs Gateway API CRDs, and waits for Cilium's rollout. Talos CCM follows Cilium, then Argo CD and, in prod, Karpenter. The platform does not enumerate nodes or run Talos, etcd, or Kubernetes node health checks.
+The platform first probes the API's authenticated `/readyz` endpoint, installs Gateway API CRDs, and waits for Cilium's rollout. Talos CCM follows Cilium, then Argo CD and each environment’s Karpenter controller. The platform does not enumerate nodes or run Talos, etcd, or Kubernetes node health checks.
 
 Cilium does not install SPIRE, LAN address pools or L2 announcements. Argo CD uses a ClusterIP Service in both environments, with Cloudflare access and management port-forward. Its Helm release waits for its own resources and can fail if they cannot become ready. CI finishes after the root Application is installed, without waiting for every child Application or tunnel.
 

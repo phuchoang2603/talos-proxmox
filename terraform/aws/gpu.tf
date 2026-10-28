@@ -36,14 +36,13 @@ data "talos_machine_configuration" "worker_gpu" {
   cluster_name       = var.cluster_name
   cluster_endpoint   = local.cluster_endpoint
   machine_type       = "worker"
-  machine_secrets    = module.talos.machine_secrets
+  machine_secrets    = local.machine_secrets
   talos_version      = var.talos_version
   kubernetes_version = var.kubernetes_version
   docs               = false
   examples           = false
 
-  config_patches = [
-    yamlencode(module.talos.common_patch),
+  config_patches = concat(local.worker_config_patches, [
     yamlencode({
       machine = {
         install = {
@@ -65,7 +64,7 @@ data "talos_machine_configuration" "worker_gpu" {
           }
         }
         network = {
-          kubespan = { enabled = false }
+          kubespan = { enabled = !var.create_controlplane }
         }
         features = {
           kubePrism = {
@@ -88,5 +87,5 @@ data "talos_machine_configuration" "worker_gpu" {
         proxy = { disabled = true }
       }
     }),
-  ]
+  ])
 }

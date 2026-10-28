@@ -1,14 +1,14 @@
 ## MODIFIED Requirements
 
 ### Requirement: Self-contained environments
-Each environment SHALL use an independent Talos identity, credentials, namespaces, object storage and application domains. Inactive provider configuration MUST NOT require credentials for the other backend. Dev SHALL use Proxmox and existing MinIO; prod SHALL use AWS and S3.
+Each environment SHALL use an independent Talos identity, credentials, namespaces, object storage and application domains. Inactive provider configuration MUST NOT require credentials for the other backend. Dev SHALL use Proxmox, independent AWS burst workers and existing MinIO; prod SHALL use AWS and S3.
 
 #### Scenario: Prod bootstrap
 - **WHEN** prod is applied without Proxmox or MinIO credentials
 - **THEN** it provisions without reading dev configuration
 
 #### Scenario: Provision one environment alone
-- **WHEN** only prod is provisioned after an explicitly selected promotion
+- **WHEN** only prod is provisioned at the selected revision
 - **THEN** its runtime reaches convergence without depending on a running dev cluster
 
 #### Scenario: Provision dev without prod
@@ -39,11 +39,11 @@ Both environments SHALL reconcile the same applicable platform services with env
 - **THEN** that environment's Argo CD has no Application for it
 
 ### Requirement: Layered roots in CI
-PR validation SHALL lint roots and charts without state or secrets; a separate trusted repository PR job SHALL deploy dev. Main SHALL deploy dev, then prod only after dev succeeds. Fork PRs SHALL validate without deployment secrets. Foundation SHALL be applied by the operator. Root and child Argo applications SHALL share the selected revision.
+PR validation SHALL lint roots and charts without state or secrets; a separate trusted repository PR job SHALL deploy dev. Main SHALL deploy dev and prod independently after lint succeeds, without a dev-deployment prerequisite. Fork PRs SHALL validate without deployment secrets. Foundation SHALL be applied by the operator. Root and child Argo applications SHALL share the selected revision.
 
-#### Scenario: Unpromoted commit
+#### Scenario: Independent production deployment
 - **WHEN** a commit reaches main
-- **THEN** prod receives that pinned commit only after the dev deployment succeeds
+- **THEN** prod receives that pinned commit independently of the dev deployment result
 
 #### Scenario: Pull request
 - **WHEN** a pull request targets `main`
@@ -51,11 +51,11 @@ PR validation SHALL lint roots and charts without state or secrets; a separate t
 
 #### Scenario: Push to main
 - **WHEN** a validated change reaches main
-- **THEN** an existing dev environment receives the selected revision, followed by prod only after dev succeeds; absent dev requires manual recreation
+- **THEN** dev and prod receive the selected revision in independent jobs after lint succeeds
 
 #### Scenario: Dev on demand
 - **WHEN** dev has been intentionally destroyed
-- **THEN** automatic deployment does not recreate it; an explicit manual apply can recreate it
+- **THEN** a subsequent automatic or manual apply can recreate it without a pre-existing kubeconfig
 
 #### Scenario: Foundation change
 - **WHEN** a foundation root file changes
@@ -92,8 +92,10 @@ Environment teardown SHALL clean owned external worker and CSI resources through
 Each infrastructure resource, cluster component, and secret SHALL have exactly one declarative owner:
 - the foundation root owns account, identity, and secret-store setup;
 - the cluster root owns machines and generated credentials;
-- the platform root owns Gateway API CRDs, Cilium, Talos CCM, secret-store bootstrap credentials, Karpenter in prod and Argo CD with its AppProject and root Application;
+- the platform root owns Gateway API CRDs, Cilium, Talos CCM, secret-store bootstrap credentials, Karpenter in both environments and Argo CD with its AppProject and root Application;
 - the environment's Argo CD owns Istio, the Cloudflare operator/CRDs/ClusterTunnel, Argo CD OAuth/tunnel access and other applications.
+
+Kubeflow SHALL own the ML training object-storage ExternalSecret. The `argocd-post` chart SHALL own shared namespace declarations and Argo CD OIDC/tunnel access. No standalone ML access or namespace Application SHALL be required.
 
 No component MAY be managed by both OpenTofu and Argo CD. No UI Gateway or HTTPRoute SHALL be rendered by the bootstrap chart.
 
@@ -101,7 +103,7 @@ Gateway API CRDs SHALL be installed from a pinned Helm chart archive committed t
 
 #### Scenario: Pre-GitOps components
 - **WHEN** the platform root is applied to an environment
-- **THEN** it installs Gateway API CRDs, Cilium, Talos CCM, the bootstrap token Secret, Karpenter in prod and Argo CD with its root Application, without UI LoadBalancer Services or a bootstrap dependency on ESO/Cloudflare CRDs
+- **THEN** it installs Gateway API CRDs, Cilium, Talos CCM, the bootstrap token Secret, Karpenter in both environments and Argo CD with its root Application, without UI LoadBalancer Services or a bootstrap dependency on ESO/Cloudflare CRDs
 
 #### Scenario: Drift on an Argo-owned component
 - **WHEN** an Argo-owned component is changed in Git

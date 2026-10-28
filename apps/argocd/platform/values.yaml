@@ -20,12 +20,15 @@ privilegedNamespace: &privileged
 
 # Components use Helm by default; set sourceType: kustomize for a Git-owned Kustomization path.
 components:
-  workload-namespaces:
-    path: apps/components/workload-namespaces
+  argocd-post:
+    path: apps/components/argocd-post
     namespace: argo-cd
     syncWave: "-4"
-    releaseName: workload-namespaces
+    releaseName: argocd-post
     clusters: [dev, prod]
+    valueFilesByCluster:
+      dev:
+        - environments/dev/values.yaml
   external-secrets:
     path: apps/components/external-secrets
     namespace: operators
@@ -91,12 +94,6 @@ components:
     valueFilesByCluster:
       prod:
         - environments/prod/values.yaml
-  ml-access:
-    path: apps/components/ml-access
-    namespace: ml
-    syncWave: "2"
-    releaseName: ml-access
-    clusters: [dev, prod]
   auth:
     path: apps/components/auth
     namespace: auth
@@ -212,15 +209,6 @@ components:
         - environments/dev/values.yaml
       prod:
         - environments/prod/values.yaml
-  argo-cd-access:
-    path: apps/components/argo-cd-access
-    namespace: argo-cd
-    syncWave: "3"
-    releaseName: argo-cd-access
-    clusters: [dev, prod]
-    valueFilesByCluster:
-      dev:
-        - environments/dev/values.yaml
   cloudflare-tunnel:
     path: apps/components/cloudflare-tunnel
     releaseName: cloudflare-tunnel

@@ -43,14 +43,14 @@ output "s3_gateway_endpoint_id" {
 
 output "cluster_name" { value = var.cluster_name }
 output "cluster_endpoint" { value = local.cluster_endpoint }
-output "controlplane_ips" { value = [aws_eip.controlplane.public_ip] }
+output "controlplane_ips" { value = aws_eip.controlplane[*].public_ip }
 output "schematic_id" { value = null }
 output "talosconfig" {
-  value     = module.talos.talosconfig
+  value     = one(module.talos[*].talosconfig)
   sensitive = true
 }
 output "kubeconfig" {
-  value     = module.bootstrap.kubeconfig
+  value     = one(module.bootstrap[*].kubeconfig)
   sensitive = true
 }
 output "interruption_queue" { value = aws_sqs_queue.interruption.name }

@@ -1,4 +1,4 @@
 apiVersion: v2
-name: platform-argo-cd-access
+name: platform-argocd-post
 version: 0.1.0
 type: application

@@ -1,0 +1,4 @@
+clusterName: dev-talos
+instanceProfile: dev-talos-worker
+nodePool:
+  enabled: false

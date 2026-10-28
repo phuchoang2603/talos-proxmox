@@ -1,14 +1,17 @@
 resource "aws_iam_user" "ebs" {
-  name = "platform-${var.env}-ebs-csi"
-  tags = local.tags
+  count = var.create_controlplane ? 1 : 0
+  name  = "platform-${var.env}-ebs-csi"
+  tags  = local.tags
 }
 resource "aws_iam_access_key" "ebs" {
-  user = aws_iam_user.ebs.name
+  count = var.create_controlplane ? 1 : 0
+  user  = aws_iam_user.ebs[0].name
 }
 resource "aws_iam_user_policy" "ebs" {
+  count      = var.create_controlplane ? 1 : 0
   depends_on = [terraform_data.storage_cleanup]
   name       = "environment-volumes"
-  user       = aws_iam_user.ebs.name
+  user       = aws_iam_user.ebs[0].name
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -24,10 +27,10 @@ resource "aws_iam_user_policy" "ebs" {
   })
 }
 output "ebs_access_key_id" {
-  value     = aws_iam_access_key.ebs.id
+  value     = one(aws_iam_access_key.ebs[*].id)
   sensitive = true
 }
 output "ebs_secret_access_key" {
-  value     = aws_iam_access_key.ebs.secret
+  value     = one(aws_iam_access_key.ebs[*].secret)
   sensitive = true
 }

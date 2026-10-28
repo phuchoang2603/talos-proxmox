@@ -2,7 +2,7 @@
 
 Two independent Kubernetes environments run Talos: **dev** on the existing Proxmox hosts and **prod** in AWS. OpenTofu provisions infrastructure, each cluster's Argo CD manages applications, and Doppler supplies credentials.
 
-Dev keeps the former production VM allocations with one control-plane/workload node and two workers. Prod uses one On-Demand `m6a.xlarge` control-plane/workload node and one `m6a.xlarge` On-Demand worker with optional Spot burst capacity managed by Karpenter. Both run the same applicable platform, including Knative and Kubeflow. Each has a single control plane and single-instance PostgreSQL; neither is highly available.
+Dev keeps the former production VM allocations with one control-plane/workload node and two workers, plus an independent Karpenter Spot pool that scales from zero. Prod uses one On-Demand `m6a.xlarge` control-plane/workload node and one `m6a.xlarge` On-Demand worker with optional Spot burst capacity managed by Karpenter. Both run the same applicable platform, including Knative and Kubeflow. Each has a single control plane and single-instance PostgreSQL; neither is highly available.
 
 Dev uses local-path and existing MinIO. Prod uses encrypted gp3 EBS and generic private S3 storage. An authenticated PostgreSQL-backed Polaris catalog provides the shared Iceberg REST interface. State, application credentials and public domains remain independent.
 

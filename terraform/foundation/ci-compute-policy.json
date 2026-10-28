@@ -36,7 +36,7 @@
         "StringEquals": {
           "aws:RequestTag/managed-by": "talos-proxmox",
           "aws:RequestTag/purpose": "control-plane",
-          "ec2:InstanceType": "m6a.large"
+          "ec2:InstanceType": "m6a.xlarge"
         }
       }
     },
@@ -171,7 +171,7 @@
         "sqs:TagQueue",
         "sqs:UntagQueue"
       ],
-      "Resource": "arn:aws:sqs:us-east-1:ACCOUNT_ID:prod-talos-interruptions"
+      "Resource": ["arn:aws:sqs:us-east-1:ACCOUNT_ID:dev-talos-interruptions", "arn:aws:sqs:us-east-1:ACCOUNT_ID:prod-talos-interruptions"]
     },
     {
       "Sid": "ManageInterruptionEvents",
@@ -187,7 +187,7 @@
         "events:TagResource",
         "events:UntagResource"
       ],
-      "Resource": "arn:aws:events:us-east-1:ACCOUNT_ID:rule/prod-talos-*"
+      "Resource": ["arn:aws:events:us-east-1:ACCOUNT_ID:rule/dev-talos-*", "arn:aws:events:us-east-1:ACCOUNT_ID:rule/prod-talos-*"]
     }
   ]
 }

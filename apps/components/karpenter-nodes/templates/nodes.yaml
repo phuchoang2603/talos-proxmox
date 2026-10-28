@@ -31,6 +31,7 @@ spec:
     managed-by: talos-proxmox
   userData: |
     {{- .Values.userData | nindent 4 }}
+{{- if .Values.nodePool.enabled }}
 ---
 apiVersion: karpenter.sh/v1
 kind: NodePool
@@ -76,3 +77,4 @@ spec:
         - key: node.kubernetes.io/instance-type
           operator: In
           values: {{ toJson .Values.nodePool.instanceTypes }}
+{{- end }}
