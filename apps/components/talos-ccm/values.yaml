@@ -1,9 +1,6 @@
-burstTaintKey: burst.talos.dev/stateless
-burstTaintValue: "true"
-# EC2 private DNS names; fixed Proxmox nodes are named <env>-<role><n>.
-awsNodeNamePrefix: ip-
-
 talos-cloud-controller-manager:
-  # Only AWS burst kubelets run with --cloud-provider=external; Proxmox nodes are skipped.
+  daemonSet:
+    enabled: true
+  # AWS kubelets use --cloud-provider=external; Proxmox nodes are skipped.
   enabledControllers:
     - cloud-node

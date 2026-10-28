@@ -1,0 +1,193 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "LaunchPinnedControlPlaneImage",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:RunInstances"
+      ],
+      "Resource": "arn:aws:ec2:us-east-1::image/ami-09b2293881e8b9139"
+    },
+    {
+      "Sid": "LaunchInOwnedNetwork",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:RunInstances"
+      ],
+      "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:subnet/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/managed-by": "talos-proxmox"
+        }
+      }
+    },
+    {
+      "Sid": "LaunchControlPlaneInstances",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:RunInstances"
+      ],
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:instance/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/managed-by": "talos-proxmox",
+          "aws:RequestTag/purpose": "control-plane",
+          "ec2:InstanceType": "m6a.xlarge"
+        }
+      }
+    },
+    {
+      "Sid": "LaunchControlPlaneDevices",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:RunInstances"
+      ],
+      "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:network-interface/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:volume/*"
+      ]
+    },
+    {
+      "Sid": "TagControlPlaneLaunch",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateTags"
+      ],
+      "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:instance/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:volume/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:network-interface/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "ec2:CreateAction": "RunInstances",
+          "aws:RequestTag/managed-by": "talos-proxmox"
+        }
+      }
+    },
+    {
+      "Sid": "ManageFixedControlPlane",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:TerminateInstances",
+        "ec2:StartInstances",
+        "ec2:StopInstances",
+        "ec2:ModifyInstanceAttribute"
+      ],
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:instance/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/managed-by": "talos-proxmox",
+          "aws:ResourceTag/purpose": "control-plane"
+        }
+      }
+    },
+    {
+      "Sid": "AllocateTaggedEndpoint",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:AllocateAddress"
+      ],
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:elastic-ip/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/managed-by": "talos-proxmox"
+        }
+      }
+    },
+    {
+      "Sid": "TagEndpointCreation",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateTags"
+      ],
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:elastic-ip/*",
+      "Condition": {
+        "StringEquals": {
+          "ec2:CreateAction": "AllocateAddress",
+          "aws:RequestTag/managed-by": "talos-proxmox"
+        }
+      }
+    },
+    {
+      "Sid": "ManageOwnedEndpoint",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:AssociateAddress",
+        "ec2:DisassociateAddress",
+        "ec2:ReleaseAddress"
+      ],
+      "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:elastic-ip/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:instance/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:network-interface/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/managed-by": "talos-proxmox"
+        }
+      }
+    },
+    {
+      "Sid": "PurgeOwnedPersistentData",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DeleteVolume",
+        "ec2:DeleteSnapshot"
+      ],
+      "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:volume/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:snapshot/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/managed-by": "talos-proxmox"
+        }
+      }
+    },
+    {
+      "Sid": "ReadInterruptionInfrastructure",
+      "Effect": "Allow",
+      "Action": [
+        "sqs:ListQueues",
+        "events:ListRules"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ManageInterruptionQueues",
+      "Effect": "Allow",
+      "Action": [
+        "sqs:CreateQueue",
+        "sqs:DeleteQueue",
+        "sqs:GetQueueAttributes",
+        "sqs:SetQueueAttributes",
+        "sqs:GetQueueUrl",
+        "sqs:ListQueueTags",
+        "sqs:TagQueue",
+        "sqs:UntagQueue"
+      ],
+      "Resource": ["arn:aws:sqs:us-east-1:ACCOUNT_ID:dev-talos-interruptions", "arn:aws:sqs:us-east-1:ACCOUNT_ID:prod-talos-interruptions"]
+    },
+    {
+      "Sid": "ManageInterruptionEvents",
+      "Effect": "Allow",
+      "Action": [
+        "events:PutRule",
+        "events:DeleteRule",
+        "events:DescribeRule",
+        "events:PutTargets",
+        "events:RemoveTargets",
+        "events:ListTargetsByRule",
+        "events:ListTagsForResource",
+        "events:TagResource",
+        "events:UntagResource"
+      ],
+      "Resource": ["arn:aws:events:us-east-1:ACCOUNT_ID:rule/dev-talos-*", "arn:aws:events:us-east-1:ACCOUNT_ID:rule/prod-talos-*"]
+    }
+  ]
+}

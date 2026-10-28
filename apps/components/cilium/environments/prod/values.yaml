@@ -1,0 +1,3 @@
+cilium:
+  devices: [ens5, eth0]
+  MTU: 1450

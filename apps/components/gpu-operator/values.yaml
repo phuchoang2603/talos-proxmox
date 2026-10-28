@@ -8,7 +8,6 @@ gpu-operator:
   daemonsets:
     tolerations:
       - {key: nvidia.com/gpu, operator: Exists, effect: NoSchedule}
-      - {key: burst.talos.dev/stateless, operator: Equal, value: "true", effect: NoSchedule}
       - {key: burst.talos.dev/gpu-training, operator: Equal, value: "true", effect: NoSchedule}
   hostPaths:
     driverInstallDir: /usr/local
@@ -50,7 +49,6 @@ gpu-operator:
       tolerations:
         - {key: node-role.kubernetes.io/control-plane, operator: Equal, value: "", effect: NoSchedule}
         - {key: nvidia.com/gpu, operator: Exists, effect: NoSchedule}
-        - {key: burst.talos.dev/stateless, operator: Equal, value: "true", effect: NoSchedule}
         - {key: burst.talos.dev/gpu-training, operator: Equal, value: "true", effect: NoSchedule}
       # Only GPU nodes need PCI labelling. Talos sets this label from the
       # extension; nvidia.com/gpu.present is owned by the operator and is only
@@ -76,7 +74,6 @@ nvidia-dra-driver-gpu:
   gpuResourcesEnabledOverride: true
   kubeletPlugin:
     tolerations:
-      - {key: burst.talos.dev/stateless, operator: Equal, value: "true", effect: NoSchedule}
       - {key: burst.talos.dev/gpu-training, operator: Equal, value: "true", effect: NoSchedule}
   resources:
     gpus:

@@ -41,16 +41,37 @@ variable "cluster_name" {
   type = string
 }
 
-variable "cluster_endpoint" {
-  type = string
-}
 
-variable "machine_secrets" {
-  type      = any
-  sensitive = true
-}
 
 variable "gpu_ami_id" {
   type    = string
   default = ""
+}
+
+variable "management_cidrs" {
+  type    = set(string)
+  default = []
+}
+variable "controlplane_instance_type" {
+  type    = string
+  default = "m6a.xlarge"
+}
+
+variable "create_controlplane" {
+  type    = bool
+  default = true
+}
+
+variable "external_cluster" {
+  type = object({
+    endpoint              = string
+    machine_secrets       = any
+    worker_config_patches = list(string)
+  })
+  default   = null
+  sensitive = true
+  validation {
+    condition     = var.create_controlplane || var.external_cluster != null
+    error_message = "An external Talos cluster is required when no AWS control plane is created."
+  }
 }

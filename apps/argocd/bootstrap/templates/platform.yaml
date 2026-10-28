@@ -16,7 +16,7 @@ spec:
         - name: repoURL
           value: {{ .Values.repoURL | quote }}
         - name: targetRevision
-          value: $ARGOCD_APP_SOURCE_TARGET_REVISION
+          value: {{ .Values.targetRevision | quote }}
   destination:
     server: https://kubernetes.default.svc
     namespace: {{ .Release.Namespace }}

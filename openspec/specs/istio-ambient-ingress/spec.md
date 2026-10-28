@@ -7,7 +7,11 @@ Provide optional Istio ambient mesh and Gateway API ingress while Cilium continu
 ## Requirements
 
 ### Requirement: Cilium remains the networking provider
-Each environment SHALL run Cilium as CNI, kube-proxy replacement, LB IPAM and L2 announcer. Cilium MUST NOT deploy SPIRE/mutual authentication, WireGuard, Envoy/L7 proxy or its Gateway API controller. Cilium L3/L4 policy SHALL remain available.
+Cilium SHALL provide CNI and kube-proxy replacement in both clusters. LAN LoadBalancer IPAM, address pools and L2 announcements SHALL NOT be enabled in either environment. Cilium L3/L4 policy SHALL remain available without enabling its service mesh or Gateway controller.
+
+#### Scenario: Cloud install
+- **WHEN** prod networking converges
+- **THEN** pod and Service connectivity works without LAN IP pools
 
 #### Scenario: Fresh cluster
 - **WHEN** an environment is created from empty state
@@ -21,19 +25,27 @@ Each environment SHALL run one GitOps-owned umbrella Istio chart containing pinn
 - **THEN** its traffic is not assumed to have Istio mTLS
 
 ### Requirement: Platform UIs use direct LoadBalancer Services
-Dev/prod Argo CD and prod Grafana SHALL each expose only their HTTP UI port through dedicated Cilium LB IPAM/L2-backed LoadBalancer Services. Their original ClusterIP Services SHALL remain internal. UI access MUST NOT depend on Gateway, HTTPRoute or Cloudflare TunnelBinding resources. Cloudflare operator CRDs MUST remain owned by its GitOps chart, not by OpenTofu.
+Both environments SHALL use ClusterIP Services and environment Cloudflare tunnels, with no LAN LoadBalancer Services. Both SHALL support management port-forward when public access is unavailable.
+
+#### Scenario: Cloud UI
+- **WHEN** prod converges
+- **THEN** no UI waits for an unbacked LoadBalancer address
 
 #### Scenario: Bootstrap before the LB pool
-- **WHEN** OpenTofu installs Argo CD and its UI Service before the Cilium IP pool and L2 policy converge
-- **THEN** Argo CD reconciles internally, remains accessible by port-forward and obtains its requested LAN IP once Cilium is ready
+- **WHEN** Argo CD installs before public tunnel routes converge
+- **THEN** it reconciles internally and supports port-forward without waiting for a LAN address
 
 #### Scenario: Prod observability
 - **WHEN** prod observability reconciles
-- **THEN** Grafana is available at its reserved LAN IP through UI port 80, and no other Grafana port is exposed on that address
+- **THEN** Grafana is available through its ClusterIP, tunnel and management port-forward without a LAN LoadBalancer
 
 ### Requirement: AWS KubeSpan remains operational
-The Talos KubeSpan and KubePrism configuration for on-premises nodes and AWS Karpenter workers SHALL remain enabled and independent of Cilium's WireGuard setting. Cilium's pod MTU SHALL account for VXLAN traffic crossing the KubeSpan overlay.
+Prod SHALL support same-VPC node/pod connectivity and local KubePrism without cross-site dependencies. MTU SHALL match the actual network. Dev MAY retain KubeSpan independently.
+
+#### Scenario: Independent cloud connectivity
+- **WHEN** dev is offline
+- **THEN** prod pod communication and API reachability continue
 
 #### Scenario: Worker joins
-- **WHEN** a Karpenter worker joins over KubeSpan
-- **THEN** its host API access and cross-site pod traffic remain functional without Cilium WireGuard
+- **WHEN** a Karpenter worker joins prod
+- **THEN** same-VPC host/pod connectivity and KubePrism work without cross-site KubeSpan

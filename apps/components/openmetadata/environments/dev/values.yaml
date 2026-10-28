@@ -1,0 +1,14 @@
+openmetadata:
+  openmetadata:
+    config:
+      authentication:
+        authority: https://auth-dev.phuchoang.sbs/dex
+        callbackUrl: https://openmetadata-dev.phuchoang.sbs/callback
+        oidcConfiguration:
+          discoveryUri: https://auth-dev.phuchoang.sbs/dex/.well-known/openid-configuration
+          callbackUrl: https://openmetadata-dev.phuchoang.sbs/callback
+          serverUrl: https://openmetadata-dev.phuchoang.sbs
+      jwtTokenConfiguration:
+        jwtissuer: openmetadata-dev.phuchoang.sbs
+tunnel:
+  hostname: openmetadata-dev.phuchoang.sbs

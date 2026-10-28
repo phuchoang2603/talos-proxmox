@@ -65,9 +65,6 @@ spec:
       expireAfter: {{ .Values.gpu.expireAfter }}
       terminationGracePeriod: {{ .Values.gpu.terminationGracePeriod }}
       taints:
-        - key: {{ .Values.burst.taintKey }}
-          value: {{ .Values.burst.taintValue | quote }}
-          effect: NoSchedule
         - key: {{ .Values.gpu.taintKey }}
           value: {{ .Values.gpu.taintValue | quote }}
           effect: NoSchedule

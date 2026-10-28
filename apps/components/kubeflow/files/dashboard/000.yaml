@@ -4922,7 +4922,7 @@ metadata:
     app.kubernetes.io/name: centraldashboard
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: dashboard
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -4934,7 +4934,7 @@ metadata:
     app.kubernetes.io/name: poddefaults-webhook
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: poddefaults-webhook-service-account
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -4946,7 +4946,7 @@ metadata:
     app.kubernetes.io/name: profile-controller
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: profiles-controller-service-account
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -4958,7 +4958,7 @@ metadata:
     app.kubernetes.io/name: centraldashboard
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: dashboard
-  namespace: kubeflow
+  namespace: ml
 rules:
 - apiGroups:
   - ""
@@ -4988,7 +4988,7 @@ metadata:
     app.kubernetes.io/name: profile-controller
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: profiles-leader-election-role
-  namespace: kubeflow
+  namespace: ml
 rules:
 - apiGroups:
   - ""
@@ -5191,7 +5191,7 @@ metadata:
     app.kubernetes.io/name: centraldashboard
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: dashboard
-  namespace: kubeflow
+  namespace: ml
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -5199,7 +5199,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: dashboard
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -5211,7 +5211,7 @@ metadata:
     app.kubernetes.io/name: profile-controller
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: profiles-leader-election-rolebinding
-  namespace: kubeflow
+  namespace: ml
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -5219,7 +5219,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: profiles-controller-service-account
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -5238,7 +5238,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: dashboard
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -5257,7 +5257,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: poddefaults-webhook-service-account
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -5276,7 +5276,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: profiles-controller-service-account
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 data:
@@ -5416,7 +5416,7 @@ metadata:
     app.kubernetes.io/name: centraldashboard
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: dashboard-config
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 data:
@@ -5433,14 +5433,14 @@ metadata:
     app.kubernetes.io/name: centraldashboard
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: dashboard-parameters-ckkh684h89
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 data:
   ADMIN: ""
   ISTIO_INGRESS_GATEWAY_PRINCIPAL: cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account
-  KFP_UI_PRINCIPAL: cluster.local/ns/kubeflow/sa/ml-pipeline-ui
-  NOTEBOOK_CONTROLLER_PRINCIPAL: cluster.local/ns/kubeflow/sa/notebook-controller-service-account
+  KFP_UI_PRINCIPAL: cluster.local/ns/ml/sa/ml-pipeline-ui
+  NOTEBOOK_CONTROLLER_PRINCIPAL: cluster.local/ns/ml/sa/notebook-controller-service-account
   USERID_HEADER: kubeflow-userid
   USERID_PREFIX: ""
   WORKLOAD_IDENTITY: ""
@@ -5453,7 +5453,7 @@ metadata:
     app.kubernetes.io/name: profile-controller
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: profiles-config-5h9m86f79f
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 data:
@@ -5491,7 +5491,7 @@ metadata:
     app.kubernetes.io/name: profile-controller
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: profiles-namespace-labels-data-7ht8c9hf25
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 kind: Service
@@ -5503,7 +5503,7 @@ metadata:
     app.kubernetes.io/name: centraldashboard
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: dashboard
-  namespace: kubeflow
+  namespace: ml
 spec:
   ports:
   - port: 80
@@ -5528,7 +5528,7 @@ metadata:
     app.kubernetes.io/name: poddefaults-webhook
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: poddefaults-webhook-service
-  namespace: kubeflow
+  namespace: ml
 spec:
   ports:
   - name: https-webhook
@@ -5549,7 +5549,7 @@ metadata:
     app.kubernetes.io/name: profile-controller
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: profiles-kfam
-  namespace: kubeflow
+  namespace: ml
 spec:
   ports:
   - name: http-kfam
@@ -5572,7 +5572,7 @@ metadata:
     app.kubernetes.io/name: centraldashboard
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: dashboard
-  namespace: kubeflow
+  namespace: ml
 spec:
   replicas: 1
   selector:
@@ -5597,7 +5597,7 @@ spec:
       containers:
       - env:
         - name: PROFILES_KFAM_SERVICE_HOST
-          value: profiles-kfam.kubeflow
+          value: profiles-kfam.ml
         - name: DASHBOARD_CONFIGMAP
           value: dashboard-config
         - name: LOGOUT_URL
@@ -5655,7 +5655,7 @@ metadata:
     app.kubernetes.io/name: poddefaults-webhook
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: poddefaults-webhook-deployment
-  namespace: kubeflow
+  namespace: ml
 spec:
   replicas: 1
   selector:
@@ -5716,7 +5716,7 @@ metadata:
     app.kubernetes.io/name: profile-controller
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: profiles-deployment
-  namespace: kubeflow
+  namespace: ml
 spec:
   replicas: 1
   selector:
@@ -5843,12 +5843,12 @@ metadata:
     app.kubernetes.io/name: poddefaults-webhook
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: poddefaults-webhook-cert
-  namespace: kubeflow
+  namespace: ml
 spec:
-  commonName: poddefaults-webhook-service.kubeflow.svc
+  commonName: poddefaults-webhook-service.ml.svc
   dnsNames:
-  - poddefaults-webhook-service.kubeflow.svc
-  - poddefaults-webhook-service.kubeflow.svc.cluster.local
+  - poddefaults-webhook-service.ml.svc
+  - poddefaults-webhook-service.ml.svc.cluster.local
   isCA: true
   issuerRef:
     kind: Issuer
@@ -5865,7 +5865,7 @@ metadata:
     app.kubernetes.io/name: poddefaults-webhook
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: poddefaults-webhook-selfsigned-issuer
-  namespace: kubeflow
+  namespace: ml
 spec:
   selfSigned: {}
 ---
@@ -5878,7 +5878,7 @@ metadata:
     app.kubernetes.io/name: centraldashboard
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: dashboard
-  namespace: kubeflow
+  namespace: ml
 spec:
   gateways:
   - kubeflow-gateway
@@ -5892,7 +5892,7 @@ spec:
       uri: /
     route:
     - destination:
-        host: dashboard.kubeflow.svc.cluster.local
+        host: dashboard.ml.svc.cluster.local
         port:
           number: 80
 ---
@@ -5904,7 +5904,7 @@ metadata:
     app.kubernetes.io/name: profile-controller
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: profiles-kfam
-  namespace: kubeflow
+  namespace: ml
 spec:
   gateways:
   - kubeflow-gateway
@@ -5918,7 +5918,7 @@ spec:
       uri: /kfam/
     route:
     - destination:
-        host: profiles-kfam.kubeflow.svc.cluster.local
+        host: profiles-kfam.ml.svc.cluster.local
         port:
           number: 8081
 ---
@@ -5931,7 +5931,7 @@ metadata:
     app.kubernetes.io/name: centraldashboard
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: dashboard
-  namespace: kubeflow
+  namespace: ml
 spec:
   ingress:
   - from:
@@ -5963,7 +5963,7 @@ metadata:
     app.kubernetes.io/name: poddefaults-webhook
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: poddefaults
-  namespace: kubeflow
+  namespace: ml
 spec:
   ingress:
   - from: []
@@ -5991,7 +5991,7 @@ metadata:
     app.kubernetes.io/name: profile-controller
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: profiles-kfam
-  namespace: kubeflow
+  namespace: ml
 spec:
   ingress:
   - from:
@@ -6006,7 +6006,7 @@ spec:
         - key: kubernetes.io/metadata.name
           operator: In
           values:
-          - kubeflow
+          - ml
     ports:
     - port: http-kfam
       protocol: TCP
@@ -6034,7 +6034,7 @@ metadata:
     app.kubernetes.io/name: centraldashboard
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: dashboard
-  namespace: kubeflow
+  namespace: ml
 spec:
   action: ALLOW
   rules:
@@ -6058,14 +6058,14 @@ metadata:
     app.kubernetes.io/name: profile-controller
     app.kubernetes.io/part-of: kubeflow-dashboard
   name: profiles-kfam
-  namespace: kubeflow
+  namespace: ml
 spec:
   action: ALLOW
   rules:
   - from:
     - source:
         principals:
-        - cluster.local/ns/kubeflow/sa/dashboard
+        - cluster.local/ns/ml/sa/dashboard
   selector:
     matchLabels:
       app: profile-controller
@@ -6078,7 +6078,7 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   annotations:
-    cert-manager.io/inject-ca-from: kubeflow/poddefaults-webhook-cert
+    cert-manager.io/inject-ca-from: ml/poddefaults-webhook-cert
   labels:
     app: poddefaults
     app.kubernetes.io/component: poddefaults
@@ -6094,7 +6094,7 @@ webhooks:
     caBundle: ""
     service:
       name: poddefaults-webhook-service
-      namespace: kubeflow
+      namespace: ml
       path: /apply-poddefault
   failurePolicy: Fail
   name: poddefaults-webhook-deployment.kubeflow.org

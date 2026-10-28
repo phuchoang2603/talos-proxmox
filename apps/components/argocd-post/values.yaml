@@ -1,0 +1,7 @@
+tunnel:
+  enabled: true
+  clusterTunnel: talos-proxmox
+  hostname: argocd.phuchoang.sbs
+
+namespaces:
+  - name: data

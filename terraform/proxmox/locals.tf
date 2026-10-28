@@ -1,14 +1,13 @@
 locals {
-  cluster_vip        = var.network.vip
   cluster_name       = "${var.env}-talos"
-  cluster_endpoint   = "https://${local.cluster_vip}:6443"
+  cluster_endpoint   = "https://${local.bootstrap_ip}:6443"
   controlplane_nodes = { for name, node in var.nodes : name => node if node.role == "servers" }
   worker_nodes       = { for name, node in var.nodes : name => node if node.role == "worker" }
   controlplane_names = sort(keys(local.controlplane_nodes))
   bootstrap_name     = local.controlplane_names[0]
   bootstrap_ip       = local.controlplane_nodes[local.bootstrap_name].ip
   controlplane_ips   = [for name in local.controlplane_names : local.controlplane_nodes[name].ip]
-  cert_sans          = concat([local.cluster_vip], local.controlplane_ips)
+  cert_sans          = local.controlplane_ips
   gpu_nodes          = { for name, node in var.nodes : name => node if length(node.pci) > 0 }
 
   common_machine_patch = {
@@ -18,16 +17,6 @@ locals {
       }
       certSANs = local.cert_sans
       kubelet = {
-        extraConfig = {
-          systemReserved = {
-            cpu    = "250m"
-            memory = "1Gi"
-          }
-          kubeReserved = {
-            cpu    = "250m"
-            memory = "512Mi"
-          }
-        }
         # The kubelet sees /var/mnt read-only; local-path needs it writable to create volumes and subPaths.
         extraMounts = [
           {
@@ -40,17 +29,8 @@ locals {
       }
     }
     cluster = {
-      allowSchedulingOnControlPlanes = true
       apiServer = {
         certSANs = local.cert_sans
-      }
-      network = {
-        cni = {
-          name = "none"
-        }
-      }
-      proxy = {
-        disabled = true
       }
     }
   }
@@ -113,7 +93,6 @@ locals {
                   gateway = var.vm_ip_gateway
                 }
               ]
-              vip = node.role == "servers" ? { ip = local.cluster_vip } : null
             }
           ]
         }

@@ -1,0 +1,6 @@
+storageClass: gp3
+objectStorage:
+  bucket: platform-prod-142737101504-us-east-1
+  endpoint: https://s3.us-east-1.amazonaws.com
+  host: s3.us-east-1.amazonaws.com
+  forcePathStyle: false

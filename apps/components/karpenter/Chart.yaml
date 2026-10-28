@@ -1,6 +1,6 @@
 apiVersion: v2
 name: platform-karpenter
-description: Karpenter controller and CRDs for stateless AWS burst workers
+description: Karpenter controller and CRDs for AWS CPU and optional GPU workers
 type: application
 version: 0.1.0
 dependencies:

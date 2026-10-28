@@ -22,11 +22,15 @@ The platform SHALL provision an environment from empty state to an eventually sy
 - **THEN** OpenTofu reports no changes to cluster components or secrets, and Argo CD applications stay Synced
 
 ### Requirement: Self-contained environments
-The platform SHALL consist only of the `dev` and `prod` environments. Each MUST run its own Argo CD, which manages only its own cluster. An environment MUST NOT hold credentials for, depend on, send data to, or be ordered after another environment or a separate management cluster.
+Each environment SHALL use an independent Talos identity, credentials, namespaces, object storage and application domains. Inactive provider configuration MUST NOT require credentials for the other backend. Dev SHALL use Proxmox, independent AWS burst workers and existing MinIO; prod SHALL use AWS and S3.
+
+#### Scenario: Prod bootstrap
+- **WHEN** prod is applied without Proxmox or MinIO credentials
+- **THEN** it provisions without reading dev configuration
 
 #### Scenario: Provision one environment alone
-- **WHEN** only prod is provisioned from fresh state
-- **THEN** prod reaches a fully synced platform without dev existing
+- **WHEN** only prod is provisioned at the selected revision
+- **THEN** its runtime reaches convergence without depending on a running dev cluster
 
 #### Scenario: Provision dev without prod
 - **WHEN** dev is provisioned while prod does not exist or is unreachable
@@ -44,8 +48,10 @@ The platform SHALL consist only of the `dev` and `prod` environments. Each MUST 
 Each infrastructure resource, cluster component, and secret SHALL have exactly one declarative owner:
 - the foundation root owns account, identity, and secret-store setup;
 - the cluster root owns machines and generated credentials;
-- the platform root owns Gateway API CRDs, Cilium, secret-store bootstrap credentials, Karpenter and Argo CD with its AppProject, root Application and UI LoadBalancer Service;
-- the environment's Argo CD owns Istio, the Cloudflare operator/CRDs/ClusterTunnel, the Grafana UI LoadBalancer Service and everything else.
+- the platform root owns Gateway API CRDs, Cilium, Talos CCM, secret-store bootstrap credentials, Karpenter in both environments and Argo CD with its AppProject and root Application;
+- the environment's Argo CD owns Istio, the Cloudflare operator/CRDs/ClusterTunnel, Argo CD OAuth/tunnel access and other applications.
+
+Kubeflow SHALL own the ML training object-storage ExternalSecret. The `argocd-post` chart SHALL own shared namespace declarations and Argo CD OIDC/tunnel access. No standalone ML access or namespace Application SHALL be required.
 
 No component MAY be managed by both OpenTofu and Argo CD. No UI Gateway or HTTPRoute SHALL be rendered by the bootstrap chart.
 
@@ -53,15 +59,15 @@ Gateway API CRDs SHALL be installed from a pinned Helm chart archive committed t
 
 #### Scenario: Pre-GitOps components
 - **WHEN** the platform root is applied to an environment
-- **THEN** it installs Gateway API CRDs, Cilium, the bootstrap token Secret, Karpenter and Argo CD with its root Application and UI LoadBalancer Service, without a Gateway
+- **THEN** it installs Gateway API CRDs, Cilium, Talos CCM, the bootstrap token Secret, Karpenter in both environments and Argo CD with its root Application, without UI LoadBalancer Services or a bootstrap dependency on ESO/Cloudflare CRDs
 
 #### Scenario: Drift on an Argo-owned component
 - **WHEN** an Argo-owned component is changed in Git
 - **THEN** only Argo CD reconciles it, and the next OpenTofu plan shows no change for it
 
 #### Scenario: UI publishing
-- **WHEN** Cilium's IPAM and L2 resources reconcile
-- **THEN** Argo CD and Grafana Services receive their reserved LAN IPs and the Cloudflare operator remains independent
+- **WHEN** the environment tunnel routes reconcile
+- **THEN** Argo CD and Grafana use their environment hostnames backed by ClusterIP Services, with management port-forward available
 
 ### Requirement: Platform API readiness and installation ordering
 The platform root SHALL wait for the Kubernetes API's authenticated `/readyz` endpoint to return HTTP 200 before creating Kubernetes resources or installing Helm releases. It SHALL install Gateway API CRDs before Cilium, and Cilium before Argo CD. It MUST NOT gate provisioning on Talos, etcd, or Kubernetes node health checks or require a fixed-node inventory or Talos client configuration. Helm release readiness checks MAY still fail installation when the release's own resources cannot become ready. Successful provisioning SHALL confirm platform resource installation; node health and full GitOps convergence SHALL be checked separately during operations.
@@ -83,37 +89,49 @@ The platform root SHALL wait for the Kubernetes API's authenticated `/readyz` en
 - **THEN** the platform apply fails through the release readiness check
 
 ### Requirement: Per-cluster GitOps enablement
-Each environment's Argo CD SHALL reconcile its components from one shared Git platform definition. Each component MUST declare which environments it runs on and MAY vary values per environment. Storage, GPU, burst, and ingress components MUST be enabled only on environments that have the corresponding nodes or needs.
+Both environments SHALL reconcile the same applicable platform services with environment values for storage, domains, credentials and lean activity. Provider/hardware components SHALL follow capabilities. Dev SHALL use local-path and prod gp3, with only one default class per cluster. Knative Serving, Eventing and Istio networking SHALL be enabled before Kubeflow in both environments.
+
+#### Scenario: Serverless inference
+- **WHEN** a KServe service is submitted in either environment
+- **THEN** Knative serves a request and idle inference can scale to zero
 
 #### Scenario: Storage selection
-- **WHEN** the platform definition is reconciled
-- **THEN** both dev and prod run local-path, neither runs Longhorn, and neither cluster has more than one default StorageClass
+- **WHEN** the shared platform reconciles
+- **THEN** dev runs local-path and prod runs gp3 EBS CSI, each with exactly one default StorageClass and no Longhorn
 
 #### Scenario: Component disabled for an environment
 - **WHEN** a component does not list an environment
 - **THEN** that environment's Argo CD has no Application for it
 
 ### Requirement: Layered roots in CI
-PR checks SHALL lint all OpenTofu roots and platform charts without accessing state or secrets. Static validation logic SHALL live directly in `.github/workflows/lint.yml`, without a separate repository validation script or duplicate devenv chart-validation hook. Pushes to `main` SHALL apply the cluster and platform roots for prod only. Dev SHALL be applied or destroyed only by an explicitly dispatched `main` run; no push MAY create, update, or destroy dev. The foundation root MUST NOT be applied by CI.
+PR validation SHALL lint roots and charts without state or secrets; a separate trusted repository PR job SHALL deploy dev. Main SHALL deploy dev and prod independently after lint succeeds, without a dev-deployment prerequisite. Fork PRs SHALL validate without deployment secrets. Foundation SHALL be applied by the operator. Root and child Argo applications SHALL share the selected revision.
+
+#### Scenario: Independent production deployment
+- **WHEN** a commit reaches main
+- **THEN** prod receives that pinned commit independently of the dev deployment result
 
 #### Scenario: Pull request
 - **WHEN** a pull request targets `main`
 - **THEN** the foundation, cluster, and platform roots and the platform charts, including dev overlays, are linted without state or deployment secrets
 
 #### Scenario: Push to main
-- **WHEN** changes are pushed to `main`
-- **THEN** prod applies its cluster root, then its platform root, with no repository scripts, and no dev job runs
+- **WHEN** a validated change reaches main
+- **THEN** dev and prod receive the selected revision in independent jobs after lint succeeds
 
 #### Scenario: Dev on demand
-- **WHEN** an operator dispatches the manual provisioning workflow on `main` for dev with `apply` or `destroy`
-- **THEN** dev is built from the current `main` or torn down, and prod is unaffected
+- **WHEN** dev has been intentionally destroyed
+- **THEN** a subsequent automatic or manual apply can recreate it without a pre-existing kubeconfig
 
 #### Scenario: Foundation change
 - **WHEN** a foundation root file changes
 - **THEN** CI only lints it, and an operator applies it locally
 
 ### Requirement: Cluster-only environment teardown
-Destroying an environment through the provisioning workflow SHALL destroy the cluster root and then remove every resource from the platform root's state, without destroying the platform root's resources individually. The destroy MUST NOT require the environment's Kubernetes API to be reachable. The platform root's state SHALL be reset only after the cluster root destroy succeeds. The platform root and the components the environment's Argo CD installs MUST NOT create resources outside the cluster that need removal when the environment is destroyed, except the autoscaler's AWS instances and launch templates, which the cluster root removes. After a destroy, the next apply SHALL provision the environment as it would from empty state.
+Environment teardown SHALL clean owned external worker and CSI resources through AWS APIs independently of Kubernetes. Normal teardown SHALL retain declared persistent data; explicit purge SHALL delete it. Only successful cluster cleanup SHALL permit platform state reset. Foundation SHALL remain separately owned.
+
+#### Scenario: Cleanup fails
+- **WHEN** external cleanup returns an error
+- **THEN** platform state remains intact and the failure is reported
 
 #### Scenario: Destroy a healthy environment
 - **WHEN** an operator runs the destroy workflow for an environment

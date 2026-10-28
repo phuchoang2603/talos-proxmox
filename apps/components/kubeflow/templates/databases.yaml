@@ -1,10 +1,15 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
   name: kubeflow-pipelines-db
-  namespace: kubeflow
+  namespace: ml
 spec:
   instances: 1
+  resources:
+    requests: {cpu: 50m, memory: 256Mi}
+    limits: {memory: 1Gi}
   bootstrap:
     initdb:
       database: mlpipeline
@@ -22,16 +27,21 @@ spec:
         login: true
         createdb: true
   storage:
-    storageClass: local-path
+    storageClass: {{ .Values.storageClass | quote }}
     size: 35Gi
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
   name: kubeflow-katib-db
-  namespace: kubeflow
+  namespace: ml
 spec:
   instances: 1
+  resources:
+    requests: {cpu: 50m, memory: 256Mi}
+    limits: {memory: 1Gi}
   bootstrap:
     initdb:
       database: katib
@@ -39,5 +49,5 @@ spec:
       secret:
         name: katib-postgres-secret
   storage:
-    storageClass: local-path
+    storageClass: {{ .Values.storageClass | quote }}
     size: 10Gi

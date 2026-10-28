@@ -6,7 +6,11 @@ Provide private, versioned cloud object storage and scoped workload access for i
 ## Requirements
 
 ### Requirement: Private regional staging storage
-The platform SHALL provision versioned, encrypted S3 storage in the training region with public access blocked. Dataset, checkpoint and output prefixes SHALL have declared retention policies that preserve active or pinned objects. Node-local scratch SHALL remain disposable.
+Prod SHALL use generic private encrypted versioned S3 storage with lakehouse, datasets, artifacts, runs and backups prefixes. Dev SHALL use existing MinIO without a dev S3 bucket. Retention SHALL preserve active table data and checkpoints. Optional image assets SHALL be separately owned and disabled when unused.
+
+#### Scenario: Run cleanup
+- **WHEN** finished run objects expire
+- **THEN** lakehouse metadata and data files remain intact
 
 #### Scenario: Training node is removed
 - **WHEN** an AWS worker terminates
@@ -17,18 +21,26 @@ The platform SHALL provision versioned, encrypted S3 storage in the training reg
 - **THEN** staging cleanup does not delete it before its declared retention obligation ends
 
 ### Requirement: Scoped workload access
-Storage access SHALL use a single workload credential separate from Karpenter, CI and the permissionless EC2 worker role, limited to the dataset and run prefixes of the staging bucket. Secret values SHALL NOT be committed or emitted in routine logs.
+Object consumers SHALL use purpose-scoped credentials independent of CI, autoscaler, CSI and permissionless worker roles. Secret values SHALL NOT appear in Git or routine logs.
+
+#### Scenario: Outside prefix access
+- **WHEN** a consumer requests an object outside its authorized prefixes
+- **THEN** the request is denied
 
 #### Scenario: Worker instance attempts S3 access
 - **WHEN** access uses only the worker instance identity
 - **THEN** no dataset or artifact access is granted
 
 #### Scenario: Workload exceeds its scope
-- **WHEN** the workload credential reads or writes outside the dataset and run prefixes of the staging bucket, or in another bucket
-- **THEN** access is denied
+- **WHEN** a purpose-scoped credential accesses an unauthorized prefix or bucket
+- **THEN** AWS denies the request
 
 ### Requirement: Consumer storage handoff
-The platform SHALL expose non-secret bucket, region, endpoint and prefix-policy configuration plus a private credential-delivery contract. Storage provisioning SHALL NOT imply dataset completeness or synchronize a live lake catalog; consumers SHALL verify exported object inventories and hashes.
+Both environments SHALL expose bucket, region, endpoint and prefix configuration through a common contract with private credentials. Prod paths MUST NOT point at dev MinIO. Object storage readiness SHALL NOT imply dataset completeness.
+
+#### Scenario: Prod storage configuration
+- **WHEN** a prod consumer starts
+- **THEN** its object paths use prod S3 without home MinIO dependencies
 
 #### Scenario: Bucket exists before export
 - **WHEN** infrastructure is ready but export data is absent

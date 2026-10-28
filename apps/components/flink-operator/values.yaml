@@ -1,7 +1,7 @@
 flink-kubernetes-operator:
   image:
     tag: 1.16.1
-  watchNamespaces: [payment-gateway]
+  watchNamespaces: [data]
   jobServiceAccount:
     create: false
   rbac:

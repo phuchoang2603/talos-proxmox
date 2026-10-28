@@ -1,6 +1,8 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
   name: openmetadata-postgres
 spec:
   instances: 1
@@ -12,7 +14,7 @@ spec:
       secret:
         name: openmetadata-postgres-credentials
   storage:
-    storageClass: local-path
+    storageClass: {{ .Values.storageClass | quote }}
     size: 10Gi
   resources:
     requests: {cpu: 100m, memory: 256Mi}

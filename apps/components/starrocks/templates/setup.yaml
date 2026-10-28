@@ -2,6 +2,8 @@
 apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
   name: starrocks-setup
 spec:
   refreshInterval: 1h
@@ -15,6 +17,9 @@ spec:
       remoteRef:
         key: {{ $s.rootPasswordKey }}
   {{- range $i, $c := $s.catalogs }}
+    - secretKey: CATALOG_{{ $i }}_CLIENT_SECRET
+      remoteRef:
+        key: {{ $c.clientSecretKey }}
     - secretKey: CATALOG_{{ $i }}_ACCESS_KEY
       remoteRef:
         key: {{ $c.accessKey }}
@@ -41,17 +46,17 @@ data:
       "iceberg.catalog.uri" = "{{ $c.uri }}",
       "iceberg.catalog.warehouse" = "{{ $c.warehouse }}",
       "iceberg.catalog.vended-credentials-enabled" = "false",
-      "iceberg.catalog.rest.sigv4-enabled" = "true",
-      "iceberg.catalog.rest.signing-name" = "{{ $c.signingName }}",
-      "iceberg.catalog.rest.signing-region" = "{{ $c.region }}",
-      "iceberg.catalog.rest.access-key-id" = "@CATALOG_{{ $i }}_ACCESS_KEY@",
-      "iceberg.catalog.rest.secret-access-key" = "@CATALOG_{{ $i }}_SECRET_KEY@",
+      "iceberg.catalog.security" = "oauth2",
+      "iceberg.catalog.oauth2.credential" = "{{ $c.clientId }}:@CATALOG_{{ $i }}_CLIENT_SECRET@",
+      "iceberg.catalog.oauth2.scope" = "PRINCIPAL_ROLE:ALL",
+      "iceberg.catalog.oauth2.server-uri" = "{{ $c.oauthUri }}",
+      "iceberg.catalog.oauth2.token-refresh-enabled" = "true",
       "aws.s3.use_instance_profile" = "false",
       "aws.s3.access_key" = "@CATALOG_{{ $i }}_ACCESS_KEY@",
       "aws.s3.secret_key" = "@CATALOG_{{ $i }}_SECRET_KEY@",
       "aws.s3.region" = "{{ $c.region }}",
       "aws.s3.endpoint" = "{{ $c.s3Endpoint }}",
-      "aws.s3.enable_path_style_access" = "true"
+      "aws.s3.enable_path_style_access" = "{{ $c.pathStyle }}"
     );
   {{- end }}
   {{- range $i, $u := $s.users }}
@@ -73,7 +78,7 @@ data:
     sr() { MYSQL_PWD="$1" mysql -h kube-starrocks-fe-service -P 9030 -uroot --connect-timeout=5 "${@:2}"; }
     until sr "$ROOT_PASSWORD" -e 'SELECT 1' >/dev/null 2>&1 || sr "" -e 'SELECT 1' >/dev/null 2>&1; do sleep 10; done
     sr "" -e "ALTER USER root IDENTIFIED BY '$ROOT_PASSWORD'" >/dev/null 2>&1 || true
-    sed {{ range $i, $c := $s.catalogs }}-e "s|@CATALOG_{{ $i }}_ACCESS_KEY@|$CATALOG_{{ $i }}_ACCESS_KEY|g" -e "s|@CATALOG_{{ $i }}_SECRET_KEY@|$CATALOG_{{ $i }}_SECRET_KEY|g" {{ end }}{{ range $i, $u := $s.users }}-e "s|@USER_{{ $i }}_PASSWORD@|$USER_{{ $i }}_PASSWORD|g" {{ end }}/setup/setup.sql | sr "$ROOT_PASSWORD"
+    sed {{ range $i, $c := $s.catalogs }}-e "s|@CATALOG_{{ $i }}_CLIENT_SECRET@|$CATALOG_{{ $i }}_CLIENT_SECRET|g" -e "s|@CATALOG_{{ $i }}_ACCESS_KEY@|$CATALOG_{{ $i }}_ACCESS_KEY|g" -e "s|@CATALOG_{{ $i }}_SECRET_KEY@|$CATALOG_{{ $i }}_SECRET_KEY|g" {{ end }}{{ range $i, $u := $s.users }}-e "s|@USER_{{ $i }}_PASSWORD@|$USER_{{ $i }}_PASSWORD|g" {{ end }}/setup/setup.sql | sr "$ROOT_PASSWORD"
 ---
 apiVersion: batch/v1
 kind: Job

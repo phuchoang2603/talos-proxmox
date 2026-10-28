@@ -1,5 +1,5 @@
 apiVersion: v2
 name: platform-karpenter-nodes
-description: Karpenter EC2NodeClass and NodePool for stateless AWS burst workers
+description: Karpenter EC2NodeClass and NodePool for AWS Talos workers
 type: application
 version: 0.1.0

@@ -15,9 +15,20 @@ resource "helm_release" "cilium" {
   namespace       = "kube-system"
   chart           = "${local.components}/cilium"
   values          = local.chart_values["cilium"]
-  wait            = false
+  wait            = true
   timeout         = 900
   upgrade_install = true
 
   depends_on = [helm_release.gateway_api]
+}
+
+resource "helm_release" "talos_ccm" {
+  name            = "talos-cloud-controller-manager"
+  namespace       = "kube-system"
+  chart           = "${local.components}/talos-ccm"
+  values          = local.chart_values["talos-ccm"]
+  timeout         = 300
+  upgrade_install = true
+
+  depends_on = [helm_release.cilium]
 }

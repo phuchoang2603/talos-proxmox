@@ -64,8 +64,9 @@ resource "proxmox_virtual_environment_download_file" "talos_image" {
   node_name               = var.vm_node_name
   file_name               = "${var.env}-talos-${var.talos_version}-nocloud-amd64.img"
   overwrite               = false
+  upload_timeout          = 1800
   decompression_algorithm = "zst"
-  url                     = data.talos_image_factory_urls.default.urls.disk_image
+  url                     = replace(data.talos_image_factory_urls.default.urls.disk_image, ".raw.xz", ".raw.zst")
 }
 
 resource "proxmox_virtual_environment_download_file" "talos_gpu_image" {
@@ -76,6 +77,7 @@ resource "proxmox_virtual_environment_download_file" "talos_gpu_image" {
   node_name               = var.vm_node_name
   file_name               = "${var.env}-talos-${var.talos_version}-gpu-nocloud-amd64.img"
   overwrite               = false
+  upload_timeout          = 1800
   decompression_algorithm = "zst"
-  url                     = data.talos_image_factory_urls.gpu[0].urls.disk_image
+  url                     = replace(data.talos_image_factory_urls.gpu[0].urls.disk_image, ".raw.xz", ".raw.zst")
 }

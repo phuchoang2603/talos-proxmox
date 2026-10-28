@@ -1,0 +1,84 @@
+clientNamespaces: [data, ml]
+storageClass: local-path
+catalog:
+  name: lakehouse
+  bucket: platform-dev
+  prefix: lakehouse
+  endpoint: https://minio.home.phuchoang.sbs
+  region: us-east-1
+  pathStyle: true
+polaris:
+  fullnameOverride: iceberg-catalog
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
+  envFrom:
+  - secretRef:
+      name: iceberg-storage
+  extraEnv:
+  - name: JAVA_TOOL_OPTIONS
+    value: -Xms128m -Xmx512m
+  persistence:
+    type: relational-jdbc
+    relationalJdbc:
+      additionalProperties:
+        currentSchema: public
+      secret:
+        name: iceberg-database
+  realmContext:
+    realms:
+    - PLATFORM
+  authentication:
+    type: internal
+    tokenBroker:
+      secret:
+        name: iceberg-signing
+  storage:
+    secret:
+      name: iceberg-storage
+      awsAccessKeyId: AWS_ACCESS_KEY_ID
+      awsSecretAccessKey: AWS_SECRET_ACCESS_KEY
+  extraVolumes:
+  - name: bootstrap-credentials
+    secret:
+      secretName: iceberg-bootstrap
+  extraInitContainers:
+  - name: bootstrap
+    image: apache/polaris-admin-tool:1.8.0
+    args:
+    - bootstrap
+    - --credentials-file=/bootstrap/credentials.yaml
+    env:
+    - name: POLARIS_PERSISTENCE_TYPE
+      value: relational-jdbc
+    - name: QUARKUS_DATASOURCE_JDBC_ADDITIONAL_JDBC_PROPERTIES_CURRENTSCHEMA
+      value: public
+    - name: QUARKUS_DATASOURCE_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: iceberg-database
+          key: username
+    - name: QUARKUS_DATASOURCE_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: iceberg-database
+          key: password
+    - name: QUARKUS_DATASOURCE_JDBC_URL
+      valueFrom:
+        secretKeyRef:
+          name: iceberg-database
+          key: jdbcUrl
+    volumeMounts:
+    - name: bootstrap-credentials
+      mountPath: /bootstrap
+      readOnly: true
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+      limits:
+        memory: 768Mi

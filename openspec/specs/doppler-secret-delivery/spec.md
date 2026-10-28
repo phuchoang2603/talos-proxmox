@@ -7,23 +7,23 @@ Make Doppler the single source for platform secrets. OpenTofu writes generated c
 ## Requirements
 
 ### Requirement: Doppler as the single secret source
-The platform SHALL store every secret consumed by CI or clusters in the Doppler project `talos-proxmox`, in the config for the matching environment (`dev` or `prod`):
-- **Generated credentials** (kubeconfig, talosconfig, autoscaler AWS access keys, AWS worker bootstrap configuration, secret-store read tokens, the Grafana admin credential) MUST be written by OpenTofu. The foundation root SHALL generate the Grafana admin credential into the `prod` config only.
-- **Externally issued credentials** (Proxmox, HCP Terraform, Tailscale, and Cloudflare tunnel credentials) MUST be entered in Doppler by an operator.
+The platform SHALL store generated and operator-issued credentials in the matching dev/prod Doppler config. Foundation SHALL be recreatable without imports of deleted resources and generate application credentials for both environments. Cluster roots SHALL generate only credentials required by their backend. Operator-issued credentials SHALL be restored privately. CI SHALL NOT write secrets through the Doppler CLI.
 
-No CI step MAY write secrets to Doppler with the Doppler CLI. A Doppler config MUST NOT keep keys that no CI step or cluster component consumes.
+#### Scenario: Fresh foundation
+- **WHEN** foundation is rebuilt from empty state
+- **THEN** both configs and scoped tokens are created and no obsolete imports are required
 
 #### Scenario: Cluster apply
-- **WHEN** the cluster root is applied
-- **THEN** that environment's generated credentials and AWS worker bootstrap configuration are present and current in its Doppler config, with no CLI write step
+- **WHEN** a cluster root is applied
+- **THEN** its backend-specific generated credentials reach its Doppler config; both environments receive their own AWS worker credentials and only prod receives CSI credentials
 
 #### Scenario: Autoscaler key creation
-- **WHEN** an environment is applied from fresh state
-- **THEN** its autoscaler access key exists and is stored in that environment's Doppler config without manual key creation
+- **WHEN** either environment is applied from fresh state
+- **THEN** its independent autoscaler access key is generated and stored in that environment's Doppler config without manual creation
 
 #### Scenario: Telemetry credential generation
-- **WHEN** an operator applies the foundation root
-- **THEN** the `prod` config holds the Grafana admin credential, the `dev` config holds no telemetry credential, and no operator typed any of those values
+- **WHEN** foundation is applied
+- **THEN** both configs contain independently generated Grafana credentials unless dev retains its recovered credential
 
 #### Scenario: Environment rebuild keeps telemetry credentials
 - **WHEN** an environment is destroyed and re-provisioned

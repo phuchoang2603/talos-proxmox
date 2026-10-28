@@ -85,15 +85,11 @@ victoria-metrics-k8s-stack:
       passwordKey: admin-password
     envFromSecret: grafana-oidc
     service:
-      type: LoadBalancer
-      annotations:
-        lbipam.cilium.io/ips: '10.69.12.128'
+      type: ClusterIP
     persistence:
       enabled: true
       storageClassName: local-path
       size: 5Gi
-    nodeSelector:
-      kubernetes.io/hostname: prod-server1
     deploymentStrategy:
       type: Recreate
     resources:
@@ -121,8 +117,8 @@ victoria-metrics-k8s-stack:
         client_secret: '$__env{GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}'
         scopes: openid profile email
         auth_url: https://auth.phuchoang.sbs/dex/auth
-        token_url: https://auth.phuchoang.sbs/dex/token
-        api_url: https://auth.phuchoang.sbs/dex/userinfo
+        token_url: http://dex.auth.svc.cluster.local:5556/dex/token
+        api_url: http://dex.auth.svc.cluster.local:5556/dex/userinfo
         use_pkce: true
         role_attribute_path: '{{ printf "email == ''%s'' && ''Admin''" .Values.global.operatorEmail }}'
         role_attribute_strict: true
@@ -131,11 +127,9 @@ victoria-metrics-k8s-stack:
     enabled: true
     spec:
       retentionPeriod: 3d
-      nodeSelector:
-        kubernetes.io/hostname: prod-server1
       extraArgs:
         memory.allowedBytes: 512MiB
-        storage.minFreeDiskSpaceBytes: '21474836480'
+        storage.minFreeDiskSpaceBytes: '1073741824'
       storage:
         storageClassName: local-path
         accessModes: [ReadWriteOnce]
@@ -154,10 +148,8 @@ victoria-metrics-k8s-stack:
     enabled: true
     spec:
       retentionPeriod: 3d
-      nodeSelector:
-        kubernetes.io/hostname: prod-server1
       extraArgs:
-        storage.minFreeDiskSpaceBytes: '21474836480'
+        storage.minFreeDiskSpaceBytes: '1073741824'
       storage:
         storageClassName: local-path
         accessModes: [ReadWriteOnce]
@@ -176,10 +168,8 @@ victoria-metrics-k8s-stack:
     enabled: true
     spec:
       retentionPeriod: 3d
-      nodeSelector:
-        kubernetes.io/hostname: prod-server1
       extraArgs:
-        storage.minFreeDiskSpaceBytes: '21474836480'
+        storage.minFreeDiskSpaceBytes: '1073741824'
       storage:
         storageClassName: local-path
         accessModes: [ReadWriteOnce]
@@ -199,8 +189,6 @@ victoria-metrics-k8s-stack:
     spec:
       selectAllByDefault: true
       statefulMode: true
-      nodeSelector:
-        kubernetes.io/hostname: prod-server2
       statefulStorage:
         volumeClaimTemplate:
           spec:
@@ -295,8 +283,6 @@ vtagent:
   spec:
     port: '10429'
     replicaCount: 1
-    nodeSelector:
-      kubernetes.io/hostname: prod-server2
     remoteWrite:
       - url: http://vtsingle-vmks.observability.svc:10428/insert/native
     remoteWriteSettings:

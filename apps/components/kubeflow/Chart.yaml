@@ -1,5 +1,5 @@
 apiVersion: v2
 name: platform-kubeflow
-description: Prod Kubeflow components without shared infrastructure or authentication services
+description: Kubeflow components and ML object-storage credentials
 type: application
 version: 0.1.0

@@ -9,10 +9,16 @@ on:
       action:
         type: string
         default: apply
+      revision:
+        type: string
+        default: ""
+      purge_data:
+        type: boolean
+        default: false
 
 jobs:
   provision:
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    if: (github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')) || (inputs.environment == 'dev' && github.event_name == 'pull_request' && github.base_ref == 'main' && github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 90
     environment: ${{ inputs.environment }}
@@ -26,9 +32,25 @@ jobs:
       DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
       TF_VAR_env: ${{ inputs.environment }}
       TF_IN_AUTOMATION: true
+      TF_VAR_target_revision: ${{ inputs.revision || github.sha }}
+      PURGE_DATA: ${{ inputs.purge_data && 'true' || 'false' }}
       PLAN_FLAGS: ${{ inputs.action == 'destroy' && '-destroy' || '' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.revision || github.sha }}
+          fetch-depth: 0
+      - name: Verify selected revision
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          [[ "$TF_VAR_target_revision" =~ ^[0-9a-f]{40}$ ]]
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            git merge-base --is-ancestor "$PR_BASE_SHA" "$TF_VAR_target_revision"
+          else
+            git merge-base --is-ancestor "$TF_VAR_target_revision" origin/main
+          fi
       - uses: dopplerhq/cli-action@v3
       - uses: opentofu/setup-opentofu@v1
         with:
@@ -43,26 +65,41 @@ jobs:
 
       - name: Doppler credentials
         run: |
-          for pair in TS_OAUTH_CLIENT_ID:TS_OAUTH_CLIENT_ID TS_OAUTH_SECRET:TS_OAUTH_SECRET \
-            HCP_TERRAFORM_TOKEN:TF_TOKEN_app_terraform_io; do
+          pairs="HCP_TERRAFORM_TOKEN:TF_TOKEN_app_terraform_io"
+          if [ "$TF_VAR_env" = dev ]; then
+            pairs="$pairs TS_OAUTH_CLIENT_ID:TS_OAUTH_CLIENT_ID TS_OAUTH_SECRET:TS_OAUTH_SECRET"
+          fi
+          for pair in $pairs; do
             v="$(doppler secrets get "${pair%%:*}" --plain)"
             echo "::add-mask::${v}"
             echo "${pair#*:}=${v}" >> "$GITHUB_ENV"
           done
-      - uses: tailscale/github-action@v2
+      - uses: tailscale/github-action@v4
+        if: inputs.environment == 'dev'
         with:
           oauth-client-id: ${{ env.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ env.TS_OAUTH_SECRET }}
           tags: tag:ci
 
+      - name: Allow current AWS management egress
+        if: inputs.environment == 'prod'
+        run: |
+          address=$(curl --fail --silent --show-error https://checkip.amazonaws.com)
+          python3 - "$address" <<'PYCODE'
+          import ipaddress, json, os, sys
+          cidr = str(ipaddress.IPv4Address(sys.argv[1])) + "/32"
+          with open(os.environ["GITHUB_ENV"], "a") as output:
+              output.write("TF_VAR_aws_management_cidrs=" + json.dumps([cidr]) + "\n")
+          PYCODE
+
       - name: Cluster
-        working-directory: terraform/cluster
+        working-directory: terraform/cluster/${{ inputs.environment }}
         env:
           TF_WORKSPACE: talos-cluster-${{ inputs.environment }}
         run: |
           tofu init -input=false
           # shellcheck disable=SC2086
-          tofu plan -input=false -lock-timeout=5m -no-color ${PLAN_FLAGS} -var-file="env/${TF_VAR_env}/main.tfvars" -out=.planfile
+          tofu plan -input=false -lock-timeout=5m -no-color ${PLAN_FLAGS} -var-file="../env/${TF_VAR_env}/main.tfvars" -out=.planfile
           tofu apply -input=false -lock-timeout=5m -auto-approve .planfile
 
       # Everything the platform root manages lives in the cluster just destroyed, so its state is

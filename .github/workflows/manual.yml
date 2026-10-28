@@ -11,6 +11,13 @@ on:
         type: choice
         options: [apply, destroy]
         default: apply
+      revision:
+        description: Optional full main commit SHA (defaults to the workflow revision)
+        type: string
+      purge_data:
+        description: Delete environment-owned persistent cloud data during destroy
+        type: boolean
+        default: false
 
 jobs:
   lint:
@@ -27,4 +34,6 @@ jobs:
     with:
       environment: ${{ inputs.environment }}
       action: ${{ inputs.action }}
+      revision: ${{ inputs.revision }}
+      purge_data: ${{ inputs.purge_data }}
     secrets: inherit

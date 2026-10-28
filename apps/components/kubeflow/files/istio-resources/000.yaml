@@ -57,7 +57,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
 metadata:
   name: kubeflow-gateway
-  namespace: kubeflow
+  namespace: ml
 spec:
   selector:
     istio: ingressgateway

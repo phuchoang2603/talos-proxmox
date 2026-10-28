@@ -1,0 +1,792 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Talos on Proxmox and AWS \u2014 Infrastructure",
+    "locale": "en",
+    "output": "docs/architecture/diagrams/architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/phuchoang2603/talos-proxmox",
+      "revision": "a5cbd7858b431e4126f28513c77c4c2e98b918a6"
+    }
+  },
+  "components": [
+    {
+      "id": "delivery",
+      "type": "external",
+      "label": "GitHub Actions / operator",
+      "sublabel": "PR: dev | main: dev + prod",
+      "pos": [
+        40,
+        40
+      ],
+      "size": [
+        220,
+        80
+      ],
+      "sources": [
+        {
+          "path": ".github/workflows/terraform.yml",
+          "line": 17,
+          "end_line": 43
+        },
+        {
+          "path": ".github/workflows/provision.yml",
+          "line": 42,
+          "end_line": 82
+        },
+        {
+          "path": "terraform/foundation/main.tf",
+          "line": 35,
+          "end_line": 68
+        }
+      ],
+      "tag": "local execution"
+    },
+    {
+      "id": "tofu",
+      "type": "backend",
+      "label": "OpenTofu / Terraform",
+      "sublabel": "foundation / cluster / platform",
+      "pos": [
+        430,
+        40
+      ],
+      "size": [
+        250,
+        80
+      ],
+      "sources": [
+        {
+          "path": ".github/workflows/provision.yml",
+          "line": 95,
+          "end_line": 127
+        },
+        {
+          "path": "terraform/foundation/main.tf",
+          "line": 35,
+          "end_line": 68
+        },
+        {
+          "path": "terraform/platform/main.tf",
+          "line": 1,
+          "end_line": 29
+        }
+      ],
+      "tag": "infrastructure owner"
+    },
+    {
+      "id": "state",
+      "type": "database",
+      "label": "HCP Terraform",
+      "sublabel": "State + locks; five workspaces",
+      "pos": [
+        900,
+        40
+      ],
+      "size": [
+        220,
+        80
+      ],
+      "sources": [
+        {
+          "path": "terraform/foundation/hcp.tf",
+          "line": 1,
+          "end_line": 23
+        },
+        {
+          "path": "terraform/foundation/main.tf",
+          "line": 35,
+          "end_line": 41
+        }
+      ],
+      "tag": "state only"
+    },
+    {
+      "id": "doppler",
+      "type": "security",
+      "label": "Doppler",
+      "sublabel": "Separate dev / prod configs",
+      "pos": [
+        430,
+        240
+      ],
+      "size": [
+        250,
+        80
+      ],
+      "sources": [
+        {
+          "path": "terraform/foundation/doppler.tf",
+          "line": 1,
+          "end_line": 38
+        },
+        {
+          "path": "terraform/cluster/prod/doppler.tf",
+          "line": 1,
+          "end_line": 24
+        },
+        {
+          "path": "terraform/platform/main.tf",
+          "line": 6,
+          "end_line": 29
+        }
+      ],
+      "tag": "generated access + credentials"
+    },
+    {
+      "id": "proxmox",
+      "type": "cloud",
+      "label": "Proxmox hosts",
+      "sublabel": "pve / pve2 / pve3",
+      "pos": [
+        40,
+        460
+      ],
+      "size": [
+        220,
+        80
+      ],
+      "sources": [
+        {
+          "path": "terraform/cluster/dev/main.tf",
+          "line": 1,
+          "end_line": 15
+        },
+        {
+          "path": "terraform/cluster/env/dev/k8s_nodes.json",
+          "line": 1,
+          "end_line": 39
+        }
+      ],
+      "tag": "fixed VM capacity"
+    },
+    {
+      "id": "dev_services",
+      "type": "backend",
+      "label": "Dev cluster services",
+      "sublabel": "Cilium / Argo CD / ESO",
+      "pos": [
+        350,
+        460
+      ],
+      "size": [
+        220,
+        80
+      ],
+      "sources": [
+        {
+          "path": "terraform/platform/network.tf",
+          "line": 13,
+          "end_line": 34
+        },
+        {
+          "path": "terraform/platform/argocd.tf",
+          "line": 1,
+          "end_line": 26
+        },
+        {
+          "path": "apps/components/external-secrets/templates/cluster-secret-store.yaml",
+          "line": 1,
+          "end_line": 16
+        }
+      ],
+      "tag": "platform + GitOps"
+    },
+    {
+      "id": "dev_talos",
+      "type": "backend",
+      "label": "Dev Talos VMs",
+      "sublabel": "1 control plane + 2 workers",
+      "pos": [
+        40,
+        680
+      ],
+      "size": [
+        220,
+        80
+      ],
+      "sources": [
+        {
+          "path": "terraform/cluster/env/dev/k8s_nodes.json",
+          "line": 1,
+          "end_line": 39
+        },
+        {
+          "path": "terraform/cluster/dev/main.tf",
+          "line": 1,
+          "end_line": 15
+        },
+        {
+          "path": "apps/components/iceberg-catalog/values.yaml",
+          "line": 1,
+          "end_line": 9
+        }
+      ],
+      "tag": "20 CPU / 64 GiB total"
+    },
+    {
+      "id": "minio",
+      "type": "database",
+      "label": "Existing MinIO",
+      "sublabel": "platform-dev / S3 API",
+      "pos": [
+        350,
+        680
+      ],
+      "size": [
+        220,
+        80
+      ],
+      "sources": [
+        {
+          "path": "apps/components/iceberg-catalog/values.yaml",
+          "line": 1,
+          "end_line": 9
+        },
+        {
+          "path": "terraform/cluster/env/dev/minio-artifacts-policy.json",
+          "line": 1,
+          "end_line": 34
+        }
+      ],
+      "tag": "external to Talos"
+    },
+    {
+      "id": "local_path",
+      "type": "database",
+      "label": "Local-path PVCs",
+      "sublabel": "VM disks; volumes bound to node",
+      "pos": [
+        40,
+        900
+      ],
+      "size": [
+        220,
+        80
+      ],
+      "sources": [
+        {
+          "path": "apps/components/local-path-provisioner/values.yaml",
+          "line": 1,
+          "end_line": 15
+        }
+      ],
+      "tag": "dev persistence"
+    },
+    {
+      "id": "prod_services",
+      "type": "backend",
+      "label": "Prod cluster services",
+      "sublabel": "Cilium / Argo CD / ESO",
+      "pos": [
+        640,
+        460
+      ],
+      "size": [
+        220,
+        80
+      ],
+      "sources": [
+        {
+          "path": "terraform/platform/network.tf",
+          "line": 13,
+          "end_line": 34
+        },
+        {
+          "path": "terraform/platform/argocd.tf",
+          "line": 1,
+          "end_line": 26
+        },
+        {
+          "path": "apps/components/external-secrets/templates/cluster-secret-store.yaml",
+          "line": 1,
+          "end_line": 16
+        }
+      ],
+      "tag": "platform + GitOps"
+    },
+    {
+      "id": "aws_network",
+      "type": "cloud",
+      "label": "AWS VPC / public subnet",
+      "sublabel": "us-east-1a / EIP / node SG",
+      "pos": [
+        950,
+        460
+      ],
+      "size": [
+        220,
+        80
+      ],
+      "sources": [
+        {
+          "path": "terraform/aws/network.tf",
+          "line": 1,
+          "end_line": 55
+        },
+        {
+          "path": "terraform/aws/controlplane.tf",
+          "line": 1,
+          "end_line": 16
+        },
+        {
+          "path": "terraform/cluster/env/prod/main.tfvars",
+          "line": 1,
+          "end_line": 6
+        }
+      ],
+      "tag": "S3 gateway endpoint"
+    },
+    {
+      "id": "prod_cp",
+      "type": "backend",
+      "label": "Prod Talos control plane",
+      "sublabel": "m6a.xlarge / 4 vCPU / 16 GiB",
+      "pos": [
+        950,
+        680
+      ],
+      "size": [
+        220,
+        80
+      ],
+      "sources": [
+        {
+          "path": "terraform/aws/controlplane.tf",
+          "line": 17,
+          "end_line": 85
+        },
+        {
+          "path": "terraform/cluster/env/prod/main.tfvars",
+          "line": 1,
+          "end_line": 6
+        },
+        {
+          "path": "terraform/platform/karpenter.tf",
+          "line": 19,
+          "end_line": 42
+        }
+      ],
+      "tag": "On-Demand; workloads allowed"
+    },
+    {
+      "id": "karpenter",
+      "type": "backend",
+      "label": "Karpenter controller",
+      "sublabel": "Runs on fixed control plane",
+      "pos": [
+        640,
+        680
+      ],
+      "size": [
+        220,
+        80
+      ],
+      "sources": [
+        {
+          "path": "terraform/platform/karpenter.tf",
+          "line": 19,
+          "end_line": 55
+        },
+        {
+          "path": "apps/components/karpenter/values.yaml",
+          "line": 1,
+          "end_line": 41
+        },
+        {
+          "path": "apps/components/karpenter-nodes/values.yaml",
+          "line": 22,
+          "end_line": 42
+        }
+      ],
+      "tag": "sole worker provisioner"
+    },
+    {
+      "id": "baseline",
+      "type": "cloud",
+      "label": "Baseline Talos worker",
+      "sublabel": "1 x m6a.xlarge / On-Demand",
+      "pos": [
+        640,
+        900
+      ],
+      "size": [
+        220,
+        80
+      ],
+      "sources": [
+        {
+          "path": "apps/components/karpenter-nodes/values.yaml",
+          "line": 22,
+          "end_line": 32
+        },
+        {
+          "path": "apps/components/karpenter-nodes/templates/nodes.yaml",
+          "line": 35,
+          "end_line": 78
+        }
+      ],
+      "tag": "aws-workers; static replicas"
+    },
+    {
+      "id": "spot",
+      "type": "cloud",
+      "label": "Spot Talos burst worker",
+      "sublabel": "0-1 x m6a.xlarge / pending pods",
+      "pos": [
+        950,
+        900
+      ],
+      "size": [
+        220,
+        80
+      ],
+      "sources": [
+        {
+          "path": "apps/components/karpenter-nodes/values.yaml",
+          "line": 22,
+          "end_line": 37
+        },
+        {
+          "path": "apps/components/karpenter-nodes/templates/cpu-burst.yaml",
+          "line": 1,
+          "end_line": 45
+        }
+      ],
+      "tag": "aws-cpu-burst; 5m consolidation"
+    },
+    {
+      "id": "ebs",
+      "type": "database",
+      "label": "Encrypted gp3 EBS",
+      "sublabel": "EBS CSI / same-AZ reattachment",
+      "pos": [
+        640,
+        1120
+      ],
+      "size": [
+        220,
+        80
+      ],
+      "sources": [
+        {
+          "path": "apps/components/ebs-csi/templates/storage.yaml",
+          "line": 1,
+          "end_line": 14
+        },
+        {
+          "path": "terraform/aws/controlplane.tf",
+          "line": 52,
+          "end_line": 57
+        }
+      ],
+      "tag": "PVCs + persistent CP boot disk"
+    },
+    {
+      "id": "s3",
+      "type": "database",
+      "label": "Amazon S3",
+      "sublabel": "platform-prod-<account>-us-east-1",
+      "pos": [
+        950,
+        1120
+      ],
+      "size": [
+        220,
+        80
+      ],
+      "sources": [
+        {
+          "path": "terraform/foundation/ml.tf",
+          "line": 1,
+          "end_line": 64
+        },
+        {
+          "path": "terraform/aws/network.tf",
+          "line": 48,
+          "end_line": 55
+        },
+        {
+          "path": "apps/components/iceberg-catalog/environments/prod/values.yaml",
+          "line": 1,
+          "end_line": 6
+        }
+      ],
+      "tag": "regional; private + versioned"
+    },
+    {
+      "id": "dev_karpenter",
+      "type": "backend",
+      "label": "Dev Karpenter controller",
+      "sublabel": "Runs on Proxmox control plane",
+      "pos": [
+        350,
+        900
+      ],
+      "size": [
+        220,
+        80
+      ],
+      "tag": "zero EC2 baseline",
+      "sources": [
+        {
+          "path": "terraform/platform/karpenter.tf",
+          "line": 17,
+          "end_line": 39
+        },
+        {
+          "path": "apps/components/karpenter/values.yaml",
+          "line": 1,
+          "end_line": 41
+        }
+      ]
+    },
+    {
+      "id": "dev_burst",
+      "type": "backend",
+      "label": "Dev Spot Talos worker",
+      "sublabel": "0\u20131 m6a.xlarge \u00b7 Spot",
+      "pos": [
+        350,
+        1120
+      ],
+      "size": [
+        220,
+        80
+      ],
+      "tag": "Own VPC / IAM / SQS",
+      "sources": [
+        {
+          "path": "terraform/cluster/dev/main.tf",
+          "line": 17,
+          "end_line": 34
+        },
+        {
+          "path": "apps/components/karpenter-nodes/environments/dev/values.yaml",
+          "line": 1,
+          "end_line": 4
+        },
+        {
+          "path": "terraform/aws/main.tf",
+          "line": 12,
+          "end_line": 55
+        }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "DEV / Homelab",
+      "wraps": [
+        "proxmox",
+        "dev_services",
+        "dev_talos",
+        "minio",
+        "local_path",
+        "dev_karpenter"
+      ],
+      "pad": 24
+    },
+    {
+      "kind": "region",
+      "label": "PROD / AWS us-east-1",
+      "wraps": [
+        "prod_services",
+        "aws_network",
+        "prod_cp",
+        "karpenter",
+        "baseline",
+        "spot",
+        "ebs",
+        "s3"
+      ],
+      "pad": 24
+    },
+    {
+      "kind": "region",
+      "label": "DEV / AWS us-east-1",
+      "wraps": [
+        "dev_burst"
+      ],
+      "pad": 24
+    }
+  ],
+  "connections": [
+    {
+      "from": "delivery",
+      "to": "tofu",
+      "label": "apply",
+      "variant": "default"
+    },
+    {
+      "from": "tofu",
+      "to": "state",
+      "label": "state + locks",
+      "variant": "default"
+    },
+    {
+      "from": "tofu",
+      "to": "doppler",
+      "label": "read / write credentials",
+      "variant": "security"
+    },
+    {
+      "from": "tofu",
+      "to": "proxmox",
+      "label": "dev VMs",
+      "variant": "default"
+    },
+    {
+      "from": "tofu",
+      "to": "aws_network",
+      "label": "prod infra",
+      "variant": "default"
+    },
+    {
+      "from": "tofu",
+      "to": "dev_services",
+      "label": "Helm bootstrap",
+      "variant": "default"
+    },
+    {
+      "from": "tofu",
+      "to": "prod_services",
+      "label": "Helm bootstrap",
+      "variant": "default"
+    },
+    {
+      "from": "dev_services",
+      "to": "doppler",
+      "label": "dev secrets",
+      "variant": "security"
+    },
+    {
+      "from": "prod_services",
+      "to": "doppler",
+      "label": "prod secrets",
+      "variant": "security"
+    },
+    {
+      "from": "proxmox",
+      "to": "dev_talos",
+      "label": "Talos bootstrap",
+      "variant": "default"
+    },
+    {
+      "from": "dev_services",
+      "to": "dev_talos",
+      "label": "cluster controllers",
+      "variant": "default"
+    },
+    {
+      "from": "dev_talos",
+      "to": "minio",
+      "label": "S3 objects",
+      "variant": "default"
+    },
+    {
+      "from": "dev_talos",
+      "to": "local_path",
+      "label": "PVCs",
+      "variant": "default"
+    },
+    {
+      "from": "aws_network",
+      "to": "prod_cp",
+      "label": "EC2 + Talos",
+      "variant": "default"
+    },
+    {
+      "from": "prod_services",
+      "to": "prod_cp",
+      "label": "cluster controllers",
+      "variant": "default"
+    },
+    {
+      "from": "prod_cp",
+      "to": "karpenter",
+      "label": "hosts",
+      "variant": "default"
+    },
+    {
+      "from": "karpenter",
+      "to": "baseline",
+      "label": "maintain 1",
+      "variant": "default"
+    },
+    {
+      "from": "karpenter",
+      "to": "spot",
+      "label": "scale on demand",
+      "variant": "default"
+    },
+    {
+      "from": "baseline",
+      "to": "ebs",
+      "label": "PVCs",
+      "variant": "default"
+    },
+    {
+      "from": "spot",
+      "to": "ebs",
+      "label": "same-AZ PVCs",
+      "variant": "default"
+    },
+    {
+      "from": "prod_cp",
+      "to": "s3",
+      "label": "S3 objects",
+      "variant": "default"
+    },
+    {
+      "from": "dev_talos",
+      "to": "dev_karpenter",
+      "label": "hosts",
+      "variant": "default"
+    },
+    {
+      "from": "dev_karpenter",
+      "to": "dev_burst",
+      "label": "scale on demand",
+      "variant": "default"
+    },
+    {
+      "from": "dev_burst",
+      "to": "dev_talos",
+      "label": "KubeSpan join",
+      "variant": "security"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Provisioning and ownership",
+      "items": [
+        "Operator applies foundation. After lint, CI applies dev and prod independently; each runs cluster then platform.",
+        "OpenTofu owns the fixed control plane and bootstrap; Karpenter owns every AWS worker. No ASG.",
+        "Argo CD and ESO run independently. argocd-post owns namespaces and Argo access; Kubeflow owns ML credentials. Apps are omitted."
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Capacity and scaling",
+      "items": [
+        "Dev: pve 8 CPU / 32 GiB + GPU; pve2 8 / 16; pve3 4 / 16. Independent AWS Spot pool scales from zero.",
+        "Prod baseline: two m6a.xlarge nodes, 8 vCPU / 32 GiB total. One control plane, not HA.",
+        "Each Spot pool scales from pending pod requests up to one worker. Prod permits one extra baseline node during replacement. GPU pools disabled."
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Storage and access boundaries",
+      "items": [
+        "Dev uses external MinIO and node-local PVCs; a Spot disk is ephemeral. Prod uses regional S3 and same-AZ gp3 PVCs, without multi-AZ HA.",
+        "S3 prefixes hold lakehouse, artifacts, datasets, runs and backups. PVCs are separate; selected storage paths are shown.",
+        "Dev management uses LAN/Tailscale; prod uses allowlisted EIP ports. Cloudflare tunnels expose ClusterIP services. No API VIP or LAN load balancer."
+      ]
+    }
+  ]
+}

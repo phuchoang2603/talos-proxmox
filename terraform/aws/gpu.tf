@@ -34,15 +34,15 @@ data "talos_machine_configuration" "worker_gpu" {
   count = var.gpu_ami_id != "" ? 1 : 0
 
   cluster_name       = var.cluster_name
-  cluster_endpoint   = var.cluster_endpoint
+  cluster_endpoint   = local.cluster_endpoint
   machine_type       = "worker"
-  machine_secrets    = var.machine_secrets
+  machine_secrets    = local.machine_secrets
   talos_version      = var.talos_version
   kubernetes_version = var.kubernetes_version
   docs               = false
   examples           = false
 
-  config_patches = [
+  config_patches = concat(local.worker_config_patches, [
     yamlencode({
       machine = {
         install = {
@@ -60,11 +60,11 @@ data "talos_machine_configuration" "worker_gpu" {
           extraArgs = {
             "cloud-provider"       = "external"
             "node-labels"          = "${local.node_label}=aws,${local.gpu_label_key}=gpu-training"
-            "register-with-taints" = "${local.burst_key}=true:NoSchedule,${local.gpu_taint_key}=true:NoSchedule,karpenter.sh/unregistered=true:NoExecute"
+            "register-with-taints" = "${local.gpu_taint_key}=true:NoSchedule,karpenter.sh/unregistered=true:NoExecute"
           }
         }
         network = {
-          kubespan = { enabled = true }
+          kubespan = { enabled = !var.create_controlplane }
         }
         features = {
           kubePrism = {
@@ -87,5 +87,5 @@ data "talos_machine_configuration" "worker_gpu" {
         proxy = { disabled = true }
       }
     }),
-  ]
+  ])
 }

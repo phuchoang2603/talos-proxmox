@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "a5478551-c2d0-44bd-80e5-46ecb882d046",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "/home/felix/repos/talos-proxmox/docs/architecture/diagrams/architecture.json",
+  "output": "/home/felix/repos/talos-proxmox/docs/architecture/diagrams/architecture.html",
+  "specification": {
+    "sha256": "f76a0a1a5315b433bcab8f2a3dc7b0dc28888495d56b918f4a3333e208070996",
+    "bytes": 17427
+  },
+  "artifact": {
+    "sha256": "2be6f95eda72132bc2510d9e9608cfd89a0a7b5f1caf796761b5e329a3938427",
+    "bytes": 891542
+  }
+}

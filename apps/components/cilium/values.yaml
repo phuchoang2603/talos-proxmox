@@ -1,4 +1,6 @@
 cilium:
+  operator:
+    replicas: 1
   # Talos 1.13: https://www.talos.dev/v1.13/kubernetes-guides/network/deploying-cilium/
   ipam:
     mode: kubernetes
@@ -33,16 +35,13 @@ cilium:
     autoMount:
       enabled: false
     hostRoot: /sys/fs/cgroup
-  devices: eth0
+  devices: [ens5, eth0]
   # KubeSpan MTU 1420 minus VXLAN overhead for cross-site pod traffic.
   MTU: 1370
-  l2announcements:
-    enabled: true
+  enableLBIPAM: false
   k8sClientRateLimit:
     qps: 20
     burst: 40
-  loadBalancer:
-    acceleration: best-effort
   cni:
     exclusive: false
   socketLB:

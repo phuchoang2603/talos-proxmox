@@ -7,7 +7,7 @@ resource "helm_release" "argo_cd" {
   timeout          = 900
   upgrade_install  = true
 
-  depends_on = [helm_release.cilium]
+  depends_on = [helm_release.talos_ccm]
 }
 
 resource "helm_release" "argocd_bootstrap" {

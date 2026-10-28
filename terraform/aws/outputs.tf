@@ -40,3 +40,17 @@ output "gpu_schematic_id" {
 output "s3_gateway_endpoint_id" {
   value = aws_vpc_endpoint.s3.id
 }
+
+output "cluster_name" { value = var.cluster_name }
+output "cluster_endpoint" { value = local.cluster_endpoint }
+output "controlplane_ips" { value = aws_eip.controlplane[*].public_ip }
+output "schematic_id" { value = null }
+output "talosconfig" {
+  value     = one(module.talos[*].talosconfig)
+  sensitive = true
+}
+output "kubeconfig" {
+  value     = one(module.bootstrap[*].kubeconfig)
+  sensitive = true
+}
+output "interruption_queue" { value = aws_sqs_queue.interruption.name }

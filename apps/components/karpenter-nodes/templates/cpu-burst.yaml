@@ -1,0 +1,45 @@
+{{- if .Values.cpuBurst.enabled }}
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: aws-cpu-burst
+spec:
+  limits:
+    {{- toYaml .Values.cpuBurst.limits | nindent 4 }}
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: {{ .Values.cpuBurst.consolidateAfter }}
+    budgets:
+      - nodes: "1"
+  template:
+    metadata:
+      labels:
+        {{ .Values.burst.labelKey }}: {{ .Values.burst.labelValue }}
+    spec:
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: aws-cpu
+      expireAfter: {{ .Values.nodePool.expireAfter }}
+      terminationGracePeriod: {{ .Values.nodePool.terminationGracePeriod }}
+      startupTaints:
+        - key: node.cloudprovider.kubernetes.io/uninitialized
+          value: "true"
+          effect: NoSchedule
+        - key: node.cilium.io/agent-not-ready
+          value: "true"
+          effect: NoSchedule
+      requirements:
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values: {{ toJson .Values.nodePool.zones }}
+        - key: kubernetes.io/arch
+          operator: In
+          values: [amd64]
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: [spot]
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values: {{ toJson .Values.nodePool.instanceTypes }}
+{{- end }}

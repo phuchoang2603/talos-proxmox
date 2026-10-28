@@ -13,13 +13,6 @@ variable "env" {
   type = string
 }
 
-variable "network" {
-  type = object({
-    vip      = string
-    lb_range = string
-  })
-}
-
 variable "nodes" {
   type = map(object({
     role         = string

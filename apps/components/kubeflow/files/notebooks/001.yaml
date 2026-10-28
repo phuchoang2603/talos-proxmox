@@ -2,7 +2,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    cert-manager.io/inject-ca-from: kubeflow/pvcviewer-serving-cert
+    cert-manager.io/inject-ca-from: ml/pvcviewer-serving-cert
     controller-gen.kubebuilder.io/version: v0.16.4
   labels:
     app: pvcviewer
@@ -14,7 +14,7 @@ spec:
       clientConfig:
         service:
           name: pvcviewer-webhook-service
-          namespace: kubeflow
+          namespace: ml
           path: /convert
       conversionReviewVersions:
       - v1
@@ -3544,7 +3544,7 @@ metadata:
     app: jupyter-web-app
     kustomize.component: jupyter-web-app
   name: jupyter-web-app-service-account
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -3553,7 +3553,7 @@ metadata:
     app: notebook-controller
     kustomize.component: notebook-controller
   name: notebook-controller-service-account
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -3567,7 +3567,7 @@ metadata:
     app.kubernetes.io/name: serviceaccount
     app.kubernetes.io/part-of: pvc-viewer
   name: pvcviewer-controller-manager
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -3576,7 +3576,7 @@ metadata:
     app: tensorboard-controller
     kustomize.component: tensorboard-controller
   name: tensorboard-controller-controller-manager
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -3585,7 +3585,7 @@ metadata:
     app: tensorboards-web-app
     kustomize.component: tensorboards-web-app
   name: tensorboards-web-app-service-account
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -3594,7 +3594,7 @@ metadata:
     app: volumes-web-app
     kustomize.component: volumes-web-app
   name: volumes-web-app-service-account
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -3603,7 +3603,7 @@ metadata:
     app: jupyter-web-app
     kustomize.component: jupyter-web-app
   name: jupyter-web-app-jupyter-notebook-role
-  namespace: kubeflow
+  namespace: ml
 rules:
 - apiGroups:
   - authorization.k8s.io
@@ -3656,7 +3656,7 @@ metadata:
     app: notebook-controller
     kustomize.component: notebook-controller
   name: notebook-controller-leader-election-role
-  namespace: kubeflow
+  namespace: ml
 rules:
 - apiGroups:
   - ""
@@ -3697,7 +3697,7 @@ metadata:
     app.kubernetes.io/name: role
     app.kubernetes.io/part-of: pvc-viewer
   name: pvcviewer-leader-election-role
-  namespace: kubeflow
+  namespace: ml
 rules:
 - apiGroups:
   - ""
@@ -3738,7 +3738,7 @@ metadata:
     app: tensorboard-controller
     kustomize.component: tensorboard-controller
   name: tensorboard-controller-leader-election-role
-  namespace: kubeflow
+  namespace: ml
 rules:
 - apiGroups:
   - ""
@@ -4500,7 +4500,7 @@ metadata:
     app: jupyter-web-app
     kustomize.component: jupyter-web-app
   name: jupyter-web-app-jupyter-notebook-role-binding
-  namespace: kubeflow
+  namespace: ml
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -4516,7 +4516,7 @@ metadata:
     app: notebook-controller
     kustomize.component: notebook-controller
   name: notebook-controller-leader-election-rolebinding
-  namespace: kubeflow
+  namespace: ml
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -4524,7 +4524,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: notebook-controller-service-account
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -4538,7 +4538,7 @@ metadata:
     app.kubernetes.io/name: rolebinding
     app.kubernetes.io/part-of: pvc-viewer
   name: pvcviewer-leader-election-rolebinding
-  namespace: kubeflow
+  namespace: ml
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -4546,7 +4546,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: pvcviewer-controller-manager
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -4555,7 +4555,7 @@ metadata:
     app: tensorboard-controller
     kustomize.component: tensorboard-controller
   name: tensorboard-controller-leader-election-rolebinding
-  namespace: kubeflow
+  namespace: ml
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -4563,7 +4563,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: tensorboard-controller-controller-manager
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -4579,7 +4579,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: jupyter-web-app-service-account
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -4595,7 +4595,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: notebook-controller-service-account
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -4616,7 +4616,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: pvcviewer-controller-manager
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -4637,7 +4637,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: pvcviewer-controller-manager
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -4653,7 +4653,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: tensorboard-controller-controller-manager
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -4669,7 +4669,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: tensorboard-controller-controller-manager
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -4685,7 +4685,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: tensorboards-web-app-service-account
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -4701,7 +4701,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: volumes-web-app-service-account
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 data:
@@ -5020,7 +5020,7 @@ metadata:
     app: jupyter-web-app
     kustomize.component: jupyter-web-app
   name: jupyter-web-app-config-f5cb4gtmbc
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 data:
@@ -5216,7 +5216,7 @@ metadata:
     app: jupyter-web-app
     kustomize.component: jupyter-web-app
   name: jupyter-web-app-logos
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 data:
@@ -5233,7 +5233,7 @@ metadata:
     app: jupyter-web-app
     kustomize.component: jupyter-web-app
   name: jupyter-web-app-parameters-48gf6bbhmk
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 data:
@@ -5241,7 +5241,7 @@ data:
   CULL_IDLE_TIME: "1440"
   ENABLE_CULLING: "false"
   IDLENESS_CHECK_PERIOD: "1"
-  ISTIO_GATEWAY: kubeflow/kubeflow-gateway
+  ISTIO_GATEWAY: ml/kubeflow-gateway
   ISTIO_HOST: '*'
   USE_ISTIO: "true"
 kind: ConfigMap
@@ -5250,18 +5250,18 @@ metadata:
     app: notebook-controller
     kustomize.component: notebook-controller
   name: notebook-controller-config-fhm9f7tdt5
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 data:
-  ISTIO_GATEWAY: kubeflow/kubeflow-gateway
+  ISTIO_GATEWAY: ml/kubeflow-gateway
   ISTIO_HOST: '*'
   RWO_PVC_SCHEDULING: "True"
   TENSORBOARD_IMAGE: tensorflow/tensorflow:2.5.1
 kind: ConfigMap
 metadata:
   name: tensorboard-controller-config-7hd244gf2d
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 data:
@@ -5277,7 +5277,7 @@ metadata:
     app: tensorboards-web-app
     kustomize.component: tensorboards-web-app
   name: tensorboards-web-app-parameters-6ffg2tt572
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 data:
@@ -5293,7 +5293,7 @@ metadata:
     app: volumes-web-app
     kustomize.component: volumes-web-app
   name: volumes-web-app-parameters-mbftc78hbk
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 data:
@@ -5350,7 +5350,7 @@ metadata:
     app: volumes-web-app
     kustomize.component: volumes-web-app
   name: volumes-web-app-viewer-spec-gm954c98h6
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 kind: Service
@@ -5360,7 +5360,7 @@ metadata:
     kustomize.component: jupyter-web-app
     run: jupyter-web-app
   name: jupyter-web-app-service
-  namespace: kubeflow
+  namespace: ml
 spec:
   ports:
   - name: http
@@ -5379,7 +5379,7 @@ metadata:
     app: notebook-controller
     kustomize.component: notebook-controller
   name: notebook-controller-service
-  namespace: kubeflow
+  namespace: ml
 spec:
   ports:
   - port: 443
@@ -5400,7 +5400,7 @@ metadata:
     app.kubernetes.io/part-of: pvc-viewer
     control-plane: controller-manager
   name: pvcviewer-controller-manager-metrics-service
-  namespace: kubeflow
+  namespace: ml
 spec:
   ports:
   - name: https
@@ -5423,7 +5423,7 @@ metadata:
     app.kubernetes.io/name: service
     app.kubernetes.io/part-of: pvc-viewer
   name: pvcviewer-webhook-service
-  namespace: kubeflow
+  namespace: ml
 spec:
   ports:
   - port: 443
@@ -5441,7 +5441,7 @@ metadata:
     control-plane: controller-manager
     kustomize.component: tensorboard-controller
   name: tensorboard-controller-controller-manager-metrics-service
-  namespace: kubeflow
+  namespace: ml
 spec:
   ports:
   - name: https
@@ -5461,7 +5461,7 @@ metadata:
     kustomize.component: tensorboards-web-app
     run: tensorboards-web-app
   name: tensorboards-web-app-service
-  namespace: kubeflow
+  namespace: ml
 spec:
   ports:
   - name: http
@@ -5481,7 +5481,7 @@ metadata:
     kustomize.component: volumes-web-app
     run: volumes-web-app
   name: volumes-web-app-service
-  namespace: kubeflow
+  namespace: ml
 spec:
   ports:
   - name: http
@@ -5500,7 +5500,7 @@ metadata:
     app: jupyter-web-app
     kustomize.component: jupyter-web-app
   name: jupyter-web-app-deployment
-  namespace: kubeflow
+  namespace: ml
 spec:
   replicas: 1
   selector:
@@ -5568,7 +5568,7 @@ metadata:
     app: notebook-controller
     kustomize.component: notebook-controller
   name: notebook-controller-deployment
-  namespace: kubeflow
+  namespace: ml
 spec:
   selector:
     matchLabels:
@@ -5659,7 +5659,7 @@ metadata:
     app.kubernetes.io/part-of: pvc-viewer
     control-plane: controller-manager
   name: pvcviewer-controller-manager
-  namespace: kubeflow
+  namespace: ml
 spec:
   replicas: 1
   selector:
@@ -5776,7 +5776,7 @@ metadata:
     control-plane: controller-manager
     kustomize.component: tensorboard-controller
   name: tensorboard-controller-deployment
-  namespace: kubeflow
+  namespace: ml
 spec:
   replicas: 1
   selector:
@@ -5866,7 +5866,7 @@ metadata:
     app: tensorboards-web-app
     kustomize.component: tensorboards-web-app
   name: tensorboards-web-app-deployment
-  namespace: kubeflow
+  namespace: ml
 spec:
   replicas: 1
   selector:
@@ -5920,7 +5920,7 @@ metadata:
     app: volumes-web-app
     kustomize.component: volumes-web-app
   name: volumes-web-app-deployment
-  namespace: kubeflow
+  namespace: ml
 spec:
   replicas: 1
   selector:
@@ -5989,11 +5989,11 @@ metadata:
     app.kubernetes.io/name: certificate
     app.kubernetes.io/part-of: pvc-viewer
   name: pvcviewer-serving-cert
-  namespace: kubeflow
+  namespace: ml
 spec:
   dnsNames:
-  - pvcviewer-webhook-service.kubeflow.svc
-  - pvcviewer-webhook-service.kubeflow.svc.cluster.local
+  - pvcviewer-webhook-service.ml.svc
+  - pvcviewer-webhook-service.ml.svc.cluster.local
   issuerRef:
     kind: Issuer
     name: pvcviewer-selfsigned-issuer
@@ -6011,7 +6011,7 @@ metadata:
     app.kubernetes.io/name: certificate
     app.kubernetes.io/part-of: pvc-viewer
   name: pvcviewer-selfsigned-issuer
-  namespace: kubeflow
+  namespace: ml
 spec:
   selfSigned: {}
 ---
@@ -6022,9 +6022,9 @@ metadata:
     app: jupyter-web-app
     kustomize.component: jupyter-web-app
   name: jupyter-web-app
-  namespace: kubeflow
+  namespace: ml
 spec:
-  host: jupyter-web-app-service.kubeflow.svc.cluster.local
+  host: jupyter-web-app-service.ml.svc.cluster.local
   trafficPolicy:
     tls:
       mode: ISTIO_MUTUAL
@@ -6036,9 +6036,9 @@ metadata:
     app: tensorboards-web-app
     kustomize.component: tensorboards-web-app
   name: tensorboards-web-app
-  namespace: kubeflow
+  namespace: ml
 spec:
-  host: tensorboards-web-app-service.kubeflow.svc.cluster.local
+  host: tensorboards-web-app-service.ml.svc.cluster.local
   trafficPolicy:
     tls:
       mode: ISTIO_MUTUAL
@@ -6050,9 +6050,9 @@ metadata:
     app: volumes-web-app
     kustomize.component: volumes-web-app
   name: volumes-web-app
-  namespace: kubeflow
+  namespace: ml
 spec:
-  host: volumes-web-app-service.kubeflow.svc.cluster.local
+  host: volumes-web-app-service.ml.svc.cluster.local
   trafficPolicy:
     tls:
       mode: ISTIO_MUTUAL
@@ -6064,7 +6064,7 @@ metadata:
     app: jupyter-web-app
     kustomize.component: jupyter-web-app
   name: jupyter-web-app-jupyter-web-app
-  namespace: kubeflow
+  namespace: ml
 spec:
   gateways:
   - kubeflow-gateway
@@ -6082,7 +6082,7 @@ spec:
       uri: /
     route:
     - destination:
-        host: jupyter-web-app-service.kubeflow.svc.cluster.local
+        host: jupyter-web-app-service.ml.svc.cluster.local
         port:
           number: 80
 ---
@@ -6093,7 +6093,7 @@ metadata:
     app: tensorboards-web-app
     kustomize.component: tensorboards-web-app
   name: tensorboards-web-app-tensorboards-web-app
-  namespace: kubeflow
+  namespace: ml
 spec:
   gateways:
   - kubeflow-gateway
@@ -6111,7 +6111,7 @@ spec:
       uri: /
     route:
     - destination:
-        host: tensorboards-web-app-service.kubeflow.svc.cluster.local
+        host: tensorboards-web-app-service.ml.svc.cluster.local
         port:
           number: 80
 ---
@@ -6122,7 +6122,7 @@ metadata:
     app: volumes-web-app
     kustomize.component: volumes-web-app
   name: volumes-web-app-volumes-web-app
-  namespace: kubeflow
+  namespace: ml
 spec:
   gateways:
   - kubeflow-gateway
@@ -6140,7 +6140,7 @@ spec:
       uri: /
     route:
     - destination:
-        host: volumes-web-app-service.kubeflow.svc.cluster.local
+        host: volumes-web-app-service.ml.svc.cluster.local
         port:
           number: 80
 ---
@@ -6151,7 +6151,7 @@ metadata:
     app: jupyter-web-app
     kustomize.component: jupyter-web-app
   name: jupyter-web-app
-  namespace: kubeflow
+  namespace: ml
 spec:
   action: ALLOW
   rules:
@@ -6170,7 +6170,7 @@ metadata:
     app: tensorboards-web-app
     kustomize.component: tensorboards-web-app
   name: tensorboards-web-app
-  namespace: kubeflow
+  namespace: ml
 spec:
   action: ALLOW
   rules:
@@ -6189,7 +6189,7 @@ metadata:
     app: volumes-web-app
     kustomize.component: volumes-web-app
   name: volumes-web-app
-  namespace: kubeflow
+  namespace: ml
 spec:
   action: ALLOW
   rules:
@@ -6205,7 +6205,7 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   annotations:
-    cert-manager.io/inject-ca-from: kubeflow/pvcviewer-serving-cert
+    cert-manager.io/inject-ca-from: ml/pvcviewer-serving-cert
   labels:
     app: pvcviewer
     app.kubernetes.io/component: webhook
@@ -6221,7 +6221,7 @@ webhooks:
   clientConfig:
     service:
       name: pvcviewer-webhook-service
-      namespace: kubeflow
+      namespace: ml
       path: /mutate-kubeflow-org-v1alpha1-pvcviewer
   failurePolicy: Fail
   name: mpvcviewer.kb.io
@@ -6241,7 +6241,7 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   annotations:
-    cert-manager.io/inject-ca-from: kubeflow/pvcviewer-serving-cert
+    cert-manager.io/inject-ca-from: ml/pvcviewer-serving-cert
   labels:
     app: pvcviewer
     app.kubernetes.io/component: webhook
@@ -6257,7 +6257,7 @@ webhooks:
   clientConfig:
     service:
       name: pvcviewer-webhook-service
-      namespace: kubeflow
+      namespace: ml
       path: /validate-kubeflow-org-v1alpha1-pvcviewer
   failurePolicy: Fail
   name: vpvcviewer.kb.io

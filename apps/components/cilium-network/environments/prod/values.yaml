@@ -1,7 +1,0 @@
-loadBalancerIPPool:
-  blocks:
-    - start: "10.69.12.128"
-      stop: "10.69.12.254"
-
-l2Announcement:
-  nodes: [prod-server1, prod-server2, prod-server3]

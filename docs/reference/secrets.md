@@ -8,13 +8,14 @@ The repository's `.doppler.yaml` defaults to dev. Use explicit `--project talos-
 
 ## Operator-entered secrets
 
-Set these directly in the matching Doppler config before deployment. They are not foundation input variables.
+The foundation root accepts a sensitive `operator_secrets` map keyed by environment for restoring these values. Keep its `.tfvars.json` file outside Git with mode `0600`, and pass that same file to every foundation plan/apply. Recovered application credentials supplied through this map override generated defaults; omit application overrides in a fresh environment to generate independent credentials.
 
 | Doppler key | Consumer | Environments |
 | --- | --- | --- |
 | `HCP_TERRAFORM_TOKEN` | CI state access, exported as `TF_TOKEN_app_terraform_io` | Both |
-| `PROXMOX_ENDPOINT`, `PROXMOX_USERNAME`, `PROXMOX_PASSWORD` | Cluster root's Proxmox provider | Both |
-| `TS_OAUTH_CLIENT_ID`, `TS_OAUTH_SECRET` | GitHub runner's Tailscale connection | Both |
+| `PROXMOX_ENDPOINT`, `PROXMOX_USERNAME`, `PROXMOX_PASSWORD` | Cluster root's Proxmox provider | Dev |
+| `AWS_MANAGEMENT_CIDRS` | JSON array of stable operator IPv4 CIDRs; CI adds its current egress /32 | Prod |
+| `TS_OAUTH_CLIENT_ID`, `TS_OAUTH_SECRET` | GitHub runner's Tailscale connection | Dev |
 | `CLOUDFLARE_API_TOKEN` | Cloudflare operator, through the `cloudflare-credentials` ExternalSecret | Both |
 | `CLOUDFLARE_TUNNEL_TOKEN` | `cloudflared`, through the same ExternalSecret | Both |
 
@@ -29,12 +30,12 @@ Set these directly in the matching Doppler config before deployment. They are no
 | `TALOSCONFIG` | Cluster root | Operators using `talosctl` |
 | `KARPENTER_AWS_ACCESS_KEY_ID`, `KARPENTER_AWS_SECRET_ACCESS_KEY` | Cluster root's AWS module | Platform creates `kube-system/karpenter-aws` |
 | `AWS_WORKER_MACHINE_CONFIG`, `AWS_WORKER_AMI_ID` | Cluster root's AWS module | Platform passes them to the Karpenter `EC2NodeClass` |
-| `GRAFANA_ADMIN_PASSWORD` (prod) | Foundation | Grafana local admin login |
-| `STARROCKS_ROOT_PASSWORD`, `STARROCKS_OPENMETADATA_PASSWORD`, `STARROCKS_RUSTFS_ACCESS_KEY`, `STARROCKS_RUSTFS_SECRET_KEY` (prod) | Operator | StarRocks setup Job: root and `openmetadata` passwords and the read-only catalog S3 identity; the password is also read by OpenMetadata ingestion workflows |
-| `ML_AWS_ACCESS_KEY_ID`, `ML_AWS_SECRET_ACCESS_KEY` (prod) | Foundation | IAM user `talos-proxmox-ml`; ExternalSecret `fraud-ml-prod/ml-s3` |
-| `ML_BUCKET` (prod) | Foundation | ML staging bucket name (contains the account ID); same `ml-s3` Secret |
+| `GRAFANA_ADMIN_PASSWORD` (both environments) | Foundation | Grafana local admin login |
+| Application/database passwords, OIDC client secrets, signing keys and catalog credentials | Foundation | Generated independently per environment; recovered dev application values can be retained through `operator_secrets` |
+| `OBJECT_<PURPOSE>_ACCESS_KEY_ID`, `OBJECT_<PURPOSE>_SECRET_ACCESS_KEY` (prod) | Foundation | Separate S3 identities for training, artifacts, lakehouse and backups; dev uses restored MinIO identities |
+| `OBJECT_STORAGE_BUCKET` (prod) | Foundation | Generic production object bucket |
 
-Foundation generates the Grafana admin and ML storage credentials, so they survive environment destroys. Neither environment holds a credential for the other.
+Foundation generates application and production object-storage credentials, so they survive environment destroys. HCP state access and the scoped Cloudflare API token may be shared. Tunnel tokens remain specific to each existing tunnel; cluster, autoscaler, ESO and application credentials remain independent. Do not restore kubeconfigs, Talos bootstrap material, AMI IDs or IAM access keys belonging to deleted resources.
 
 Foundation also creates a read/write CI service token per config and publishes it as that GitHub Environment's `DOPPLER_TOKEN` secret. This differs from the read-only ESO token. A local foundation apply uses a workspace-level Doppler login token to manage these service tokens.
 
@@ -56,8 +57,8 @@ HCP state holds generated credentials and Talos bootstrap material. Doppler prov
 | Kubernetes Secret | Namespace | Refresh |
 | --- | --- | --- |
 | `cloudflare-credentials` | `operators` | 1 hour |
-| `grafana-admin`, `grafana-oidc` | `observability` (prod) | 1 hour |
-| `dex-config`, `oauth2-proxy-credentials` | `auth` (prod) | 1 hour |
+| `grafana-admin`, `grafana-oidc` | `observability` (both) | 1 hour |
+| `dex-config`, `oauth2-proxy-credentials` | `auth` (both) | 1 hour |
 
 Each is produced by an ExternalSecret using the `doppler` ClusterSecretStore. If Doppler is unreachable, existing Secrets are retained and refresh failures are exposed through ESO status. Inspect status without printing secret values:
 

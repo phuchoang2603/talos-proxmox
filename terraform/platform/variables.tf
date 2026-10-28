@@ -22,5 +22,8 @@ variable "repo_url" {
 variable "target_revision" {
   description = "Git revision Argo CD reconciles the platform from"
   type        = string
-  default     = "main"
+  validation {
+    condition     = can(regex("^[0-9a-f]{40}$", var.target_revision))
+    error_message = "target_revision must be a full Git commit SHA."
+  }
 }

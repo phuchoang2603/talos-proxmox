@@ -2,7 +2,7 @@
 
 [Documentation home](../../README.md) · [GitOps architecture](../architecture/gitops.md)
 
-Fetch the environment's access files from Doppler, then point `kubectl` and `talosctl` at those files. Run from `devenv shell` with a Doppler login and network access to the private cluster addresses.
+Fetch the environment's access files from Doppler, then point `kubectl` and `talosctl` at those files. Run from `devenv shell` with a Doppler login and network access to dev private addresses or prod restricted management APIs.
 
 ## Select an environment
 
@@ -30,25 +30,31 @@ Run both downloads successfully before continuing. The cluster root writes these
 
 ## Kubernetes versus Talos endpoints
 
-| Environment | Kubernetes API VIP | Example Talos control-plane endpoint | Argo CD UI |
+| Environment | Kubernetes API endpoint | Example Talos control-plane endpoint | Argo CD UI |
 | --- | --- | --- | --- |
-| dev | `10.69.11.10:6443` | `10.69.11.11` | <http://10.69.11.254> |
-| prod | `10.69.12.10:6443` | `10.69.12.11` | <http://10.69.12.254> |
+| dev | `10.69.12.11:6443` | `10.69.12.11` | <https://argocd-dev.phuchoang.sbs> |
+| prod | Elastic IP in kubeconfig, port 6443 | Elastic IP in Talosconfig | Management port-forward or public tunnel |
 
-`kubectl` uses the VIP in the kubeconfig. `talosctl` targets a control-plane **node IP**, not the VIP. The inventory contains the complete list of addresses:
+`kubectl` uses the control-plane endpoint from its kubeconfig. `talosctl` uses the endpoint and node targets from Talosconfig. Dev addresses the control-plane node directly; prod connects through its Elastic IP and targets the node's private address. The dev inventory contains the complete list of VM addresses:
+
+```bash
+talosctl version
+```
+
+For an explicit dev control-plane target:
 
 ```bash
 CONTROL_PLANE_IP="$(jq -r \
   '[to_entries[] | select(.value.role == "servers") | .value.address | split("/")[0]] | sort | first' \
-  "terraform/cluster/env/${CLUSTER_ENV}/k8s_nodes.json")"
+  "terraform/cluster/env/dev/k8s_nodes.json")"
 talosctl --endpoints "$CONTROL_PLANE_IP" --nodes "$CONTROL_PLANE_IP" version
 ```
 
-The Kubernetes VIP depends on the control plane and etcd. Node-level Talos access is useful when Kubernetes itself is unavailable.
+The Kubernetes API depends on the control plane and etcd. Node-level Talos access is useful when Kubernetes itself is unavailable.
 
 ## Open Argo CD
 
-Open the selected environment's UI above after Cilium assigns and announces its LoadBalancer IP. The UI does not depend on Istio or Cloudflare. For initial bootstrap, use `kubectl -n argo-cd port-forward svc/argo-cd-argocd-server 8080:80` and open `http://localhost:8080` until the IP is available. Each environment manages only its local cluster. Retrieve the initial admin password locally:
+Open the environment's public Argo CD hostname once its tunnel converges, or use `kubectl -n argo-cd port-forward svc/argo-cd-argocd-server 8080:80` and open `http://localhost:8080`. Both environments use ClusterIP Services and manage only their local cluster. Retrieve the initial admin password locally:
 
 ```bash
 kubectl -n argo-cd get secret argocd-initial-admin-secret \
@@ -57,7 +63,7 @@ kubectl -n argo-cd get secret argocd-initial-admin-secret \
 
 Log in as `admin`. This command prints a credential; do not place its output in logs or documentation. If the initial Secret was removed or the password changed, use the current admin credential instead.
 
-Prod also exposes Argo CD at <https://argocd.phuchoang.sbs> with a **Log in via Dex** option. The configured operator email receives the admin role. Argo Workflows at <https://workflows.phuchoang.sbs> uses Dex exclusively; that email has workflow administration across namespaces, including the all-namespaces view. Existing data workflows are visible under [fraud-data-prod](https://workflows.phuchoang.sbs/workflows/fraud-data-prod). Both use the shared Dex credential from Doppler through ExternalSecrets.
+Prod also exposes Argo CD at <https://argocd.phuchoang.sbs> with a **Log in via Dex** option. The configured operator email receives the admin role. Argo Workflows at <https://workflows.phuchoang.sbs> uses Dex exclusively; that email has workflow administration across namespaces, including the all-namespaces view. Existing data workflows are visible under [data](https://workflows.phuchoang.sbs/workflows/data). Both use the shared Dex credential from Doppler through ExternalSecrets. Workflows discovers Dex through its in-cluster address and validates the environment's public issuer alias.
 
 ## Check convergence
 
@@ -68,28 +74,27 @@ kubectl get externalsecrets -A
 kubectl get storageclass
 kubectl -n istio-system get deploy istiod
 kubectl -n istio-system get daemonset istio-cni-node ztunnel
-kubectl -n argo-cd get svc argocd-ui
-# Prod only: kubectl -n observability get svc grafana
+# Both environments: kubectl -n observability get svc vmks-grafana
 ```
 
-Expected results: the root and child Applications are Synced/Healthy; the Doppler store and ExternalSecrets are Ready; Istio control plane and node agents are ready; and there is exactly one default StorageClass, `local-path`. `kubectl get nodes` lists only the Proxmox control-plane nodes (one in dev, `prod-server1` through `prod-server3` in prod) plus any AWS workers; the control-plane nodes also run workloads, and `prod-server1` is prod's SSD-backed node for write-heavy volumes.
+Expected results: the root and child Applications are Synced/Healthy; the Doppler store and ExternalSecrets are Ready; Istio control plane and node agents are ready; and there is exactly one default StorageClass: local-path in dev or gp3 in prod. Dev has one control-plane/workload VM and two workers; prod has one On-Demand `m6a.xlarge` control-plane/workload node and one On-Demand `m6a.xlarge` worker, with optional Spot burst workers.
 
 ## Observability
 
-Only prod collects telemetry; dev runs no telemetry components.
+Both environments run independent telemetry components and Grafana. Dev public hostnames use `<service>-dev.phuchoang.sbs`.
 
 | Endpoint | Address |
 | --- | --- |
-| Grafana (prod) | <https://grafana.phuchoang.sbs>; LAN service <http://10.69.12.128> |
+| Grafana (prod) | <https://grafana.phuchoang.sbs>; management port-forward |
 | OTLP metrics (HTTP/protobuf) | `http://vmagent-vmks.observability.svc:8429/opentelemetry/v1/metrics` |
 | OTLP traces (HTTP/protobuf) | `http://vtagent-vmks.observability.svc:10429/insert/opentelemetry/v1/traces` |
 | OTLP logs (HTTP/protobuf) | `http://vlsingle-vmks.observability.svc:9428/insert/opentelemetry/v1/logs` |
 
 Workloads export cumulative OTLP metrics and traces to VMAgent and VTAgent at their per-signal HTTP endpoints. There are no OpenTelemetry collectors, agents, or gateways. VMAgent scrapes cluster metrics every 60 seconds, and VLAgent collects container logs from all nodes, including AWS workers. Kubernetes scheduler, controller-manager, etcd, and kube-proxy scrapes are disabled because Talos does not expose the default endpoints.
 
-VMAgent and VTAgent run on `prod-server2` with separate 1 GiB local-path queue volumes, each capped at 513 MiB per destination (the smallest whole-MiB limit supported by the agents). They buffer during store outages and replay queued data when storage returns; queues survive pod restarts. Losing the queue disk loses buffered telemetry, and filling a queue drops its oldest data. This does not replicate stored telemetry.
+VMAgent and VTAgent use separate 1 GiB queue volumes on the environment storage class, each capped at 513 MiB per destination (the smallest whole-MiB limit supported by the agents). They buffer during store outages and replay queued data when storage returns; queues survive pod restarts. Losing the queue disk loses buffered telemetry, and filling a queue drops its oldest data. This does not replicate stored telemetry.
 
-VictoriaMetrics, VictoriaLogs, and VictoriaTraces retain telemetry for 3 days on separate local-path volumes on `prod-server1`. Each reserves 20 GiB of free disk space. Telemetry is not backed up or exported to S3; RustFS archive cleanup is performed separately. Grafana provisions the three data sources, trace-to-log links, and the stack's Kubernetes and Victoria dashboards. Its application state uses a local-path volume on the same node.
+VictoriaMetrics, VictoriaLogs, and VictoriaTraces retain telemetry for 3 days on separate volumes using the environment storage class. Each reserves 1 GiB of free disk space. Telemetry is not backed up or exported to S3; RustFS archive cleanup is performed separately. Grafana provisions the three data sources, trace-to-log links, and the stack's Kubernetes and Victoria dashboards. Its application state uses the environment storage class.
 
 ## Public URLs (prod)
 
@@ -103,7 +108,7 @@ The prod Cloudflare tunnel publishes the following hostnames. Cloudflare termina
 | <https://argocd.phuchoang.sbs> | Argo CD | Dex or the local admin account |
 | <https://workflows.phuchoang.sbs> | Argo Workflows | Dex |
 
-Grafana grants the configured operator email an Admin role through Dex and rejects unmapped identities. The public tunnel and LAN service both require login. The local account is `admin`, with `GRAFANA_ADMIN_PASSWORD` from prod Doppler; anonymous access and password sign-up are disabled.
+Grafana grants the configured operator email an Admin role through Dex and rejects unmapped identities. Public tunnel and port-forward access both require login. The local account is `admin`, with `GRAFANA_ADMIN_PASSWORD` from prod Doppler; anonymous access and password sign-up are disabled.
 
 ## Find the failing layer
 
@@ -123,6 +128,6 @@ Doppler is the usual source. If you already have the correct cluster workspace i
 ```bash
 export TF_WORKSPACE="talos-cluster-${CLUSTER_ENV}"
 umask 077
-tofu -chdir=terraform/cluster output -raw kubeconfig > "$KUBECONFIG"
-tofu -chdir=terraform/cluster output -raw talosconfig > "$TALOSCONFIG"
+tofu -chdir=terraform/cluster/${CLUSTER_ENV} output -raw kubeconfig > "$KUBECONFIG"
+tofu -chdir=terraform/cluster/${CLUSTER_ENV} output -raw talosconfig > "$TALOSCONFIG"
 ```

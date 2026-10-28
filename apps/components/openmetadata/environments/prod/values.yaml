@@ -1,0 +1,4 @@
+storageClass: gp3
+opensearch:
+  persistence:
+    storageClass: gp3

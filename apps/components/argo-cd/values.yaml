@@ -6,29 +6,31 @@ argo-cd:
   applicationSet:
     replicas: 0
   controller:
+    env:
+      - name: GOMEMLIMIT
+        value: 3GiB
     resources:
       requests:
-        cpu: 50m
-        memory: 384Mi
+        memory: 2Gi
       limits:
-        memory: 768Mi
+        memory: 4Gi
   repoServer:
     resources:
       requests:
-        cpu: 25m
-        memory: 96Mi
+        cpu: 250m
+        memory: 256Mi
       limits:
-        memory: 384Mi
-
+        memory: 1Gi
+    livenessProbe:
+      timeoutSeconds: 5
+      failureThreshold: 5
+    readinessProbe:
+      timeoutSeconds: 5
   configs:
     cm:
-      # The aggregation controller fills in rules on aggregated ClusterRoles (Kubeflow RBAC).
-      resource.compareoptions: |
-        ignoreAggregatedRoles: true
+      resource.compareoptions: 'ignoreAggregatedRoles: true
+
+        '
     params:
       server.insecure: true
-      # Compare against a server-side dry run so API defaults (ExternalSecret, HTTPRoute) are not drift.
       controller.diff.server.side: true
-
-tunnel:
-  enabled: false

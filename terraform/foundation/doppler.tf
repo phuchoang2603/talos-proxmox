@@ -1,16 +1,5 @@
-import {
-  to = doppler_project.this
-  id = local.doppler_project
-}
-
 resource "doppler_project" "this" {
   name = local.doppler_project
-}
-
-import {
-  for_each = local.environments
-  to       = doppler_environment.this[each.key]
-  id       = "${local.doppler_project}.${each.key}"
 }
 
 resource "doppler_environment" "this" {
@@ -49,13 +38,15 @@ resource "doppler_secret" "eso_token" {
 }
 
 resource "random_password" "grafana_admin" {
-  length  = 32
-  special = false
+  for_each = local.environments
+  length   = 32
+  special  = false
 }
 
 resource "doppler_secret" "grafana_admin" {
-  project = doppler_project.this.name
-  config  = doppler_environment.this["prod"].slug
-  name    = "GRAFANA_ADMIN_PASSWORD"
-  value   = random_password.grafana_admin.result
+  for_each = local.environments
+  project  = doppler_project.this.name
+  config   = doppler_environment.this[each.key].slug
+  name     = "GRAFANA_ADMIN_PASSWORD"
+  value    = random_password.grafana_admin[each.key].result
 }
