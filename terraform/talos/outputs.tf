@@ -18,6 +18,9 @@ output "worker_configuration" {
   value     = data.talos_machine_configuration.worker.machine_configuration
   sensitive = true
 }
+output "controlplane_patch" {
+  value = local.controlplane_patch
+}
 output "common_patch" {
   value = {
     machine = {

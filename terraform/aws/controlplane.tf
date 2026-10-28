@@ -28,7 +28,7 @@ data "talos_machine_configuration" "controlplane" {
   kubernetes_version = var.kubernetes_version
   docs               = false
   examples           = false
-  config_patches = [yamlencode(module.talos[0].common_patch), yamlencode({
+  config_patches = [yamlencode(module.talos[0].common_patch), yamlencode(module.talos[0].controlplane_patch), yamlencode({
     machine = {
       certSANs = [aws_eip.controlplane[0].public_ip]
       kubelet  = { extraArgs = { "cloud-provider" = "external" } }

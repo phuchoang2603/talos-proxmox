@@ -1,0 +1,45 @@
+apiVersion: audit.k8s.io/v1
+kind: Policy
+omitStages:
+  - RequestReceived
+rules:
+  - level: None
+    userGroups:
+      - system:authenticated
+    nonResourceURLs:
+      - /healthz
+      - /healthz/*
+      - /livez
+      - /livez/*
+      - /readyz
+      - /readyz/*
+      - /metrics
+  - level: None
+    userGroups:
+      - system:serviceaccounts
+      - system:nodes
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
+    resources:
+      - group: coordination.k8s.io
+        resources:
+          - leases
+  - level: None
+    users:
+      - system:kube-controller-manager
+      - system:kube-scheduler
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
+    resources:
+      - group: coordination.k8s.io
+        resources:
+          - leases
+  - level: Metadata
