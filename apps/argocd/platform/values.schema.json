@@ -124,6 +124,9 @@
           },
           "enabled": {
             "type": "boolean"
+          },
+          "pruneLast": {
+            "type": "boolean"
           }
         }
       }

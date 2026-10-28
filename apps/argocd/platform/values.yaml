@@ -126,6 +126,7 @@ components:
         jsonPointers:
           - /webhooks
   kubeflow:
+    pruneLast: true
     path: apps/components/kubeflow
     namespace: ml
     syncWave: "2"

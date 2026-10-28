@@ -40,6 +40,9 @@ spec:
       - CreateNamespace=true
       - ServerSideApply=true
       - SkipDryRunOnMissingResource=true
+{{- if $app.pruneLast }}
+      - PruneLast=true
+{{- end }}
 {{- if $app.ignoreDifferences }}
       - RespectIgnoreDifferences=true
 {{- end }}
