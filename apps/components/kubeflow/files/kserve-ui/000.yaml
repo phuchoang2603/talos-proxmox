@@ -254,6 +254,12 @@ spec:
           operator: In
           values:
           - istio-system
+  - from:
+    - ipBlock:
+        cidr: 169.254.7.127/32
+    ports:
+    - port: 5000
+      protocol: TCP
   podSelector:
     matchExpressions:
     - key: app.kubernetes.io/component
