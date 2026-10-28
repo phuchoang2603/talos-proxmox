@@ -96,7 +96,7 @@ jobs:
         if: github.event_name == 'push' || github.event_name == 'pull_request'
         run: |
           doppler secrets get KUBECONFIG --plain >/dev/null 2>&1 || { echo 'Dev is absent. Recreate it with Manual Provision before automatic deployment.'; exit 1; }
-      - uses: tailscale/github-action@v2
+      - uses: tailscale/github-action@v4
         if: inputs.environment == 'dev'
         with:
           oauth-client-id: ${{ env.TS_OAUTH_CLIENT_ID }}
