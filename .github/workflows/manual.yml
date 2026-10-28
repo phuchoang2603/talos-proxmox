@@ -12,7 +12,7 @@ on:
         options: [apply, destroy]
         default: apply
       revision:
-        description: Full main commit SHA already deployed successfully to dev (required for prod apply)
+        description: Optional full main commit SHA (defaults to the workflow revision)
         type: string
       purge_data:
         description: Delete environment-owned persistent cloud data during destroy
@@ -29,7 +29,6 @@ jobs:
     needs: lint
     permissions:
       contents: read
-      deployments: read
       id-token: write
     uses: ./.github/workflows/provision.yml
     with:

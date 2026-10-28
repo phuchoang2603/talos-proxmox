@@ -38,23 +38,24 @@ flowchart TD
     PR["PR targeting main"] --> Lint["Validate all roots and charts"]
     Push["Push to main"] --> Lint
     Dispatch["Manual dispatch on main"] --> Lint
-    Lint --> Trigger{"Push or dispatch?"}
-    Trigger -->|"No: PR checks complete"| Done["No provisioning"]
+    Lint --> Trigger{"Event and repository trust"}
+    Trigger -->|"Fork PR"| Done["No provisioning"]
+    Trigger -->|"Trusted PR"| DevCluster
     Trigger -->|"Push"| DevCluster["existing dev cluster apply"]
     Trigger -->|"Dispatch"| Selected["selected environment: apply or destroy"]
     DevCluster --> DevPlatform["dev platform apply"]
     DevPlatform --> DevArgo["dev Argo CD converges asynchronously"]
-    DevPlatform --> ProdCluster["main only: prod cluster apply"]
+    Trigger -->|"Push"| ProdCluster["prod cluster apply"]
     ProdCluster --> ProdPlatform["prod platform apply"]
 ```
 
-Trusted repository PRs update an existing dev cluster; fork PRs validate only. Main updates dev and then prod after dev succeeds. An intentionally absent dev cluster requires **Manual Provision**. Manual prod applies require a full main SHA with a successful dev deployment; all Argo Applications are pinned to that SHA. Lint still renders dev's overlays on every PR, so a later dispatch does not start from broken charts.
+Trusted repository PRs update an existing dev cluster; fork PRs validate only. Main updates dev and prod independently after lint succeeds. An intentionally absent dev cluster requires **Manual Provision**. Manual applies can select a full main commit SHA; all Argo Applications are pinned to the selected SHA. Lint still renders dev's overlays on every PR, so a later dispatch does not start from broken charts.
 
 | Workflow | Responsibility |
 | --- | --- |
-| [`terraform.yml`](../../.github/workflows/terraform.yml) | Runs only when `terraform/`, `apps/`, or `.github/workflows/` change: PR checks, and trusted PRs deploy dev; main deploys dev, then prod |
+| [`terraform.yml`](../../.github/workflows/terraform.yml) | Runs only when `terraform/`, `apps/`, or `.github/workflows/` change: PR checks, and trusted PRs deploy dev; main deploys dev and prod independently |
 | [`lint.yml`](../../.github/workflows/lint.yml) | Backend-disabled init, format and validate all roots; lint charts and environment overlays |
-| [`provision.yml`](../../.github/workflows/provision.yml) | Reusable per-environment apply or destroy, restricted to `main` pushes/manual dispatches |
+| [`provision.yml`](../../.github/workflows/provision.yml) | Reusable per-environment apply or destroy, restricted to `main` pushes/manual dispatches and trusted PRs targeting dev |
 | [`manual.yml`](../../.github/workflows/manual.yml) | Validate, then apply or destroy one selected environment on `main` |
 
 Provisioning runs are serialized per environment and do not cancel an active run. The job timeout is 90 minutes. Destroy runs only the cluster root, which also removes Karpenter's EC2 instances and launch templates, and then empties the platform root's state instead of destroying it, so it does not need the Kubernetes API. Foundation is only validated by CI and must be applied locally.

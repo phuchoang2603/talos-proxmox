@@ -27,7 +27,6 @@ jobs:
       cancel-in-progress: false
     permissions:
       contents: read
-      deployments: read
       id-token: write
     env:
       DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
@@ -41,12 +40,8 @@ jobs:
         with:
           ref: ${{ inputs.revision || github.sha }}
           fetch-depth: 0
-      - name: Verify selected revision and production promotion
+      - name: Verify selected revision
         env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          ENVIRONMENT: ${{ inputs.environment }}
-          ACTION: ${{ inputs.action }}
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           set -euo pipefail
@@ -55,18 +50,6 @@ jobs:
             git merge-base --is-ancestor "$PR_BASE_SHA" "$TF_VAR_target_revision"
           else
             git merge-base --is-ancestor "$TF_VAR_target_revision" origin/main
-          fi
-          if [ "$ENVIRONMENT" = dev ]; then
-            [ "$TF_VAR_target_revision" = "$GITHUB_SHA" ] || { echo 'Dev must deploy the workflow SHA so promotion records identify the deployed revision.'; exit 1; }
-          fi
-          if [ "$ENVIRONMENT" = prod ] && [ "$ACTION" = apply ]; then
-            deployments=$(gh api "repos/$GH_REPO/deployments?environment=dev&sha=$TF_VAR_target_revision&per_page=100" --jq '.[].id')
-            validated=false
-            for deployment in $deployments; do
-              state=$(gh api "repos/$GH_REPO/deployments/$deployment/statuses?per_page=100" --jq 'any(.[]; .state == "success")')
-              if [ "$state" = true ]; then validated=true; break; fi
-            done
-            [ "$validated" = true ] || { echo 'Production requires a successful dev deployment of this SHA.'; exit 1; }
           fi
       - uses: dopplerhq/cli-action@v3
       - uses: opentofu/setup-opentofu@v1
@@ -93,7 +76,7 @@ jobs:
             echo "${pair#*:}=${v}" >> "$GITHUB_ENV"
           done
       - name: Require an existing dev cluster for automatic deployment
-        if: github.event_name == 'push' || github.event_name == 'pull_request'
+        if: inputs.environment == 'dev' && (github.event_name == 'push' || github.event_name == 'pull_request')
         run: |
           doppler secrets get KUBECONFIG --plain >/dev/null 2>&1 || { echo 'Dev is absent. Recreate it with Manual Provision before automatic deployment.'; exit 1; }
       - uses: tailscale/github-action@v4
