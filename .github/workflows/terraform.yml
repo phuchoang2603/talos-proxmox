@@ -31,8 +31,8 @@ jobs:
     secrets: inherit
 
   prod:
-    name: ${{ github.event_name == 'pull_request' && 'Plan (prod)' || 'Provision (prod)' }}
-    if: (github.event_name == 'push' && vars.PROD_SUSPENDED != 'true') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
+    name: Plan (prod)
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
     needs: lint
     permissions:
       contents: read
@@ -40,5 +40,5 @@ jobs:
     uses: ./.github/workflows/provision.yml
     with:
       environment: prod
-      action: ${{ github.event_name == 'pull_request' && 'plan' || 'apply' }}
+      action: plan
     secrets: inherit

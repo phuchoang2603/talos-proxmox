@@ -45,15 +45,14 @@ flowchart TD
     Trigger -->|"Dispatch"| Selected["selected environment: apply or destroy"]
     DevCluster --> DevPlatform["dev platform apply"]
     DevPlatform --> DevArgo["dev Argo CD converges asynchronously"]
-    Trigger -->|"Push"| ProdCluster["prod cluster apply"]
-    ProdCluster --> ProdPlatform["prod platform apply"]
+    Trigger -->|"Trusted PR"| ProdPlan["prod cluster plan"]
 ```
 
-Trusted repository PRs deploy dev and independently plan the prod cluster root after lint; fork PRs validate only. Prod PR jobs do not apply, reset state, or plan the platform root, which requires live Kubernetes access and credentials from a completed cluster apply. Main updates dev and prod independently after lint succeeds. Manual applies can select a full main commit SHA; all Argo Applications are pinned to the selected SHA. Lint still renders dev's overlays on every PR, so a later dispatch does not start from broken charts.
+Trusted repository PRs deploy dev and independently plan the prod cluster root after lint; fork PRs validate only. Prod PR jobs do not apply, reset state, or plan the platform root, which requires live Kubernetes access and credentials from a completed cluster apply. Main updates dev after lint succeeds; prod apply and destroy require a manual dispatch. Manual applies can select a full main commit SHA; all Argo Applications are pinned to the selected SHA. Lint still renders dev's overlays on every PR, so a later dispatch does not start from broken charts.
 
 | Workflow | Responsibility |
 | --- | --- |
-| [`terraform.yml`](../../.github/workflows/terraform.yml) | Runs only when `terraform/`, `apps/`, or `.github/workflows/` change: PR checks, and trusted PRs deploy dev and plan the prod cluster; main deploys dev and prod independently |
+| [`terraform.yml`](../../.github/workflows/terraform.yml) | Runs only when `terraform/`, `apps/`, or `.github/workflows/` change: PR checks, and trusted PRs deploy dev and plan the prod cluster; main deploys dev only |
 | [`lint.yml`](../../.github/workflows/lint.yml) | Backend-disabled init, format and validate all roots; lint charts and environment overlays |
 | [`provision.yml`](../../.github/workflows/provision.yml) | Reusable per-environment apply, cluster plan, or destroy; trusted PRs may apply dev or plan prod, while prod apply/destroy remain restricted to `main` |
 | [`manual.yml`](../../.github/workflows/manual.yml) | Validate, then apply or destroy one selected environment on `main` |

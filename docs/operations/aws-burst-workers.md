@@ -55,7 +55,7 @@ Then apply the platform root with `TF_WORKSPACE=talos-platform-prod` and `TF_VAR
 
 ## Destroy an environment
 
-Set repository variable `PROD_SUSPENDED=true` to stop automatic prod applies on main while prod is offline. PR prod plans and explicit manual operations remain available. Set it to `false` when automatic prod deployment should resume.
+Prod deploys only through **Manual Provision** on main: select `prod` and `apply` to create or update the cluster. Pushes to main deploy dev only; trusted PRs still plan prod.
 
 Use **Manual Provision** on main, selecting the environment and destroy. Select `purge_data` only when environment-owned EBS volumes/snapshots should also be deleted. Foundation S3 remains separately owned.
 
