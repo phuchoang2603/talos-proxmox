@@ -30,7 +30,7 @@ spark-kubernetes-operator:
     namespaces:
       create: false
       overrideWatchedNamespaces: true
-      data: [fraud-data-prod]
+      data: [data]
     serviceAccount:
       create: false
     role:

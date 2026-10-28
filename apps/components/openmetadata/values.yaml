@@ -1,4 +1,4 @@
-dataNamespace: fraud-data-prod
+dataNamespace: data
 storageClass: local-path
 openmetadata:
   fullnameOverride: openmetadata

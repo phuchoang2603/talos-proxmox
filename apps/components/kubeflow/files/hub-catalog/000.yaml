@@ -5,7 +5,7 @@ data:
 kind: ConfigMap
 metadata:
   name: mcp-catalog-sources
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 binaryData:
@@ -72,7 +72,7 @@ binaryData:
 kind: ConfigMap
 metadata:
   name: model-catalog-demo-perf-data
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 data:
@@ -2670,7 +2670,7 @@ data:
 kind: ConfigMap
 metadata:
   name: model-catalog-sources
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 data:
@@ -2679,7 +2679,7 @@ data:
 kind: ConfigMap
 metadata:
   name: skill-catalog-sources
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 kind: Service
@@ -2689,7 +2689,7 @@ metadata:
     app.kubernetes.io/name: model-catalog
     app.kubernetes.io/part-of: model-catalog
   name: model-catalog
-  namespace: kubeflow
+  namespace: ml
 spec:
   ports:
   - appProtocol: http
@@ -2709,7 +2709,7 @@ metadata:
     app.kubernetes.io/name: model-catalog
     app.kubernetes.io/part-of: model-catalog
   name: model-catalog-postgres
-  namespace: kubeflow
+  namespace: ml
 spec:
   ports:
   - name: postgres
@@ -2729,7 +2729,7 @@ metadata:
     app.kubernetes.io/name: model-catalog
     app.kubernetes.io/part-of: model-catalog
   name: model-catalog-server
-  namespace: kubeflow
+  namespace: ml
 spec:
   replicas: 1
   selector:
@@ -2857,7 +2857,7 @@ metadata:
   labels:
     component: model-catalog-server
   name: model-catalog-postgres
-  namespace: kubeflow
+  namespace: ml
 spec:
   replicas: 1
   selector:

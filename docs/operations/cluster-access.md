@@ -63,7 +63,7 @@ kubectl -n argo-cd get secret argocd-initial-admin-secret \
 
 Log in as `admin`. This command prints a credential; do not place its output in logs or documentation. If the initial Secret was removed or the password changed, use the current admin credential instead.
 
-Prod also exposes Argo CD at <https://argocd.phuchoang.sbs> with a **Log in via Dex** option. The configured operator email receives the admin role. Argo Workflows at <https://workflows.phuchoang.sbs> uses Dex exclusively; that email has workflow administration across namespaces, including the all-namespaces view. Existing data workflows are visible under [fraud-data-prod](https://workflows.phuchoang.sbs/workflows/fraud-data-prod). Both use the shared Dex credential from Doppler through ExternalSecrets. Workflows discovers Dex through its in-cluster address and validates the environment's public issuer alias.
+Prod also exposes Argo CD at <https://argocd.phuchoang.sbs> with a **Log in via Dex** option. The configured operator email receives the admin role. Argo Workflows at <https://workflows.phuchoang.sbs> uses Dex exclusively; that email has workflow administration across namespaces, including the all-namespaces view. Existing data workflows are visible under [data](https://workflows.phuchoang.sbs/workflows/data). Both use the shared Dex credential from Doppler through ExternalSecrets. Workflows discovers Dex through its in-cluster address and validates the environment's public issuer alias.
 
 ## Check convergence
 

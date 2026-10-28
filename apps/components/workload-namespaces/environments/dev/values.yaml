@@ -1,4 +1,0 @@
-namespaces:
-  - name: payment-gateway
-  - name: fraud-data-dev
-  - name: fraud-ml-dev

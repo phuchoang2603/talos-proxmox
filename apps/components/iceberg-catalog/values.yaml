@@ -1,4 +1,4 @@
-clientNamespaces: [starrocks, openmetadata, fraud-data-dev, fraud-ml-dev]
+clientNamespaces: [data, ml]
 storageClass: local-path
 catalog:
   name: lakehouse

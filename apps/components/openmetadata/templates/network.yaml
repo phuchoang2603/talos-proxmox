@@ -3,7 +3,9 @@ kind: NetworkPolicy
 metadata:
   name: openmetadata-private
 spec:
-  podSelector: {}
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
   policyTypes: [Ingress]
   ingress:
     - from:
@@ -18,3 +20,26 @@ spec:
               kubernetes.io/metadata.name: {{ .Values.dataNamespace }}
       ports:
         - {port: 8585, protocol: TCP}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: openmetadata-postgres-private
+spec:
+  podSelector:
+    matchLabels:
+      cnpg.io/cluster: openmetadata-postgres
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: openmetadata
+      ports:
+        - {port: 5432, protocol: TCP}
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: operators
+      ports:
+        - {port: 8000, protocol: TCP}

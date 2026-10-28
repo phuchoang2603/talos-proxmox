@@ -5,13 +5,4 @@ metadata:
     control-plane: kubeflow
     istio.io/dataplane-mode: ambient
     pod-security.kubernetes.io/enforce: restricted
-  name: kubeflow
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  labels:
-    control-plane: kubeflow
-    istio.io/dataplane-mode: ambient
-    pod-security.kubernetes.io/enforce: restricted
-  name: kubeflow-system
+  name: ml

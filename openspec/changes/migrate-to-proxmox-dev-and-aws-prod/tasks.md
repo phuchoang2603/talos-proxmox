@@ -16,7 +16,7 @@
 ## 3. Shared applications
 
 - [ ] 3.1 Enable Knative Serving, Eventing, Istio networking and Kubeflow in both environments; verify Helm renders and live serverless inference readiness, requests and scale-to-zero.
-- [ ] 3.2 Enable matching application membership and parameterize identity, namespace, object endpoints, storage and domain values; verify both renders and absence of prod-to-dev paths.
+- [ ] 3.2 Enable matching application membership and group namespaces into data, ml and operators with documented upstream exceptions; update identity, service/webhook/RBAC references, object endpoints, storage and domains; verify both renders, migration readiness and absence of prod-to-dev paths.
 - [ ] 3.3 Use minimal application replicas and idle jobs without reducing dev VM capacity; verify rendered resource requests and runtime fit in the accepted AWS allocation.
 - [ ] 3.4 Pin and deploy an authenticated PostgreSQL-backed Iceberg REST catalog for MinIO/S3; verify catalog restart and Spark/Flink/StarRocks read/commit compatibility.
 

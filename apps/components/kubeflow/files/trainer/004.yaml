@@ -9,13 +9,13 @@ metadata:
     app.kubernetes.io/name: jobset
     app.kubernetes.io/part-of: jobset
   name: jobset-controller-manager
-  namespace: kubeflow-system
+  namespace: ml
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: kubeflow-trainer-controller-manager
-  namespace: kubeflow-system
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -28,7 +28,7 @@ metadata:
     app.kubernetes.io/name: jobset
     app.kubernetes.io/part-of: jobset
   name: jobset-leader-election-role
-  namespace: kubeflow-system
+  namespace: ml
 rules:
 - apiGroups:
   - ""
@@ -73,7 +73,7 @@ metadata:
     app.kubernetes.io/name: jobset
     app.kubernetes.io/part-of: jobset
   name: jobset-manager-secrets-role
-  namespace: kubeflow-system
+  namespace: ml
 rules:
 - apiGroups:
   - ""
@@ -89,7 +89,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: kubeflow-trainer-public
-  namespace: kubeflow-system
+  namespace: ml
 rules:
 - apiGroups:
   - ""
@@ -461,7 +461,7 @@ metadata:
     app.kubernetes.io/name: jobset
     app.kubernetes.io/part-of: jobset
   name: jobset-leader-election-rolebinding
-  namespace: kubeflow-system
+  namespace: ml
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -469,7 +469,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: jobset-controller-manager
-  namespace: kubeflow-system
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -482,7 +482,7 @@ metadata:
     app.kubernetes.io/name: jobset
     app.kubernetes.io/part-of: jobset
   name: jobset-manager-secrets-rolebinding
-  namespace: kubeflow-system
+  namespace: ml
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -490,13 +490,13 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: jobset-controller-manager
-  namespace: kubeflow-system
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: kubeflow-trainer-public
-  namespace: kubeflow-system
+  namespace: ml
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -524,7 +524,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: jobset-controller-manager
-  namespace: kubeflow-system
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -541,7 +541,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: jobset-controller-manager
-  namespace: kubeflow-system
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -560,7 +560,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: jobset-controller-manager
-  namespace: kubeflow-system
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -573,7 +573,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: kubeflow-trainer-controller-manager
-  namespace: kubeflow-system
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -604,7 +604,7 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: jobset
   name: jobset-manager-config
-  namespace: kubeflow-system
+  namespace: ml
 ---
 apiVersion: v1
 data:
@@ -675,7 +675,7 @@ data:
 kind: ConfigMap
 metadata:
   name: kubeflow-trainer-config
-  namespace: kubeflow-system
+  namespace: ml
 ---
 apiVersion: v1
 data:
@@ -683,7 +683,7 @@ data:
 kind: ConfigMap
 metadata:
   name: kubeflow-trainer-public
-  namespace: kubeflow-system
+  namespace: ml
 ---
 apiVersion: v1
 kind: Secret
@@ -693,14 +693,14 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: jobset
   name: jobset-webhook-server-cert
-  namespace: kubeflow-system
+  namespace: ml
 ---
 apiVersion: v1
 data: {}
 kind: Secret
 metadata:
   name: kubeflow-trainer-webhook-cert
-  namespace: kubeflow-system
+  namespace: ml
 type: Opaque
 ---
 apiVersion: v1
@@ -712,7 +712,7 @@ metadata:
     app.kubernetes.io/name: jobset
     control-plane: controller-manager
   name: jobset-controller-manager-metrics-service
-  namespace: kubeflow-system
+  namespace: ml
 spec:
   ports:
   - name: https
@@ -736,7 +736,7 @@ metadata:
     app.kubernetes.io/name: jobset
     app.kubernetes.io/part-of: jobset
   name: jobset-webhook-service
-  namespace: kubeflow-system
+  namespace: ml
 spec:
   ports:
   - port: 443
@@ -752,7 +752,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: kubeflow-trainer-controller-manager
-  namespace: kubeflow-system
+  namespace: ml
 spec:
   ports:
   - name: monitoring-port
@@ -781,7 +781,7 @@ metadata:
     app.kubernetes.io/part-of: jobset
     control-plane: controller-manager
   name: jobset-controller-manager
-  namespace: kubeflow-system
+  namespace: ml
 spec:
   replicas: 1
   selector:
@@ -870,7 +870,7 @@ metadata:
     app.kubernetes.io/name: trainer
     app.kubernetes.io/part-of: kubeflow
   name: kubeflow-trainer-controller-manager
-  namespace: kubeflow-system
+  namespace: ml
 spec:
   selector:
     matchLabels:
@@ -953,7 +953,7 @@ metadata:
     trainer.kubeflow.org/framework: deepspeed
     trainer.kubeflow.org/webhook-validation: disabled
   name: deepspeed-distributed
-  namespace: kubeflow-system
+  namespace: ml
 spec:
   mlPolicy:
     mpi:
@@ -1019,7 +1019,7 @@ metadata:
     trainer.kubeflow.org/framework: jax
     trainer.kubeflow.org/webhook-validation: disabled
   name: jax-distributed
-  namespace: kubeflow-system
+  namespace: ml
 spec:
   mlPolicy:
     jax: {}
@@ -1046,7 +1046,7 @@ metadata:
     trainer.kubeflow.org/framework: mlx
     trainer.kubeflow.org/webhook-validation: disabled
   name: mlx-distributed
-  namespace: kubeflow-system
+  namespace: ml
 spec:
   mlPolicy:
     mpi:
@@ -1112,7 +1112,7 @@ metadata:
     trainer.kubeflow.org/framework: torch
     trainer.kubeflow.org/webhook-validation: disabled
   name: torch-distributed
-  namespace: kubeflow-system
+  namespace: ml
 spec:
   mlPolicy:
     numNodes: 1
@@ -1139,7 +1139,7 @@ metadata:
     trainer.kubeflow.org/framework: torchtune
     trainer.kubeflow.org/webhook-validation: disabled
   name: torchtune-llama3.2-1b
-  namespace: kubeflow-system
+  namespace: ml
 spec:
   mlPolicy:
     numNodes: 1
@@ -1234,7 +1234,7 @@ metadata:
     trainer.kubeflow.org/framework: torchtune
     trainer.kubeflow.org/webhook-validation: disabled
   name: torchtune-llama3.2-3b
-  namespace: kubeflow-system
+  namespace: ml
 spec:
   mlPolicy:
     numNodes: 1
@@ -1329,7 +1329,7 @@ metadata:
     trainer.kubeflow.org/framework: torchtune
     trainer.kubeflow.org/webhook-validation: disabled
   name: torchtune-qwen2.5-1.5b
-  namespace: kubeflow-system
+  namespace: ml
 spec:
   mlPolicy:
     numNodes: 1
@@ -1425,7 +1425,7 @@ metadata:
     trainer.kubeflow.org/framework: xgboost
     trainer.kubeflow.org/webhook-validation: disabled
   name: xgboost-distributed
-  namespace: kubeflow-system
+  namespace: ml
 spec:
   mlPolicy:
     numNodes: 1
@@ -1455,7 +1455,7 @@ webhooks:
   clientConfig:
     service:
       name: kubeflow-trainer-controller-manager
-      namespace: kubeflow-system
+      namespace: ml
       path: /mutate-trainer-kubeflow-org-v1alpha1-trainjob
   failurePolicy: Fail
   name: defaulter.trainjob.trainer.kubeflow.org
@@ -1485,7 +1485,7 @@ webhooks:
   clientConfig:
     service:
       name: jobset-webhook-service
-      namespace: kubeflow-system
+      namespace: ml
       path: /mutate-jobset-x-k8s-io-v1alpha2-jobset
   failurePolicy: Fail
   name: mjobset.kb.io
@@ -1504,7 +1504,7 @@ webhooks:
   clientConfig:
     service:
       name: jobset-webhook-service
-      namespace: kubeflow-system
+      namespace: ml
       path: /mutate--v1-pod
   failurePolicy: Fail
   name: mpod.kb.io
@@ -1537,7 +1537,7 @@ webhooks:
   clientConfig:
     service:
       name: jobset-webhook-service
-      namespace: kubeflow-system
+      namespace: ml
       path: /validate-jobset-x-k8s-io-v1alpha2-jobset
   failurePolicy: Fail
   name: vjobset.kb.io
@@ -1557,7 +1557,7 @@ webhooks:
   clientConfig:
     service:
       name: jobset-webhook-service
-      namespace: kubeflow-system
+      namespace: ml
       path: /validate--v1-pod
   failurePolicy: Fail
   name: vpod.kb.io
@@ -1586,7 +1586,7 @@ webhooks:
   clientConfig:
     service:
       name: kubeflow-trainer-controller-manager
-      namespace: kubeflow-system
+      namespace: ml
       path: /validate-trainer-kubeflow-org-v1alpha1-clustertrainingruntime
   failurePolicy: Fail
   name: validator.clustertrainingruntime.trainer.kubeflow.org
@@ -1612,7 +1612,7 @@ webhooks:
   clientConfig:
     service:
       name: kubeflow-trainer-controller-manager
-      namespace: kubeflow-system
+      namespace: ml
       path: /validate-trainer-kubeflow-org-v1alpha1-trainingruntime
   failurePolicy: Fail
   name: validator.trainingruntime.trainer.kubeflow.org
@@ -1638,7 +1638,7 @@ webhooks:
   clientConfig:
     service:
       name: kubeflow-trainer-controller-manager
-      namespace: kubeflow-system
+      namespace: ml
       path: /validate-trainer-kubeflow-org-v1alpha1-trainjob
   failurePolicy: Fail
   name: validator.trainjob.trainer.kubeflow.org

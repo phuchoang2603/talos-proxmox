@@ -4,7 +4,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
   name: kubeflow-pipelines-db
-  namespace: kubeflow
+  namespace: ml
 spec:
   instances: 1
   resources:
@@ -36,7 +36,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
   name: kubeflow-katib-db
-  namespace: kubeflow
+  namespace: ml
 spec:
   instances: 1
   resources:

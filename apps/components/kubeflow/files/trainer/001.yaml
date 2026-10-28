@@ -16,7 +16,7 @@ spec:
       clientConfig:
         service:
           name: jobset-webhook-service
-          namespace: kubeflow-system
+          namespace: ml
           path: /convert
       conversionReviewVersions:
       - v1

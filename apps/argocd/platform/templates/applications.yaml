@@ -29,7 +29,7 @@ spec:
 {{- end }}
   destination:
     server: https://kubernetes.default.svc
-    namespace: {{ if eq $name "ml-access" }}fraud-ml-{{ $cluster }}{{ else }}{{ $app.namespace }}{{ end }}
+    namespace: {{ $app.namespace }}
   syncPolicy:
     automated:
       prune: true

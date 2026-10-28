@@ -6,7 +6,7 @@ metadata:
     trainer.kubeflow.org/framework: torch
     trainer.kubeflow.org/webhook-validation: disabled
   name: aws-gpu-training
-  namespace: kubeflow-system
+  namespace: ml
 spec:
   mlPolicy:
     numNodes: 1

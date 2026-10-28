@@ -1,12 +1,11 @@
-dataNamespace: fraud-data-prod
+dataNamespace: data
 argo-workflows:
   crds:
     full: true
   controller:
     workflowNamespaces:
-      - kubeflow
-      - fraud-ml-prod
-      - fraud-data-prod
+      - ml
+      - data
     resources:
       requests:
         cpu: 100m

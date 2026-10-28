@@ -20,7 +20,7 @@ spec:
       uri: /pipeline
     route:
     - destination:
-        host: ml-pipeline-ui.kubeflow.svc.cluster.local
+        host: ml-pipeline-ui.ml.svc.cluster.local
         port:
           number: 80
     timeout: 300s

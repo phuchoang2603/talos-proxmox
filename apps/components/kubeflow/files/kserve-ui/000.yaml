@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/name: kserve
     kustomize.component: kserve-models-web-application
   name: kserve-models-web-application
-  namespace: kserve
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -100,7 +100,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: kserve-models-web-application
-  namespace: kserve
+  namespace: ml
 ---
 apiVersion: v1
 data:
@@ -118,7 +118,7 @@ metadata:
     app.kubernetes.io/name: kserve
     kustomize.component: kserve-models-web-application
   name: kserve-models-web-application-config
-  namespace: kserve
+  namespace: ml
 ---
 apiVersion: v1
 kind: Service
@@ -129,7 +129,7 @@ metadata:
     app.kubernetes.io/name: kserve
     kustomize.component: kserve-models-web-application
   name: kserve-models-web-application
-  namespace: kserve
+  namespace: ml
 spec:
   ports:
   - name: http
@@ -152,7 +152,7 @@ metadata:
     app.kubernetes.io/name: kserve
     kustomize.component: kserve-models-web-application
   name: kserve-models-web-application
-  namespace: kserve
+  namespace: ml
 spec:
   replicas: 1
   selector:
@@ -222,10 +222,10 @@ metadata:
     app: kserve
     app.kubernetes.io/name: kserve
   name: kserve-models-web-application
-  namespace: kserve
+  namespace: ml
 spec:
   gateways:
-  - kubeflow/kubeflow-gateway
+  - ml/kubeflow-gateway
   hosts:
   - '*'
   http:
@@ -236,7 +236,7 @@ spec:
       uri: /
     route:
     - destination:
-        host: kserve-models-web-application.kserve.svc.cluster.local
+        host: kserve-models-web-application.ml.svc.cluster.local
         port:
           number: 80
 ---
@@ -244,7 +244,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: kserve-models-web-application
-  namespace: kserve
+  namespace: ml
 spec:
   ingress:
   - from:
@@ -272,7 +272,7 @@ metadata:
     app.kubernetes.io/name: kserve
     kustomize.component: kserve-models-web-application
   name: kserve-models-web-application
-  namespace: kserve
+  namespace: ml
 spec:
   action: ALLOW
   rules:

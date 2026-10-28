@@ -20,7 +20,7 @@ metadata:
   labels:
     application-crd-id: kubeflow-pipelines
   name: kfp-launcher
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: v1
 data:
@@ -70,7 +70,7 @@ metadata:
   labels:
     application-crd-id: kubeflow-pipelines
   name: pipeline-install-config
-  namespace: kubeflow
+  namespace: ml
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -79,7 +79,7 @@ metadata:
     app: ml-pipeline
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline
-  namespace: kubeflow
+  namespace: ml
 spec:
   selector:
     matchLabels:

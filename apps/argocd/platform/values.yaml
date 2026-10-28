@@ -26,9 +26,6 @@ components:
     syncWave: "-4"
     releaseName: workload-namespaces
     clusters: [dev, prod]
-    valueFilesByCluster:
-      dev:
-        - environments/dev/values.yaml
   external-secrets:
     path: apps/components/external-secrets
     namespace: operators
@@ -42,9 +39,6 @@ components:
     releaseName: istio
     clusters: [dev, prod]
     managedNamespaceMetadata: *privileged
-    valueFilesByCluster:
-      prod:
-        - environments/prod/values.yaml
     ignoreDifferences:
       - group: admissionregistration.k8s.io
         kind: ValidatingWebhookConfiguration
@@ -60,7 +54,7 @@ components:
           - /webhooks/0/failurePolicy
   argo-workflows:
     path: apps/components/argo-workflows
-    namespace: argo-workflows
+    namespace: operators
     syncWave: "-1"
     releaseName: argo-workflows
     clusters: [dev, prod]
@@ -73,9 +67,6 @@ components:
     syncWave: "0"
     releaseName: spark-operator
     clusters: [dev, prod]
-    valueFilesByCluster:
-      dev:
-        - environments/dev/values.yaml
   flink-operator:
     path: apps/components/flink-operator
     namespace: operators
@@ -84,7 +75,7 @@ components:
     clusters: [dev, prod]
   iceberg-catalog:
     path: apps/components/iceberg-catalog
-    namespace: iceberg
+    namespace: data
     syncWave: "1"
     releaseName: iceberg-catalog
     clusters: [dev, prod]
@@ -93,7 +84,7 @@ components:
         - environments/prod/values.yaml
   starrocks:
     path: apps/components/starrocks
-    namespace: starrocks
+    namespace: data
     syncWave: "1"
     releaseName: starrocks
     clusters: [dev, prod]
@@ -102,13 +93,10 @@ components:
         - environments/prod/values.yaml
   ml-access:
     path: apps/components/ml-access
-    namespace: fraud-ml
-    syncWave: "1"
+    namespace: ml
+    syncWave: "2"
     releaseName: ml-access
     clusters: [dev, prod]
-    valueFilesByCluster:
-      dev:
-        - environments/dev/values.yaml
   auth:
     path: apps/components/auth
     namespace: auth
@@ -139,7 +127,7 @@ components:
           - /webhooks
   kubeflow:
     path: apps/components/kubeflow
-    namespace: kubeflow
+    namespace: ml
     syncWave: "2"
     releaseName: kubeflow
     clusters: [dev, prod]
@@ -150,7 +138,7 @@ components:
         - environments/prod/values.yaml
   openmetadata:
     path: apps/components/openmetadata
-    namespace: openmetadata
+    namespace: data
     syncWave: "3"
     releaseName: openmetadata
     clusters: [dev, prod]
@@ -167,14 +155,14 @@ components:
     clusters: [dev, prod]
   ebs-csi:
     path: apps/components/ebs-csi
-    namespace: kube-system
+    namespace: operators
     syncWave: "0"
     releaseName: ebs-csi
     clusters: [prod]
     managedNamespaceMetadata: *privileged
   local-path-provisioner:
     path: apps/components/local-path-provisioner
-    namespace: local-path-storage
+    namespace: operators
     syncWave: "0"
     releaseName: local-path-provisioner
     clusters: [dev]

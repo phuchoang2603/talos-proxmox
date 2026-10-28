@@ -1,10 +1,4 @@
-dataNamespace: fraud-data-dev
 argo-workflows:
-  controller:
-    workflowNamespaces:
-    - kubeflow
-    - fraud-ml-dev
-    - fraud-data-dev
   server:
     sso:
       issuerAlias: https://auth-dev.phuchoang.sbs/dex

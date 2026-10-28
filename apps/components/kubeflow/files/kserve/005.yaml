@@ -5425,7 +5425,7 @@ metadata:
     app.kubernetes.io/managed-by: kserve-controller-manager
     app.kubernetes.io/name: kserve
   name: kserve-controller-manager
-  namespace: kserve
+  namespace: ml
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -5434,7 +5434,7 @@ metadata:
     app.kubernetes.io/component: localmodel
     app.kubernetes.io/name: kserve
   name: kserve-kernelcachenode-agent
-  namespace: kserve
+  namespace: ml
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -5445,7 +5445,7 @@ metadata:
     app.kubernetes.io/managed-by: kserve-localmodel-controller-manager
     app.kubernetes.io/name: kserve
   name: kserve-localmodel-controller-manager
-  namespace: kserve
+  namespace: ml
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -5455,7 +5455,7 @@ metadata:
     app.kubernetes.io/instance: llmisvc-controller-manager
     app.kubernetes.io/name: llmisvc-controller-manager
   name: llmisvc-controller-manager
-  namespace: kserve
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -5464,7 +5464,7 @@ metadata:
     app.kubernetes.io/component: kserve
     app.kubernetes.io/name: kserve
   name: kserve-leader-election-role
-  namespace: kserve
+  namespace: ml
 rules:
 - apiGroups:
   - coordination.k8s.io
@@ -5506,7 +5506,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: llmisvc-leader-election-role
-  namespace: kserve
+  namespace: ml
 rules:
 - apiGroups:
   - coordination.k8s.io
@@ -6418,7 +6418,7 @@ metadata:
     app.kubernetes.io/component: kserve
     app.kubernetes.io/name: kserve
   name: kserve-leader-election-rolebinding
-  namespace: kserve
+  namespace: ml
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -6426,7 +6426,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: kserve-controller-manager
-  namespace: kserve
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -6435,7 +6435,7 @@ metadata:
     app.kubernetes.io/component: localmodel
     app.kubernetes.io/name: kserve
   name: kserve-localmodel-leader-election-rolebinding
-  namespace: kserve
+  namespace: ml
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -6443,13 +6443,13 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: kserve-localmodel-controller-manager
-  namespace: kserve
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: llmisvc-leader-election-rolebinding
-  namespace: kserve
+  namespace: ml
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -6457,7 +6457,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: llmisvc-controller-manager
-  namespace: kserve
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -6473,7 +6473,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: kserve-localmodel-controller-manager
-  namespace: kserve
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -6489,7 +6489,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: kserve-kernelcachenode-agent
-  namespace: kserve
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -6505,7 +6505,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: kserve-localmodel-controller-manager
-  namespace: kserve
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -6521,7 +6521,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: kserve-controller-manager
-  namespace: kserve
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -6537,7 +6537,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: kserve-controller-manager
-  namespace: kserve
+  namespace: ml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -6550,7 +6550,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: llmisvc-controller-manager
-  namespace: kserve
+  namespace: ml
 ---
 apiVersion: v1
 data:
@@ -7010,8 +7010,8 @@ data:
     {
       "disableHTTPRouteTimeout": false,
       "enableGatewayApi": false,
-      "kserveIngressGateway": "kserve/kserve-ingress-gateway",
-      "ingressGateway": "kubeflow/kubeflow-gateway",
+      "kserveIngressGateway": "ml/kubeflow-gateway",
+      "ingressGateway": "ml/kubeflow-gateway",
       "knativeLocalGatewayService": "cluster-local-gateway.istio-system.svc.cluster.local",
       "localGateway": "istio-system/cluster-local-gateway",
       "localGatewayService": "cluster-local-gateway.istio-system.svc.cluster.local",
@@ -7029,7 +7029,7 @@ data:
       "defaultSidecarInjection": true,
       "defaultMountType": "oci",
       "defaultNodeGroup": "",
-      "jobNamespace": "kserve-kernelcache-jobs",
+      "jobNamespace": "ml",
       "mcvImage": "kserve/kserve-mcv:v0.21.0-minimal",
       "prefetchImage": "registry.access.redhat.com/ubi9/ubi-minimal:9.8",
       "abandonedCapturePolicy": "retain",
@@ -7040,7 +7040,7 @@ data:
   localModel: |-
     {
       "enabled": false,
-      "jobNamespace": "kserve-localmodel-jobs",
+      "jobNamespace": "ml",
       "defaultJobImage" : "kserve/storage-initializer:v0.21.0",
       "fsGroup": 1000,
       "jobTTLSecondsAfterFinished": 3600,
@@ -7103,7 +7103,7 @@ data:
 kind: ConfigMap
 metadata:
   name: inferenceservice-config
-  namespace: kserve
+  namespace: ml
 ---
 apiVersion: v1
 kind: Secret
@@ -7112,7 +7112,7 @@ metadata:
     app.kubernetes.io/component: kserve
     app.kubernetes.io/name: kserve
   name: kserve-webhook-server-secret
-  namespace: kserve
+  namespace: ml
 ---
 apiVersion: v1
 kind: Service
@@ -7127,7 +7127,7 @@ metadata:
     control-plane: kserve-controller-manager
     controller-tools.k8s.io: "1.0"
   name: kserve-controller-manager-metrics-service
-  namespace: kserve
+  namespace: ml
 spec:
   ports:
   - name: https
@@ -7146,7 +7146,7 @@ metadata:
     control-plane: kserve-controller-manager
     controller-tools.k8s.io: "1.0"
   name: kserve-controller-manager-service
-  namespace: kserve
+  namespace: ml
 spec:
   ports:
   - port: 8443
@@ -7163,7 +7163,7 @@ metadata:
     app.kubernetes.io/component: kserve
     app.kubernetes.io/name: kserve
   name: kserve-webhook-server-service
-  namespace: kserve
+  namespace: ml
 spec:
   ports:
   - port: 443
@@ -7179,7 +7179,7 @@ metadata:
     control-plane: llmisvc-controller-manager
     controller-tools.k8s.io: "1.0"
   name: llmisvc-controller-manager-service
-  namespace: kserve
+  namespace: ml
 spec:
   ports:
   - name: https
@@ -7194,7 +7194,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: llmisvc-webhook-server-service
-  namespace: kserve
+  namespace: ml
 spec:
   ports:
   - name: https
@@ -7210,7 +7210,7 @@ metadata:
     app.kubernetes.io/component: localmodel
     app.kubernetes.io/name: kserve
   name: localmodel-webhook-server-service
-  namespace: kserve
+  namespace: ml
 spec:
   ports:
   - port: 443
@@ -7227,7 +7227,7 @@ metadata:
     control-plane: kserve-controller-manager
     controller-tools.k8s.io: "1.0"
   name: kserve-controller-manager
-  namespace: kserve
+  namespace: ml
 spec:
   selector:
     matchLabels:
@@ -7337,7 +7337,7 @@ metadata:
     control-plane: kserve-localmodel-controller-manager
     controller-tools.k8s.io: "1.0"
   name: kserve-localmodel-controller-manager
-  namespace: kserve
+  namespace: ml
 spec:
   selector:
     matchLabels:
@@ -7423,7 +7423,7 @@ metadata:
     control-plane: llmisvc-controller-manager
     controller-tools.k8s.io: "1.0"
   name: llmisvc-controller-manager
-  namespace: kserve
+  namespace: ml
 spec:
   selector:
     matchLabels:
@@ -7519,7 +7519,7 @@ metadata:
     app.kubernetes.io/name: kserve
     control-plane: kserve-kernelcachenode-agent
   name: kserve-kernelcachenode-agent
-  namespace: kserve
+  namespace: ml
 spec:
   selector:
     matchLabels:
@@ -7594,11 +7594,11 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: llmisvc-serving-cert
-  namespace: kserve
+  namespace: ml
 spec:
-  commonName: llmisvc-webhook-server-service.kserve.svc
+  commonName: llmisvc-webhook-server-service.ml.svc
   dnsNames:
-  - llmisvc-webhook-server-service.kserve.svc
+  - llmisvc-webhook-server-service.ml.svc
   issuerRef:
     kind: Issuer
     name: selfsigned-issuer
@@ -7611,11 +7611,11 @@ metadata:
     app.kubernetes.io/component: localmodel
     app.kubernetes.io/name: kserve
   name: localmodel-serving-cert
-  namespace: kserve
+  namespace: ml
 spec:
-  commonName: localmodel-webhook-server-service.kserve.svc
+  commonName: localmodel-webhook-server-service.ml.svc
   dnsNames:
-  - localmodel-webhook-server-service.kserve.svc
+  - localmodel-webhook-server-service.ml.svc
   issuerRef:
     kind: Issuer
     name: selfsigned-issuer
@@ -7628,11 +7628,11 @@ metadata:
     app.kubernetes.io/component: kserve
     app.kubernetes.io/name: kserve
   name: serving-cert
-  namespace: kserve
+  namespace: ml
 spec:
-  commonName: kserve-webhook-server-service.kserve.svc
+  commonName: kserve-webhook-server-service.ml.svc
   dnsNames:
-  - kserve-webhook-server-service.kserve.svc
+  - kserve-webhook-server-service.ml.svc
   issuerRef:
     kind: Issuer
     name: selfsigned-issuer
@@ -7642,7 +7642,7 @@ apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: selfsigned-issuer
-  namespace: kserve
+  namespace: ml
 spec:
   selfSigned: {}
 ---
@@ -7650,7 +7650,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: kserve-webhooks
-  namespace: kserve
+  namespace: ml
 spec:
   ingress:
   - ports:
@@ -8536,7 +8536,7 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   annotations:
-    cert-manager.io/inject-ca-from: kserve/serving-cert
+    cert-manager.io/inject-ca-from: ml/serving-cert
   creationTimestamp: null
   labels:
     app.kubernetes.io/component: kserve
@@ -8548,7 +8548,7 @@ webhooks:
   clientConfig:
     service:
       name: kserve-webhook-server-service
-      namespace: kserve
+      namespace: ml
       path: /mutate-serving-kserve-io-v1beta1-inferenceservice
   failurePolicy: Fail
   name: inferenceservice.kserve-webhook-server.defaulter
@@ -8568,7 +8568,7 @@ webhooks:
   clientConfig:
     service:
       name: kserve-webhook-server-service
-      namespace: kserve
+      namespace: ml
       path: /mutate-pods
   failurePolicy: Fail
   name: inferenceservice.kserve-webhook-server.pod-mutator
@@ -8596,7 +8596,7 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   annotations:
-    cert-manager.io/inject-ca-from: kserve/llmisvc-serving-cert
+    cert-manager.io/inject-ca-from: ml/llmisvc-serving-cert
   creationTimestamp: null
   name: llminferenceservice.serving.kserve.io
 webhooks:
@@ -8606,7 +8606,7 @@ webhooks:
   clientConfig:
     service:
       name: llmisvc-webhook-server-service
-      namespace: kserve
+      namespace: ml
       path: /mutate-serving-kserve-io-v1alpha1-llminferenceservice
   failurePolicy: Fail
   matchPolicy: Exact
@@ -8628,7 +8628,7 @@ webhooks:
   clientConfig:
     service:
       name: llmisvc-webhook-server-service
-      namespace: kserve
+      namespace: ml
       path: /mutate-serving-kserve-io-v1alpha2-llminferenceservice
   failurePolicy: Fail
   matchPolicy: Exact
@@ -8649,7 +8649,7 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   annotations:
-    cert-manager.io/inject-ca-from: kserve/serving-cert
+    cert-manager.io/inject-ca-from: ml/serving-cert
   creationTimestamp: null
   labels:
     app.kubernetes.io/component: kserve
@@ -8661,7 +8661,7 @@ webhooks:
   clientConfig:
     service:
       name: kserve-webhook-server-service
-      namespace: kserve
+      namespace: ml
       path: /validate-serving-kserve-io-v1alpha1-clusterservingruntime
   failurePolicy: Fail
   name: clusterservingruntime.kserve-webhook-server.validator
@@ -8681,7 +8681,7 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   annotations:
-    cert-manager.io/inject-ca-from: kserve/serving-cert
+    cert-manager.io/inject-ca-from: ml/serving-cert
   creationTimestamp: null
   labels:
     app.kubernetes.io/component: kserve
@@ -8693,7 +8693,7 @@ webhooks:
   clientConfig:
     service:
       name: kserve-webhook-server-service
-      namespace: kserve
+      namespace: ml
       path: /validate-serving-kserve-io-v1alpha1-inferencegraph
   failurePolicy: Fail
   name: inferencegraph.kserve-webhook-server.validator
@@ -8713,7 +8713,7 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   annotations:
-    cert-manager.io/inject-ca-from: kserve/serving-cert
+    cert-manager.io/inject-ca-from: ml/serving-cert
   creationTimestamp: null
   labels:
     app.kubernetes.io/component: kserve
@@ -8725,7 +8725,7 @@ webhooks:
   clientConfig:
     service:
       name: kserve-webhook-server-service
-      namespace: kserve
+      namespace: ml
       path: /validate-serving-kserve-io-v1beta1-inferenceservice
   failurePolicy: Fail
   name: inferenceservice.kserve-webhook-server.validator
@@ -8745,7 +8745,7 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   annotations:
-    cert-manager.io/inject-ca-from: kserve/llmisvc-serving-cert
+    cert-manager.io/inject-ca-from: ml/llmisvc-serving-cert
   creationTimestamp: null
   name: llminferenceservice.serving.kserve.io
 webhooks:
@@ -8755,7 +8755,7 @@ webhooks:
   clientConfig:
     service:
       name: llmisvc-webhook-server-service
-      namespace: kserve
+      namespace: ml
       path: /validate-serving-kserve-io-v1alpha2-llminferenceservice
   failurePolicy: Fail
   matchPolicy: Exact
@@ -8777,7 +8777,7 @@ webhooks:
   clientConfig:
     service:
       name: llmisvc-webhook-server-service
-      namespace: kserve
+      namespace: ml
       path: /validate-serving-kserve-io-v1alpha1-llminferenceservice
   failurePolicy: Fail
   matchPolicy: Exact
@@ -8798,7 +8798,7 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   annotations:
-    cert-manager.io/inject-ca-from: kserve/localmodel-serving-cert
+    cert-manager.io/inject-ca-from: ml/localmodel-serving-cert
   creationTimestamp: null
   labels:
     app.kubernetes.io/component: localmodel
@@ -8810,7 +8810,7 @@ webhooks:
   clientConfig:
     service:
       name: localmodel-webhook-server-service
-      namespace: kserve
+      namespace: ml
       path: /validate-serving-kserve-io-v1alpha1-localmodelcache
   failurePolicy: Fail
   name: localmodelcache.kserve-webhook-server.validator
@@ -8831,7 +8831,7 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   annotations:
-    cert-manager.io/inject-ca-from: kserve/serving-cert
+    cert-manager.io/inject-ca-from: ml/serving-cert
   creationTimestamp: null
   labels:
     app.kubernetes.io/component: kserve
@@ -8843,7 +8843,7 @@ webhooks:
   clientConfig:
     service:
       name: kserve-webhook-server-service
-      namespace: kserve
+      namespace: ml
       path: /validate-serving-kserve-io-v1alpha1-servingruntime
   failurePolicy: Fail
   name: servingruntime.kserve-webhook-server.validator
@@ -8863,7 +8863,7 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   annotations:
-    cert-manager.io/inject-ca-from: kserve/serving-cert
+    cert-manager.io/inject-ca-from: ml/serving-cert
   creationTimestamp: null
   labels:
     app.kubernetes.io/component: kserve
@@ -8875,7 +8875,7 @@ webhooks:
   clientConfig:
     service:
       name: kserve-webhook-server-service
-      namespace: kserve
+      namespace: ml
       path: /validate-serving-kserve-io-v1alpha1-trainedmodel
   failurePolicy: Fail
   name: trainedmodel.kserve-webhook-server.validator

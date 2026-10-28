@@ -3302,7 +3302,7 @@ data:
     local-gateway.knative-serving.knative-local-gateway: "knative-local-gateway.istio-system.svc.cluster.local"
   external-gateways: |
     - name: kubeflow-gateway
-      namespace: kubeflow
+      namespace: ml
       service: istio-ingressgateway.istio-system.svc.cluster.local
   local-gateways: |
     - name: cluster-local-gateway
