@@ -53,3 +53,10 @@ resource "doppler_secret" "objects" {
   name     = each.key
   value    = local.object_secret_values[each.key]
 }
+
+resource "doppler_secret" "dev_object_bucket" {
+  project = doppler_project.this.name
+  config  = doppler_environment.this["dev"].slug
+  name    = "OBJECT_STORAGE_BUCKET"
+  value   = "platform-dev"
+}

@@ -1,4 +1,6 @@
 talos-cloud-controller-manager:
+  daemonSet:
+    enabled: true
   # AWS kubelets use --cloud-provider=external; Proxmox nodes are skipped.
   enabledControllers:
     - cloud-node

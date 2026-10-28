@@ -1,4 +1,6 @@
 cilium:
+  operator:
+    replicas: 1
   # Talos 1.13: https://www.talos.dev/v1.13/kubernetes-guides/network/deploying-cilium/
   ipam:
     mode: kubernetes
