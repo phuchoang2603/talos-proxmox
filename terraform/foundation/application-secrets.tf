@@ -1,5 +1,5 @@
 locals {
-  application_passwords = toset(["AUTH_DEX_PASSWORD", "AUTH_OIDC_CLIENT_SECRET", "OPENMETADATA_OIDC_CLIENT_SECRET", "OPENMETADATA_POSTGRES_PASSWORD", "KUBEFLOW_KFP_POSTGRES_PASSWORD", "KUBEFLOW_KATIB_POSTGRES_PASSWORD", "KUBEFLOW_CATALOG_POSTGRES_PASSWORD", "STARROCKS_ROOT_PASSWORD", "ICEBERG_POSTGRES_PASSWORD", "ICEBERG_CLIENT_SECRET"])
+  application_passwords = toset(["AUTH_DEX_PASSWORD", "AUTH_OIDC_CLIENT_SECRET", "OPENMETADATA_OIDC_CLIENT_SECRET", "OPENMETADATA_POSTGRES_PASSWORD", "KUBEFLOW_KFP_POSTGRES_PASSWORD", "KUBEFLOW_KATIB_POSTGRES_PASSWORD", "KUBEFLOW_CATALOG_POSTGRES_PASSWORD", "STARROCKS_ROOT_PASSWORD", "STARROCKS_OPENMETADATA_PASSWORD", "ICEBERG_POSTGRES_PASSWORD", "ICEBERG_CLIENT_SECRET"])
   environment_passwords = { for pair in setproduct(keys(local.environments), local.application_passwords) : "${pair[0]}/${pair[1]}" => { env = pair[0], name = pair[1] } }
   generated_application_secrets = merge(
     { for key, password in random_password.application : key => { env = local.environment_passwords[key].env, name = local.environment_passwords[key].name, value = password.result } },
