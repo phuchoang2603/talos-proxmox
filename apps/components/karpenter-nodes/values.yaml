@@ -39,10 +39,11 @@ cpuBurst:
   limits: {cpu: "4", memory: 16Gi}
   consolidateAfter: 5m
 
-# Optional on-demand GPU pool for bounded single-GPU training jobs (up to the limits below, one node each). Disabled until a GPU AMI,
+# Optional GPU pool for bounded single-GPU training jobs (up to the limits below, one node each). Disabled until a GPU AMI,
 # machine config, zone, single-GPU types and finite limits are chosen from verified quota/offerings.
 gpu:
   enabled: false
+  capacityTypes: [on-demand]
   # Set cpu "0" in the NodePool limits without changing the rest of the configuration.
   paused: false
   amiId: ami-00000000000000000

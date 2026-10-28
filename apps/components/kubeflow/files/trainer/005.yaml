@@ -6,7 +6,6 @@ metadata:
     trainer.kubeflow.org/framework: torch
     trainer.kubeflow.org/webhook-validation: disabled
   name: aws-gpu-training
-  namespace: ml
 spec:
   mlPolicy:
     numNodes: 1
@@ -25,15 +24,18 @@ spec:
               spec:
                 restartPolicy: Never
                 nodeSelector:
+                  karpenter.sh/nodepool: aws-gpu-training
+                  karpenter.sh/capacity-type: spot
                   burst.talos.dev/compute: aws
                   burst.talos.dev/workload: gpu-training
                 tolerations:
                 - {key: burst.talos.dev/gpu-training, operator: Equal, value: "true", effect: NoSchedule}
+                resourceClaims:
+                - name: gpu
+                  resourceClaimTemplateName: aws-gpu-training
                 containers:
                 - image: pytorch/pytorch:2.13.0-cuda13.0-cudnn9-runtime
                   name: node
                   resources:
-                    requests:
-                      nvidia.com/gpu: "1"
-                    limits:
-                      nvidia.com/gpu: "1"
+                    claims:
+                    - name: gpu

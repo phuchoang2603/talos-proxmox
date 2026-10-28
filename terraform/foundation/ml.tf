@@ -128,7 +128,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "platform" {
 
 variable "enable_gpu_images" {
   type    = bool
-  default = false
+  default = true
 }
 module "image_assets" {
   count         = var.enable_gpu_images ? 1 : 0

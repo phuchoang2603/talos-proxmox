@@ -81,7 +81,7 @@ spec:
           values: [amd64]
         - key: karpenter.sh/capacity-type
           operator: In
-          values: [on-demand]
+          values: {{ toJson .Values.gpu.capacityTypes }}
         - key: node.kubernetes.io/instance-type
           operator: In
           values: {{ toJson .Values.gpu.instanceTypes }}
