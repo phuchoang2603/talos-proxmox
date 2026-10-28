@@ -87,3 +87,26 @@ Environment teardown SHALL clean owned external worker and CSI resources through
 #### Scenario: Component with external side effects
 - **WHEN** a component added to the platform root or Argo CD would create a resource outside the cluster that must be removed on destroy
 - **THEN** that resource's removal is owned by the cluster or foundation root, not by the component's in-cluster teardown
+
+### Requirement: Single declarative owner per component
+Each infrastructure resource, cluster component, and secret SHALL have exactly one declarative owner:
+- the foundation root owns account, identity, and secret-store setup;
+- the cluster root owns machines and generated credentials;
+- the platform root owns Gateway API CRDs, Cilium, Talos CCM, secret-store bootstrap credentials, Karpenter in prod and Argo CD with its AppProject and root Application;
+- the environment's Argo CD owns Istio, the Cloudflare operator/CRDs/ClusterTunnel, Argo CD OAuth/tunnel access and other applications.
+
+No component MAY be managed by both OpenTofu and Argo CD. No UI Gateway or HTTPRoute SHALL be rendered by the bootstrap chart.
+
+Gateway API CRDs SHALL be installed from a pinned Helm chart archive committed to Git. Cilium SHALL use `kube-system` for its namespaced resources. Charts and releases SHALL handle any additional namespace they require declaratively; provisioning MUST NOT create per-component namespaces through scripts. Cluster-scoped Cilium resources remain cluster-scoped.
+
+#### Scenario: Pre-GitOps components
+- **WHEN** the platform root is applied to an environment
+- **THEN** it installs Gateway API CRDs, Cilium, Talos CCM, the bootstrap token Secret, Karpenter in prod and Argo CD with its root Application, without UI LoadBalancer Services or a bootstrap dependency on ESO/Cloudflare CRDs
+
+#### Scenario: Drift on an Argo-owned component
+- **WHEN** an Argo-owned component is changed in Git
+- **THEN** only Argo CD reconciles it, and the next OpenTofu plan shows no change for it
+
+#### Scenario: UI publishing
+- **WHEN** the environment tunnel routes reconcile
+- **THEN** Argo CD and Grafana use their environment hostnames backed by ClusterIP Services, with management port-forward available

@@ -31,5 +31,3 @@ argo-cd:
     params:
       server.insecure: true
       controller.diff.server.side: true
-tunnel:
-  enabled: false

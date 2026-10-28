@@ -170,12 +170,6 @@ components:
     releaseName: local-path-provisioner
     clusters: [dev]
     managedNamespaceMetadata: *privileged
-  talos-ccm:
-    path: apps/components/talos-ccm
-    namespace: kube-system
-    syncWave: "-1"
-    releaseName: talos-cloud-controller-manager
-    clusters: [dev, prod]
   cnpg:
     path: apps/components/cnpg
     namespace: operators
@@ -220,6 +214,15 @@ components:
         - environments/dev/values.yaml
       prod:
         - environments/prod/values.yaml
+  argo-cd-access:
+    path: apps/components/argo-cd-access
+    namespace: argo-cd
+    syncWave: "3"
+    releaseName: argo-cd-access
+    clusters: [dev, prod]
+    valueFilesByCluster:
+      dev:
+        - environments/dev/values.yaml
   cloudflare-tunnel:
     path: apps/components/cloudflare-tunnel
     releaseName: cloudflare-tunnel

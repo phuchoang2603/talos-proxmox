@@ -24,7 +24,7 @@ The accepted production baseline is one On-Demand `m6a.large` running control pl
 
 ### 1. Preserve layered roots and separate reusable Talos behavior from machines
 
-Keep `foundation`, per-environment `cluster`, per-environment `platform` and in-cluster Argo CD. Extract environment-local Talos machine secrets and common CNI/proxy/KubePrism, kubelet reservations and scheduling configuration out of `terraform/proxmox`. Keep platform-specific install disks, network configuration, machine allocation and GPU image details in the respective backend. Bootstrap and client outputs consume a small, consistent endpoint/control-plane inventory interface.
+Keep `foundation`, per-environment `cluster`, per-environment `platform` and in-cluster Argo CD. Platform installs Talos CCM before Argo CD to initialize the AWS control plane; GitOps installs Argo CD OAuth secrets/tunnel access after ESO and Cloudflare CRDs. Extract environment-local Talos machine secrets and common CNI/proxy/KubePrism, kubelet reservations and scheduling configuration out of `terraform/proxmox`. Keep platform-specific install disks, network configuration, machine allocation and GPU image details in the respective backend. Bootstrap and client outputs consume a small, consistent endpoint/control-plane inventory interface.
 
 Separate entrypoints at `terraform/cluster/dev` and `terraform/cluster/prod` select Proxmox and AWS respectively, sharing the Talos and generated-secret modules. An inactive provider must not require credentials or try to read the other provider's files. Avoid empty-map placeholder credentials and hardcoded dev-only patches. Move AWS-specific roots behind an explicit module boundary if provider initialization otherwise requires inactive Proxmox authentication.
 

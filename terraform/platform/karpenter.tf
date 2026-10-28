@@ -39,7 +39,7 @@ resource "helm_release" "karpenter" {
 
   depends_on = [
     kubernetes_secret_v1.karpenter_aws,
-    helm_release.cilium,
+    helm_release.talos_ccm,
   ]
 }
 

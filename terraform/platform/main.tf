@@ -11,6 +11,7 @@ locals {
   # Base values plus the environment overlay, when the chart has one.
   chart_values = {
     for name, dir in {
+      "talos-ccm"        = "${local.components}/talos-ccm"
       cilium             = "${local.components}/cilium"
       "argo-cd"          = "${local.components}/argo-cd"
       "argocd-bootstrap" = "${local.apps}/argocd/bootstrap"

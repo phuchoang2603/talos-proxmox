@@ -19,20 +19,20 @@ flowchart TD
     Components --> Local["Local Kubernetes cluster"]
 ```
 
-The [bootstrap chart](../../apps/argocd/bootstrap/) creates the `talos-proxmox` AppProject, the `platform` root Application. The [platform chart](../../apps/argocd/platform/) creates child Applications from its component table. Every destination is `https://kubernetes.default.svc`; there are no remote-cluster registrations or cross-environment kubeconfigs.
+The [bootstrap chart](../../apps/argocd/bootstrap/) creates the `talos-proxmox` AppProject and the `platform` root Application. The [platform chart](../../apps/argocd/platform/) creates child Applications from its component table. Every destination is `https://kubernetes.default.svc`; there are no remote-cluster registrations or cross-environment kubeconfigs.
 
 ## One owner per resource
 
 | Owner | Components |
 | --- | --- |
-| Platform OpenTofu root | Gateway API CRDs, Cilium, ESO token namespace/Secret, Karpenter (CRDs, controller, `EC2NodeClass`, `NodePool`, and its AWS key Secret), Argo CD and bootstrap AppProject/root Application |
-| Argo CD | ESO/store, storage, metrics, cloud controller, GPU components, Istio, operators, observability and its telemetry agents, Cloudflare operator/CRDs and `ClusterTunnel` |
+| Platform OpenTofu root | Gateway API CRDs, Cilium, Talos CCM, ESO token namespace/Secret, Karpenter (CRDs, controller, `EC2NodeClass`, `NodePool`, and its AWS key Secret), Argo CD and bootstrap AppProject/root Application |
+| Argo CD | ESO/store, storage, metrics, GPU components, Istio, operators, observability and its telemetry agents, Cloudflare operator/CRDs and `ClusterTunnel` |
 
 Cilium and Argo CD remain OpenTofu-owned after bring-up. Changes to them go through a platform apply. Application changes go through Git and Argo CD.
 
 An environment destroy removes the cluster and empties the platform root's state; it does not uninstall anything from the cluster. The platform root and Argo CD components must therefore not create external resources requiring removal on destroy, such as tailnet devices or unmanaged cloud resources. The cluster or foundation root owns the removal of external infrastructure, as the cluster root does for Karpenter's EC2 instances and launch templates. Existing Cloudflare tunnels may outlive destroys; see [public hostnames](#public-hostnames).
 
-The `cilium-network` chart contains cluster-scoped networking resources; it does not install a second Cilium release.
+The platform root installs Talos CCM before Argo CD so AWS cloud-node initialization does not depend on GitOps. Argo CD installs its own OIDC Secret and public tunnel route through the `argo-cd-access` Application after the secret-store and Cloudflare CRDs are available. The initial OpenTofu-owned Argo CD chart does not depend on those CRDs.
 
 ## Membership, overlays, and ordering
 
@@ -44,7 +44,7 @@ The source of truth is [`apps/argocd/platform/values.yaml`](../../apps/argocd/pl
 | -2 | Doppler ClusterSecretStore, Istio ambient (base, istiod, CNI, ztunnel) | dev, prod |
 | -1 | Burst admission policy, Cilium network resources, metrics-server | dev, prod |
 | -1 | Shared Argo Workflows controller and CRDs; native lifecycle guard for `fraud-data-prod` Workflows (stop and complete cleanup before deletion; no hard termination while running) | prod |
-| 0 | local-path (dev) or EBS CSI (prod), Talos CCM, cert-manager, CNPG, Strimzi | dev, prod |
+| 0 | local-path (dev) or EBS CSI (prod), cert-manager, CNPG, Strimzi | dev, prod |
 | 1 | GPU operator, NVIDIA DRA | dev, prod |
 | 1 | Apache Flink Kubernetes Operator in `operators`, watching `payment-gateway` | prod |
 | 1 | Observability: VictoriaMetrics operator, VictoriaMetrics, VictoriaLogs, VictoriaTraces, Grafana, VMAgent, VTAgent and VLAgent | prod |
