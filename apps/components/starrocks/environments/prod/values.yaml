@@ -9,17 +9,3 @@ kube-starrocks:
         storageClassName: gp3
         logStorageClassName: gp3
         spillStorageClassName: gp3
-
-setup:
-  catalogs:
-    - name: lakehouse
-      uri: http://iceberg-catalog.data.svc.cluster.local:8181/api/catalog
-      warehouse: lakehouse
-      region: us-east-1
-      oauthUri: http://iceberg-catalog.data.svc.cluster.local:8181/api/catalog/v1/oauth/tokens
-      clientId: platform
-      clientSecretKey: ICEBERG_CLIENT_SECRET
-      pathStyle: false
-      s3Endpoint: https://s3.us-east-1.amazonaws.com
-      accessKey: OBJECT_LAKEHOUSE_ACCESS_KEY_ID
-      secretKey: OBJECT_LAKEHOUSE_SECRET_ACCESS_KEY

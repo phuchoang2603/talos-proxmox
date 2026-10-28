@@ -2,7 +2,6 @@ locals {
   object_consumers = {
     training  = ["datasets", "runs"]
     artifacts = ["artifacts"]
-    lakehouse = ["lakehouse"]
     backups   = ["backups"]
   }
   object_secret_values = merge({ OBJECT_STORAGE_BUCKET = aws_s3_bucket.platform.id }, [

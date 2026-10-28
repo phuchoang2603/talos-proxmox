@@ -1,12 +1,5 @@
 clientNamespaces: [data, ml]
 storageClass: local-path
-catalog:
-  name: lakehouse
-  bucket: platform-dev
-  prefix: lakehouse
-  endpoint: https://minio.home.phuchoang.sbs
-  region: us-east-1
-  pathStyle: true
 polaris:
   fullnameOverride: iceberg-catalog
   replicaCount: 1

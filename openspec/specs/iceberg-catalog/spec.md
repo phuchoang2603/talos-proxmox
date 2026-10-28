@@ -19,3 +19,11 @@ Pinned catalog and client versions SHALL pass Spark, Flink and StarRocks read/co
 #### Scenario: Engine handoff
 - **WHEN** one supported engine commits a table
 - **THEN** another supported engine reads the committed rows through the catalog
+
+### Requirement: Consumer-owned storage integration
+The platform SHALL own Polaris service installation, authentication and durable catalog database state. Consumer applications SHALL own catalog registration, external storage credentials and engine-specific SQL catalog integration. The platform SHALL NOT provision a separate lakehouse object identity or register an application warehouse. Polaris SHALL consume its configured externally supplied storage Secret.
+
+#### Scenario: Reconcile platform before a consumer
+- **WHEN** the platform is reconciled without a consumer integration
+- **THEN** no application catalog, SQL reader or storage IAM identity is created
+- **AND** the consumer supplies the storage Secret before Polaris workloads can become ready
