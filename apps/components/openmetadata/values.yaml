@@ -56,7 +56,7 @@ openmetadata:
           clientSecret:
             secretRef: openmetadata-oidc-client
             secretKey: client-secret
-          discoveryUri: https://auth.phuchoang.sbs/dex/.well-known/openid-configuration
+          discoveryUri: http://dex.auth.svc.cluster.local:5556/dex/.well-known/openid-configuration
           callbackUrl: https://openmetadata.phuchoang.sbs/callback
           serverUrl: https://openmetadata.phuchoang.sbs
           scope: openid email profile
