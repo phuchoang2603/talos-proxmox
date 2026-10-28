@@ -55,6 +55,8 @@ Then apply the platform root with `TF_WORKSPACE=talos-platform-prod` and `TF_VAR
 
 ## Destroy an environment
 
+Set repository variable `PROD_SUSPENDED=true` to stop automatic prod applies on main while prod is offline. PR prod plans and explicit manual operations remain available. Set it to `false` when automatic prod deployment should resume.
+
 Use **Manual Provision** on main, selecting the environment and destroy. Select `purge_data` only when environment-owned EBS volumes/snapshots should also be deleted. Foundation S3 remains separately owned.
 
 Cluster cleanup revokes Karpenter/CSI permissions, terminates workers, removes launch templates and the fixed control plane, and removes the network. It uses AWS APIs even when Kubernetes is unavailable. Platform state resets only after successful cleanup. A failed cleanup preserves state for retry. Normal destroy retains tagged persistent disks and snapshots.

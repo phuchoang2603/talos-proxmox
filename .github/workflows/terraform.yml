@@ -32,7 +32,7 @@ jobs:
 
   prod:
     name: ${{ github.event_name == 'pull_request' && 'Plan (prod)' || 'Provision (prod)' }}
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    if: (github.event_name == 'push' && vars.PROD_SUSPENDED != 'true') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
     needs: lint
     permissions:
       contents: read
