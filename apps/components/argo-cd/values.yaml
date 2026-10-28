@@ -6,11 +6,14 @@ argo-cd:
   applicationSet:
     replicas: 0
   controller:
+    env:
+      - name: GOMEMLIMIT
+        value: 3GiB
     resources:
       requests:
-        memory: 1Gi
-      limits:
         memory: 2Gi
+      limits:
+        memory: 4Gi
   repoServer:
     resources:
       requests:
