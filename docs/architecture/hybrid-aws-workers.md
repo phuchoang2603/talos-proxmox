@@ -8,7 +8,7 @@ Prod is an independent Talos cluster in AWS. Dev keeps its Proxmox control plane
 
 Terraform owns one On-Demand `m6a.xlarge` control-plane/workload node, a stable Elastic IP, a single-AZ VPC in `us-east-1a`, public subnet and S3 gateway endpoint. Karpenter is the sole worker provisioner; there is no ASG. Its controller stays on the fixed control plane.
 
-The baseline CPU NodePool maintains one `m6a.xlarge` On-Demand worker. `limits.nodes: 2` permits one temporary replacement. It uses the pinned Karpenter 1.15.1 static-capacity feature, explicitly enabled. The baseline worker remains running when idle. A separate demand-driven Spot CPU NodePool adds up to one `m6a.xlarge` worker and consolidates idle/underutilized capacity after five minutes. The optional GPU NodePool is disabled until its image, instance types and finite limits are selected.
+The baseline CPU NodePool maintains one `m6a.xlarge` On-Demand worker. `limits.nodes: 2` permits one temporary replacement. It uses the pinned Karpenter 1.15.1 static-capacity feature, explicitly enabled. The baseline worker remains running when idle. A separate demand-driven Spot CPU NodePool accepts `large` and `xlarge` instances from the C5–C7, M5–M7 and R5–R7 x86 families, including AMD variants. Prod allows up to four Spot workers, bounded by 16 vCPUs and 64 GiB RAM, and consolidates idle/underutilized capacity after five minutes. The optional GPU NodePool is disabled until its image, instance types and finite limits are selected.
 
 The baseline provides 8 vCPUs and 32 GiB RAM before system reservations. Talos/Kubernetes reserve 500m CPU and 1536 MiB per node. Rendered platform requests are a lower bound; readiness also requires measuring runtime usage and placement.
 

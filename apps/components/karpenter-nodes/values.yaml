@@ -34,6 +34,8 @@ nodePool:
 
 cpuBurst:
   enabled: true
+  instanceFamilies: [c5, c5a, c6a, c6i, c7a, c7i, m5, m5a, m6a, m6i, m7a, m7i, r5, r5a, r6a, r6i, r7a, r7i]
+  instanceSizes: [large, xlarge]
   limits: {cpu: "4", memory: 16Gi}
   consolidateAfter: 5m
 
