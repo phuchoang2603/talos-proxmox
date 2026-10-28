@@ -40,17 +40,17 @@ The source of truth is [`apps/argocd/platform/values.yaml`](../../apps/argocd/pl
 
 | Wave | Components | Environments |
 | --- | --- | --- |
-| -3 | External Secrets Operator | dev, prod |
-| -2 | Doppler ClusterSecretStore, Istio ambient (base, istiod, CNI, ztunnel) | dev, prod |
-| -1 | Burst admission policy, Cilium network resources, metrics-server | dev, prod |
-| -1 | Shared Argo Workflows controller and CRDs; native lifecycle guard for `fraud-data-prod` Workflows (stop and complete cleanup before deletion; no hard termination while running) | prod |
-| 0 | local-path (dev) or EBS CSI (prod), cert-manager, CNPG, Strimzi | dev, prod |
+| -4 | Shared workload namespaces | dev, prod |
+| -3 | External Secrets Operator and Doppler ClusterSecretStore | dev, prod |
+| -2 | Istio ambient (base, istiod, CNI, ztunnel, ingress gateway) | dev, prod |
+| -1 | Metrics-server and shared Argo Workflows with the environment's data-workflow lifecycle guard | dev, prod |
+| 0 | local-path (dev) or EBS CSI (prod), auth, Spark operator, cert-manager, CNPG, Strimzi, Redis operator | dev, prod |
 | 1 | GPU operator, NVIDIA DRA | dev, prod |
-| 1 | Apache Flink Kubernetes Operator in `operators`, watching `payment-gateway` | prod |
-| 1 | Observability: VictoriaMetrics operator, VictoriaMetrics, VictoriaLogs, VictoriaTraces, Grafana, VMAgent, VTAgent and VLAgent | prod |
-| 2 | Cloudflare operator and tunnel | dev, prod |
+| 1 | Flink operator, Iceberg catalog, StarRocks, ML access, Knative and observability | dev, prod |
+| 2 | Kubeflow, Cloudflare operator and tunnel | dev, prod |
+| 3 | OpenMetadata and Argo CD public access | dev, prod |
 
-Dev runs no telemetry components and has no dependency on prod.
+Both environments run independent telemetry components and have no dependency on each other.
 
 Waves order submission of child Applications; they do not wait for each child's resources to become healthy. Children converge asynchronously. Unlimited retries with backoff and `SkipDryRunOnMissingResource` handle dependencies such as CRDs arriving later. Automated prune removes resources deleted from Git, and self-heal repairs drift.
 

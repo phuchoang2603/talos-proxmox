@@ -35,12 +35,18 @@ Run both downloads successfully before continuing. The cluster root writes these
 | dev | `10.69.12.11:6443` | `10.69.12.11` | <https://argocd-dev.phuchoang.sbs> |
 | prod | Elastic IP in kubeconfig, port 6443 | Elastic IP in Talosconfig | Management port-forward or public tunnel |
 
-`kubectl` uses the control-plane endpoint from its kubeconfig. `talosctl` uses the endpoint from Talosconfig. Dev addresses the control-plane node directly; prod uses its Elastic IP. The inventory contains the complete list of addresses:
+`kubectl` uses the control-plane endpoint from its kubeconfig. `talosctl` uses the endpoint and node targets from Talosconfig. Dev addresses the control-plane node directly; prod connects through its Elastic IP and targets the node's private address. The dev inventory contains the complete list of VM addresses:
+
+```bash
+talosctl version
+```
+
+For an explicit dev control-plane target:
 
 ```bash
 CONTROL_PLANE_IP="$(jq -r \
   '[to_entries[] | select(.value.role == "servers") | .value.address | split("/")[0]] | sort | first' \
-  "terraform/cluster/env/${CLUSTER_ENV}/k8s_nodes.json")"
+  "terraform/cluster/env/dev/k8s_nodes.json")"
 talosctl --endpoints "$CONTROL_PLANE_IP" --nodes "$CONTROL_PLANE_IP" version
 ```
 
@@ -57,7 +63,7 @@ kubectl -n argo-cd get secret argocd-initial-admin-secret \
 
 Log in as `admin`. This command prints a credential; do not place its output in logs or documentation. If the initial Secret was removed or the password changed, use the current admin credential instead.
 
-Prod also exposes Argo CD at <https://argocd.phuchoang.sbs> with a **Log in via Dex** option. The configured operator email receives the admin role. Argo Workflows at <https://workflows.phuchoang.sbs> uses Dex exclusively; that email has workflow administration across namespaces, including the all-namespaces view. Existing data workflows are visible under [fraud-data-prod](https://workflows.phuchoang.sbs/workflows/fraud-data-prod). Both use the shared Dex credential from Doppler through ExternalSecrets.
+Prod also exposes Argo CD at <https://argocd.phuchoang.sbs> with a **Log in via Dex** option. The configured operator email receives the admin role. Argo Workflows at <https://workflows.phuchoang.sbs> uses Dex exclusively; that email has workflow administration across namespaces, including the all-namespaces view. Existing data workflows are visible under [fraud-data-prod](https://workflows.phuchoang.sbs/workflows/fraud-data-prod). Both use the shared Dex credential from Doppler through ExternalSecrets. Workflows discovers Dex through its in-cluster address and validates the environment's public issuer alias.
 
 ## Check convergence
 

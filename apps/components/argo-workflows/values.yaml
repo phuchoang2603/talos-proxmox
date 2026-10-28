@@ -1,7 +1,7 @@
 dataNamespace: fraud-data-prod
 argo-workflows:
   crds:
-    full: false
+    full: true
   controller:
     workflowNamespaces:
       - kubeflow
@@ -25,7 +25,8 @@ argo-workflows:
         memory: 512Mi
     sso:
       enabled: true
-      issuer: https://auth.phuchoang.sbs/dex
+      issuer: http://dex.auth.svc.cluster.local:5556/dex
+      issuerAlias: https://auth.phuchoang.sbs/dex
       clientId:
         name: argo-workflows-sso
         key: client-id

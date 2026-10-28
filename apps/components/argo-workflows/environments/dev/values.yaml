@@ -7,7 +7,7 @@ argo-workflows:
     - fraud-data-dev
   server:
     sso:
-      issuer: https://auth-dev.phuchoang.sbs/dex
+      issuerAlias: https://auth-dev.phuchoang.sbs/dex
       redirectUrl: https://workflows-dev.phuchoang.sbs/oauth2/callback
 tunnel:
   hostname: workflows-dev.phuchoang.sbs
