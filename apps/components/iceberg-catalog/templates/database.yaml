@@ -6,6 +6,11 @@ metadata:
     argocd.argoproj.io/sync-wave: "-1"
 spec:
   instances: 1
+  {{- with .Values.databaseNodeSelector }}
+  affinity:
+    nodeSelector:
+      {{- toYaml . | nindent 6 }}
+  {{- end }}
   imageName: ghcr.io/cloudnative-pg/postgresql:16.13
   bootstrap:
     initdb:

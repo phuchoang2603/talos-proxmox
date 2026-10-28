@@ -7,6 +7,11 @@ metadata:
   namespace: ml
 spec:
   instances: 1
+  {{- with .Values.databaseNodeSelector }}
+  affinity:
+    nodeSelector:
+      {{- toYaml . | nindent 6 }}
+  {{- end }}
   resources:
     requests: {cpu: 50m, memory: 256Mi}
     limits: {memory: 1Gi}
@@ -39,6 +44,11 @@ metadata:
   namespace: ml
 spec:
   instances: 1
+  {{- with .Values.databaseNodeSelector }}
+  affinity:
+    nodeSelector:
+      {{- toYaml . | nindent 6 }}
+  {{- end }}
   resources:
     requests: {cpu: 50m, memory: 256Mi}
     limits: {memory: 1Gi}

@@ -4,3 +4,5 @@ objectStorage:
   endpoint: https://s3.us-east-1.amazonaws.com
   host: s3.us-east-1.amazonaws.com
   forcePathStyle: false
+databaseNodeSelector:
+  karpenter.sh/capacity-type: on-demand

@@ -2,3 +2,5 @@ storageClass: gp3
 opensearch:
   persistence:
     storageClass: gp3
+databaseNodeSelector:
+  karpenter.sh/capacity-type: on-demand
