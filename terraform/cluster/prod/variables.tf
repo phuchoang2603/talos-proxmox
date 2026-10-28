@@ -58,5 +58,5 @@ variable "aws_management_cidrs" {
 
 variable "aws_controlplane_instance_type" {
   type    = string
-  default = "m6a.large"
+  default = "m6a.xlarge"
 }

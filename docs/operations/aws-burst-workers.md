@@ -13,7 +13,7 @@ nodeSelector:
   karpenter.sh/nodepool: aws-cpu-burst
 ```
 
-Spark job definitions are owned by the application repository; installing the Spark operator starts no jobs. Prod maintains two On-Demand `m6a.xlarge` CPU workers in `aws-workers` even when idle. The demand-driven `aws-cpu-burst` pool adds up to one `m6a.xlarge` Spot worker for pending workloads and consolidates idle/underutilized burst capacity after five minutes. Both pools share the `aws-cpu` EC2NodeClass and the same Karpenter controller. The baseline permits one extra worker during replacement. Select the burst pool explicitly only when a job must run on Spot.
+Spark job definitions are owned by the application repository; installing the Spark operator starts no jobs. Prod maintains one On-Demand `m6a.xlarge` CPU worker in `aws-workers` even when idle. The demand-driven `aws-cpu-burst` pool adds up to one `m6a.xlarge` Spot worker for pending workloads and consolidates idle/underutilized burst capacity after five minutes. Both pools share the `aws-cpu` EC2NodeClass and the same Karpenter controller. The baseline permits one extra worker during replacement. Select the burst pool explicitly only when a job must run on Spot.
 
 ## Observe scaling
 
@@ -24,11 +24,11 @@ kubectl get nodes -l burst.talos.dev/compute=aws -o wide
 kubectl -n kube-system logs deploy/karpenter --tail=200
 ```
 
-Two CPU workers are desired; a third is allowed temporarily during replacement. Check Pending pod events, instance capacity/quota, Karpenter permissions, the interruption queue, cloud provider IDs and Cilium readiness. Instance requests must fit allocatable capacity after Talos/system reservations and DaemonSets. Karpenter's predicted kubelet reservations must match Talos.
+One CPU worker is desired; a second is allowed temporarily during replacement. Check Pending pod events, instance capacity/quota, Karpenter permissions, the interruption queue, cloud provider IDs and Cilium readiness. Instance requests must fit allocatable capacity after Talos/system reservations and DaemonSets. Karpenter's predicted kubelet reservations must match Talos.
 
 ## GPU training pool
 
-The `aws-gpu-training` pool shares the same controller and is disabled by default. Before enabling it, select a compatible pinned GPU image, allowed zones/types and finite limits. GPU jobs must select its label, tolerate its GPU taint and request a GPU. The pool is On-Demand only; enable Spot GPU training only after checkpoint/interruption recovery is verified. Idle GPU capacity returns to zero. The CPU baseline remains two workers.
+The `aws-gpu-training` pool shares the same controller and is disabled by default. Before enabling it, select a compatible pinned GPU image, allowed zones/types and finite limits. GPU jobs must select its label, tolerate its GPU taint and request a GPU. The pool is On-Demand only; enable Spot GPU training only after checkpoint/interruption recovery is verified. Idle GPU capacity returns to zero. The CPU baseline remains one worker.
 
 ## Object storage and Iceberg
 

@@ -20,9 +20,9 @@ kubelet:
     nodefs.available: 20%
 
 nodePool:
-  replicas: 2
+  replicas: 1
   zones: [us-east-1a]
-  limits: {nodes: "3"}
+  limits: {nodes: "2"}
   # A small allowlist of cost-effective general-purpose types. Widen this list, or switch to
   # category/generation requirements, to let Karpenter choose from more instances.
   instanceTypes: [m6a.xlarge]

@@ -2,8 +2,8 @@
 
 - [x] 1.1 Extract shared Talos configuration/identity/bootstrap and make provider selection independent; verify both backend plans do not request inactive credentials.
 - [x] 1.2 Rebuild dev inventory with the former production CPU/RAM, one control plane and two workers; verify rendered inventory and Talos roles.
-- [ ] 1.3 Provision the single-AZ AWS On-Demand m6a.large control plane, stable endpoint and restricted management access; verify an authenticated plan and API readiness.
-- [ ] 1.4 Configure Karpenter as sole worker provisioner with two On-Demand m6a.xlarge nodes, a bounded demand-driven Spot CPU pool, bounded replacement, optional disabled GPU and interruption handling; verify rendered pinned CRDs and live worker replacement.
+- [ ] 1.3 Provision the single-AZ AWS On-Demand m6a.xlarge control plane, stable endpoint and restricted management access; verify an authenticated plan and API readiness.
+- [ ] 1.4 Configure Karpenter as sole worker provisioner with one On-Demand m6a.xlarge node, a bounded demand-driven Spot CPU pool, bounded replacement, optional disabled GPU and interruption handling; verify rendered pinned CRDs and live worker replacement.
 - [x] 1.5 Remove stateless admission policy, machine taints and consumer tolerations; verify no restriction remains in rendered resources.
 
 ## 2. Foundation and storage

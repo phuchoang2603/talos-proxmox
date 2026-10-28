@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Fixed Proxmox capacity
-Dev SHALL use fixed Proxmox VMs: pve with 8 CPU/32 GiB and GPU as control plane and worker, pve2 with 8 CPU/16 GiB and pve3 with 4 CPU/16 GiB as workers. Prod SHALL use an independent AWS Talos cluster with one On-Demand m6a.large control-plane/workload node and two On-Demand m6a.xlarge workers in one AZ. Cluster identities MUST be independent.
+Dev SHALL use fixed Proxmox VMs: pve with 8 CPU/32 GiB and GPU as control plane and worker, pve2 with 8 CPU/16 GiB and pve3 with 4 CPU/16 GiB as workers. Prod SHALL use an independent AWS Talos cluster with one On-Demand m6a.xlarge control-plane/workload node and one On-Demand m6a.xlarge worker in one AZ. Cluster identities MUST be independent.
 
 #### Scenario: Fresh deployment
 - **WHEN** both environments are applied
@@ -12,7 +12,7 @@ Dev SHALL use fixed Proxmox VMs: pve with 8 CPU/32 GiB and GPU as control plane 
 - **THEN** they join the independent production identity and leave dev Proxmox allocations unchanged
 
 ### Requirement: Bounded, independently autoscaled AWS workers
-Karpenter SHALL be the sole provisioner for CPU and optional GPU workers. Prod SHALL maintain two On-Demand m6a.xlarge CPU workers with at most one extra baseline replacement node and one additional demand-driven Spot worker. Its controller SHALL run on the On-Demand control plane. The baseline SHALL use On-Demand capacity; the burst CPU pool SHALL use Spot only and return to zero when no longer needed. GPU capacity SHALL be disabled by default and explicitly bounded when enabled. Interruption events SHALL trigger replacement and lost Node cleanup.
+Karpenter SHALL be the sole provisioner for CPU and optional GPU workers. Prod SHALL maintain one On-Demand m6a.xlarge CPU worker with at most one extra baseline replacement node and one additional demand-driven Spot worker. Its controller SHALL run on the On-Demand control plane. The baseline SHALL use On-Demand capacity; the burst CPU pool SHALL use Spot only and return to zero when no longer needed. GPU capacity SHALL be disabled by default and explicitly bounded when enabled. Interruption events SHALL trigger replacement and lost Node cleanup.
 
 #### Scenario: Worker interruption
 - **WHEN** a Spot worker is reclaimed
@@ -20,11 +20,11 @@ Karpenter SHALL be the sole provisioner for CPU and optional GPU workers. Prod S
 
 #### Scenario: Burst from zero
 - **WHEN** production has no CPU workers
-- **THEN** Karpenter on the On-Demand control plane attempts to restore two m6a.xlarge On-Demand workers within the baseline node bound
+- **THEN** Karpenter on the On-Demand control plane attempts to restore one m6a.xlarge On-Demand worker within the baseline node bound
 
 #### Scenario: Return to zero
 - **WHEN** CPU workers become idle
-- **THEN** the static CPU baseline remains two workers; the optional idle GPU pool can return to zero
+- **THEN** the static CPU baseline remains one worker; the optional idle GPU pool can return to zero
 
 #### Scenario: Reach capacity limit
 - **WHEN** replacement overlap reaches three CPU workers

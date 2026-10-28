@@ -4,7 +4,7 @@ The repository currently defines two Proxmox clusters and treats AWS as stateles
 
 ## What Changes
 
-- **BREAKING**: Replace Proxmox production with one On-Demand `m6a.large` control-plane/workload node and two `m6a.xlarge` On-Demand workers with optional Spot burst capacity in one AWS availability zone. Use Karpenter as the single CPU/GPU worker provisioner, preserve x86 images and make worker replacement declarative.
+- **BREAKING**: Replace Proxmox production with one On-Demand `m6a.xlarge` control-plane/workload node and one `m6a.xlarge` On-Demand worker with optional Spot burst capacity in one AWS availability zone. Use Karpenter as the single CPU/GPU worker provisioner, preserve x86 images and make worker replacement declarative.
 - Rebuild persistent Proxmox dev with one control-plane/workload VM on `pve` and workers on `pve2` and `pve3`, retaining the former production CPU/RAM and local GPU allocation. Minimize application activity, not VM capacity.
 - Extract shared Talos identity, configuration, bootstrap and client-output logic; retain provider-specific machine and network modules and one owner per resource.
 - **BREAKING**: Remove stateless admission restrictions, the stateless scheduling taint and corresponding tolerations. Support normal persistent workloads on AWS workers using EBS CSI.

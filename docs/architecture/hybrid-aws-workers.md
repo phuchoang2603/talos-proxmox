@@ -6,11 +6,11 @@ Prod is an independent Talos cluster in AWS. Dev runs on Proxmox and creates no 
 
 ## Topology
 
-Terraform owns one On-Demand `m6a.large` control-plane/workload node, a stable Elastic IP, a single-AZ VPC in `us-east-1a`, public subnet and S3 gateway endpoint. Karpenter is the sole worker provisioner; there is no ASG. Its controller stays on the fixed control plane.
+Terraform owns one On-Demand `m6a.xlarge` control-plane/workload node, a stable Elastic IP, a single-AZ VPC in `us-east-1a`, public subnet and S3 gateway endpoint. Karpenter is the sole worker provisioner; there is no ASG. Its controller stays on the fixed control plane.
 
-The CPU NodePool maintains two `m6a.xlarge` Spot workers. `limits.nodes: 3` permits one temporary replacement. It uses the pinned Karpenter 1.15.1 static-capacity feature, explicitly enabled. CPU workers remain running when idle and have no On-Demand fallback. The optional GPU NodePool is disabled until its image, instance types and finite limits are selected.
+The baseline CPU NodePool maintains one `m6a.xlarge` On-Demand worker. `limits.nodes: 2` permits one temporary replacement. It uses the pinned Karpenter 1.15.1 static-capacity feature, explicitly enabled. The baseline worker remains running when idle. A separate demand-driven Spot CPU NodePool adds up to one `m6a.xlarge` worker and consolidates idle/underutilized capacity after five minutes. The optional GPU NodePool is disabled until its image, instance types and finite limits are selected.
 
-The baseline provides 10 vCPUs and 40 GiB RAM before system reservations. Talos/Kubernetes reserve 500m CPU and 1536 MiB per node. Rendered platform requests are a lower bound; readiness also requires measuring runtime usage and placement.
+The baseline provides 8 vCPUs and 32 GiB RAM before system reservations. Talos/Kubernetes reserve 500m CPU and 1536 MiB per node. Rendered platform requests are a lower bound; readiness also requires measuring runtime usage and placement.
 
 Configuration: [`terraform/aws/`](../../terraform/aws/), [`terraform/platform/karpenter.tf`](../../terraform/platform/karpenter.tf), [`apps/components/karpenter-nodes/`](../../apps/components/karpenter-nodes/).
 
