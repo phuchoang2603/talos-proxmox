@@ -104,7 +104,7 @@ Both environments SHALL reconcile the same applicable platform services with env
 - **THEN** that environment's Argo CD has no Application for it
 
 ### Requirement: Layered roots in CI
-PR validation SHALL lint roots and charts without state or secrets; a separate trusted repository PR job SHALL deploy dev. Main SHALL deploy dev and prod independently after lint succeeds, without a dev-deployment prerequisite. Fork PRs SHALL validate without deployment secrets. Foundation SHALL be applied by the operator. Root and child Argo applications SHALL share the selected revision.
+PR validation SHALL lint roots and charts without state or secrets; separate trusted repository PR jobs SHALL deploy dev and plan the prod cluster root without applying production changes. The prod platform root SHALL be planned during deployment after the cluster apply, when live Kubernetes access and generated credentials are available. Main SHALL deploy dev and prod independently after lint succeeds, without a dev-deployment prerequisite. Fork PRs SHALL validate without deployment secrets. Foundation SHALL be applied by the operator. Root and child Argo applications SHALL share the selected revision.
 
 #### Scenario: Independent production deployment
 - **WHEN** a commit reaches main

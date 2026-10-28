@@ -17,6 +17,7 @@
         "ec2:DescribeInstanceTypes",
         "ec2:DescribeAvailabilityZones",
         "ec2:DescribeInstances",
+        "ec2:DescribeTags",
         "ec2:DescribeLaunchTemplates",
         "ec2:DescribeVpcEndpoints",
         "ec2:DescribePrefixLists",

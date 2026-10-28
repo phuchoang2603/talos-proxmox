@@ -36,3 +36,9 @@ resource "github_repository_environment_deployment_policy" "dev_pull_requests" {
   environment    = github_repository_environment.this["dev"].environment
   branch_pattern = "refs/pull/*/merge"
 }
+
+resource "github_repository_environment_deployment_policy" "prod_pull_requests" {
+  repository     = local.github_repository
+  environment    = github_repository_environment.this["prod"].environment
+  branch_pattern = "refs/pull/*/merge"
+}

@@ -126,7 +126,7 @@ Infrastructure SHALL have separate per-environment state and scoped credentials 
 - **THEN** AWS denies the launch, and no instance for that environment remains after the destroy completes
 
 ### Requirement: Lint PRs and provision from main only
-PR validation SHALL inspect roots and charts without secrets or remote state. Dev deployments SHALL run for trusted repository PRs and main; prod and manual deployments SHALL run only from main. Trusted repository PRs SHALL update dev; main SHALL update dev and prod independently after lint succeeds. Fork PRs SHALL validate only. CI SHALL have scoped permission to manage the tagged fixed AWS control plane while Karpenter owns worker launch.
+PR validation SHALL inspect roots and charts without secrets or remote state. Dev deployments SHALL run for trusted repository PRs and main; prod and manual deployments SHALL run only from main. Trusted repository PRs SHALL update dev and independently plan the prod cluster root without applying production changes; main SHALL update dev and prod independently after lint succeeds. Fork PRs SHALL validate only. CI SHALL have scoped permission to manage the tagged fixed AWS control plane while Karpenter owns worker launch.
 
 #### Scenario: Independent production deployment
 - **WHEN** a production revision is selected

@@ -18,7 +18,7 @@ on:
 
 jobs:
   provision:
-    if: (github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')) || (inputs.environment == 'dev' && github.event_name == 'pull_request' && github.base_ref == 'main' && github.event.pull_request.head.repo.full_name == github.repository)
+    if: (github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')) || ((inputs.environment == 'dev' && inputs.action == 'apply' || inputs.environment == 'prod' && inputs.action == 'plan') && github.event_name == 'pull_request' && github.base_ref == 'main' && github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 90
     environment: ${{ inputs.environment }}
@@ -51,6 +51,14 @@ jobs:
           else
             git merge-base --is-ancestor "$TF_VAR_target_revision" origin/main
           fi
+      - name: Validate action
+        env:
+          ACTION: ${{ inputs.action }}
+        run: |
+          case "$ACTION" in
+            apply|plan|destroy) ;;
+            *) exit 1 ;;
+          esac
       - uses: dopplerhq/cli-action@v3
       - uses: opentofu/setup-opentofu@v1
         with:
@@ -92,7 +100,7 @@ jobs:
               output.write("TF_VAR_aws_management_cidrs=" + json.dumps([cidr]) + "\n")
           PYCODE
 
-      - name: Cluster
+      - name: Cluster plan
         working-directory: terraform/cluster/${{ inputs.environment }}
         env:
           TF_WORKSPACE: talos-cluster-${{ inputs.environment }}
@@ -100,7 +108,13 @@ jobs:
           tofu init -input=false
           # shellcheck disable=SC2086
           tofu plan -input=false -lock-timeout=5m -no-color ${PLAN_FLAGS} -var-file="../env/${TF_VAR_env}/main.tfvars" -out=.planfile
-          tofu apply -input=false -lock-timeout=5m -auto-approve .planfile
+
+      - name: Cluster apply
+        if: inputs.action != 'plan'
+        working-directory: terraform/cluster/${{ inputs.environment }}
+        env:
+          TF_WORKSPACE: talos-cluster-${{ inputs.environment }}
+        run: tofu apply -input=false -lock-timeout=5m -auto-approve .planfile
 
       # Everything the platform root manages lives in the cluster just destroyed, so its state is
       # emptied instead of destroyed. This runs only after the cluster destroy succeeds.
@@ -117,7 +131,7 @@ jobs:
           fi
 
       - name: Platform
-        if: inputs.action != 'destroy'
+        if: inputs.action == 'apply'
         working-directory: terraform/platform
         env:
           TF_WORKSPACE: talos-platform-${{ inputs.environment }}
