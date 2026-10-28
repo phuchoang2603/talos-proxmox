@@ -26,6 +26,14 @@ data:
             raise
         with urllib.request.urlopen(urllib.request.Request(base + "/api/management/v1/catalogs", data=document, headers=headers), timeout=30):
             pass
+    grants_url = base + "/api/management/v1/catalogs/" + urllib.parse.quote(name) + "/catalog-roles/catalog_admin/grants"
+    with urllib.request.urlopen(urllib.request.Request(grants_url, headers=headers), timeout=30) as response:
+        grants = json.load(response)["grants"]
+    for privilege in ["TABLE_READ_DATA", "TABLE_WRITE_DATA"]:
+        if not any(grant["type"] == "catalog" and grant["privilege"] == privilege for grant in grants):
+            payload = json.dumps({"grant": {"type": "catalog", "privilege": privilege}}).encode()
+            with urllib.request.urlopen(urllib.request.Request(grants_url, data=payload, headers=headers, method="PUT"), timeout=30):
+                pass
     print("Iceberg catalog registration verified")
 ---
 apiVersion: batch/v1
