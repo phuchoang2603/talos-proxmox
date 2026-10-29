@@ -1,0 +1,13 @@
+altinity-clickhouse-operator:
+  fullnameOverride: clickhouse-operator
+  watchNamespaces: [data]
+  secret:
+    create: false
+  operator:
+    resources:
+      requests: {cpu: 50m, memory: 128Mi}
+      limits: {memory: 512Mi}
+  metrics:
+    resources:
+      requests: {cpu: 50m, memory: 64Mi}
+      limits: {memory: 256Mi}
