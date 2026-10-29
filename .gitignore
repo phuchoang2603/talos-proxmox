@@ -10,6 +10,7 @@ terraform.tfvars
 *.pem
 *.key
 *.crt
+!apps/components/substrate/environments/*/ateapi-ca.crt
 kubeconfig
 talosconfig
 
