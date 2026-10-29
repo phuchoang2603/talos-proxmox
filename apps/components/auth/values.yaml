@@ -28,8 +28,8 @@ oauth2-proxy:
     set-authorization-header: "true"
     set-xauthrequest: "true"
     cookie-secure: "true"
-    cookie-domain: kubeflow.phuchoang.sbs,kagent.phuchoang.sbs,agentregistry.phuchoang.sbs
-    whitelist-domain: kubeflow.phuchoang.sbs,kagent.phuchoang.sbs,agentregistry.phuchoang.sbs
+    cookie-domain: kubeflow.phuchoang.sbs,kagent.phuchoang.sbs,agentregistry.phuchoang.sbs,langfuse.phuchoang.sbs
+    whitelist-domain: kubeflow.phuchoang.sbs,kagent.phuchoang.sbs,agentregistry.phuchoang.sbs,langfuse.phuchoang.sbs
     cookie-samesite: lax
     pass-authorization-header: "true"
   config:
@@ -45,6 +45,7 @@ identity:
   sharedUIHosts:
     - kagent.phuchoang.sbs
     - agentregistry.phuchoang.sbs
+    - langfuse.phuchoang.sbs
   email: xuanphuc.a1gv@gmail.com
   issuer: https://auth.phuchoang.sbs/dex
   internalIssuer: http://dex.auth.svc.cluster.local:5556/dex
@@ -57,6 +58,9 @@ identity:
 tunnel:
   clusterTunnel: talos-proxmox
   hostname: auth.phuchoang.sbs
+  sharedUIBindings:
+    - name: langfuse-ui
+      hostname: langfuse.phuchoang.sbs
 
 secrets:
   refreshInterval: 1h
