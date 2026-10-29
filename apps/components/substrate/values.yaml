@@ -18,7 +18,10 @@ substrate:
       issuer: https://kubernetes.default.svc.cluster.local
       bootstrap: {enabled: false}
   rustfs: {enabled: false}
-  valkey: {enabled: false}
+  valkey:
+    enabled: true
+    replicas: 6
+    storageSize: 1Gi
   images:
     valkey: valkey/valkey:8.0.6
   atelet:
@@ -33,7 +36,3 @@ substrate:
       - name: AWS_SECRET_ACCESS_KEY
         valueFrom:
           secretKeyRef: {name: substrate-snapshots, key: secret-key}
-valkey:
-  replicas: 6
-  storageSize: 1Gi
-  nodeSelector: {}
