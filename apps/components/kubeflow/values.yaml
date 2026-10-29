@@ -23,3 +23,10 @@ objectStorage:
   region: us-east-1
   forcePathStyle: true
   artifactPrefix: artifacts/kubeflow
+
+kserve-runtime-configs:
+  kserve:
+    llmisvcConfigs:
+      enabled: true
+    servingruntime:
+      enabled: false

@@ -1,0 +1,8 @@
+apiVersion: v2
+name: platform-agentgateway
+type: application
+version: 0.1.0
+dependencies:
+  - name: agentgateway
+    version: v1.7.0
+    repository: oci://cr.agentgateway.dev/charts

@@ -1,0 +1,27 @@
+caFile: environments/dev/ateapi-ca.crt
+substrate:
+  image: {tag: "0.0.9"}
+  auth:
+    mode: jwt
+    jwt:
+      issuer: https://10.69.12.11:6443
+      bootstrap: {enabled: false}
+  rustfs: {enabled: false}
+  valkey:
+    enabled: true
+    replicas: 6
+    storageSize: 1Gi
+  images:
+    valkey: valkey/valkey:8.0.6
+  atelet:
+    storageBackend: s3
+    extraEnv:
+      - {name: AWS_REGION, value: us-east-1}
+      - {name: AWS_ENDPOINT_URL, value: "https://minio.home.phuchoang.sbs"}
+      - {name: AWS_S3_USE_PATH_STYLE, value: "true"}
+      - name: AWS_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef: {name: substrate-snapshots, key: access-key}
+      - name: AWS_SECRET_ACCESS_KEY
+        valueFrom:
+          secretKeyRef: {name: substrate-snapshots, key: secret-key}

@@ -3,6 +3,7 @@ locals {
     training  = ["datasets", "runs"]
     artifacts = ["artifacts"]
     backups   = ["backups"]
+    substrate = ["substrate"]
   }
   object_secret_values = merge({ OBJECT_STORAGE_BUCKET = aws_s3_bucket.platform.id }, [
     for consumer in keys(local.object_consumers) : {

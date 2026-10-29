@@ -1,0 +1,17 @@
+storageClass: local-path
+agentregistry:
+  fullnameOverride: agentregistry
+  image: {tag: "0.4.0"}
+  rbac:
+    watchedNamespaces: [ml]
+  service:
+    type: ClusterIP
+    ports: {http: 12121, mcp: 31313}
+  resources:
+    requests: {cpu: 50m, memory: 256Mi}
+    limits: {memory: 1Gi}
+  database:
+    postgres:
+      type: external
+      external:
+        secretRef: {name: agentregistry-database, key: url}

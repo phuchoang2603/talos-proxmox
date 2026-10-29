@@ -1,0 +1,58 @@
+storageClass: local-path
+kagent:
+  fullnameOverride: kagent
+  providers: false
+  database:
+    postgres:
+      bundled: {enabled: false}
+      urlFile: /etc/kagent-database/url
+  controller:
+    watchNamespaces: [ml, kagent]
+    resources:
+      requests: {cpu: 100m, memory: 256Mi}
+      limits: {memory: 1Gi}
+    substrate:
+      enabled: true
+      ateApiEndpoint: dns:///api.ate-system.svc:443
+      atenetRouterURL: http://atenet-router.ate-system.svc:80
+      defaultWorkerPool: {namespace: kagent, name: kagent-default}
+    env:
+      - name: SSL_CERT_FILE
+        value: /etc/ateapi-ca/ca.crt
+    volumes:
+      - name: database
+        secret: {secretName: kagent-database}
+      - name: ateapi-ca
+        secret: {secretName: ateapi-trust}
+    volumeMounts:
+      - {name: database, mountPath: /etc/kagent-database, readOnly: true}
+      - {name: ateapi-ca, mountPath: /etc/ateapi-ca, readOnly: true}
+  substrateWorkerPool:
+    create: true
+    name: kagent-default
+    replicas: 1
+    ateomImage: ghcr.io/kagent-dev/substrate/ateom-gvisor:0.0.9
+    sandboxClass: gvisor
+    template:
+      resources:
+        requests: {cpu: 100m, memory: 256Mi}
+        limits: {memory: 2Gi}
+  ui:
+    service: {type: ClusterIP}
+    resources:
+      requests: {cpu: 50m, memory: 256Mi}
+      limits: {memory: 1Gi}
+  kmcp: {enabled: false}
+  substrate: {enabled: false}
+  kagent-tools: {enabled: false}
+  grafana-mcp: {enabled: false}
+  k8s-agent: {enabled: false}
+  kgateway-agent: {enabled: false}
+  istio-agent: {enabled: false}
+  promql-agent: {enabled: false}
+  observability-agent: {enabled: false}
+  argo-rollouts-agent: {enabled: false}
+  helm-agent: {enabled: false}
+  cilium-policy-agent: {enabled: false}
+  cilium-manager-agent: {enabled: false}
+  cilium-debug-agent: {enabled: false}

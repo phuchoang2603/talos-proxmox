@@ -3,3 +3,7 @@ name: platform-kubeflow
 description: Kubeflow components and ML object-storage credentials
 type: application
 version: 0.1.0
+dependencies:
+  - name: kserve-runtime-configs
+    version: v0.21.0
+    repository: oci://ghcr.io/kserve/charts
