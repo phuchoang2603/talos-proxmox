@@ -61,5 +61,5 @@ kube-starrocks:
         spillStorageSize: 20Gi
 
 setup:
-  image: starrocks/fe-ubuntu:4.1.6
+  image: starrocks/fe-ubuntu:4.1.7
   rootPasswordKey: STARROCKS_ROOT_PASSWORD
