@@ -1,6 +1,6 @@
 caFile: environments/dev/ateapi-ca.crt
 substrate:
-  image: {tag: "0.0.9"}
+  image: {tag: "v0.0.9"}
   auth:
     mode: jwt
     jwt:

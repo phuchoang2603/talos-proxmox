@@ -31,7 +31,7 @@ kagent:
     create: true
     name: kagent-default
     replicas: 1
-    ateomImage: ghcr.io/kagent-dev/substrate/ateom-gvisor:0.0.9
+    ateomImage: ghcr.io/kagent-dev/substrate/ateom-gvisor:v0.0.9
     sandboxClass: gvisor
     template:
       resources:
