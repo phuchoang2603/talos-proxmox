@@ -1,0 +1,8 @@
+apiVersion: v2
+name: platform-clickhouse-operator
+version: 0.1.0
+type: application
+dependencies:
+  - name: altinity-clickhouse-operator
+    version: "0.27.4"
+    repository: https://helm.altinity.com

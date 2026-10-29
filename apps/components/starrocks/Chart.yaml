@@ -1,9 +1,0 @@
-apiVersion: v2
-name: platform-starrocks
-description: Shared StarRocks cluster querying the RustFS Iceberg catalog
-type: application
-version: 0.1.0
-dependencies:
-  - name: kube-starrocks
-    version: 1.11.8
-    repository: https://starrocks.github.io/starrocks-kubernetes-operator

@@ -85,15 +85,6 @@ components:
     valueFilesByCluster:
       prod:
         - environments/prod/values.yaml
-  starrocks:
-    path: apps/components/starrocks
-    namespace: data
-    syncWave: "1"
-    releaseName: starrocks
-    clusters: [dev, prod]
-    valueFilesByCluster:
-      prod:
-        - environments/prod/values.yaml
   auth:
     path: apps/components/auth
     namespace: auth
@@ -170,6 +161,12 @@ components:
     namespace: operators
     syncWave: "0"
     releaseName: cnpg
+    clusters: [dev, prod]
+  clickhouse-operator:
+    path: apps/components/clickhouse-operator
+    namespace: operators
+    syncWave: "0"
+    releaseName: clickhouse-operator
     clusters: [dev, prod]
   cert-manager:
     path: apps/components/cert-manager

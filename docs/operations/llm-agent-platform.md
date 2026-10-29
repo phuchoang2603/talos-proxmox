@@ -25,6 +25,9 @@ The UIs use Cloudflare Tunnel and the existing Istio ingress with the shared OAu
 | --- | --- | --- |
 | kagent | `https://kagent-dev.phuchoang.sbs` | `https://kagent.phuchoang.sbs` |
 | Agent Registry | `https://agentregistry-dev.phuchoang.sbs` | `https://agentregistry.phuchoang.sbs` |
+| Langfuse (app-owned) | `https://langfuse-dev.phuchoang.sbs` | `https://langfuse.phuchoang.sbs` |
+
+The platform supplies Langfuse's tunnel binding and shared authentication hosts. The application owns its VirtualService in `llm`, using `ml/kubeflow-gateway`, and routes `/oauth2/` to the shared proxy.
 
 KEDA can query VictoriaMetrics at `http://vmsingle-vmks.observability.svc.cluster.local:8428/prometheus/api/v1/query`; Prometheus scalers should set `serverAddress` to `http://vmsingle-vmks.observability.svc.cluster.local:8428/prometheus`. Application charts own their ScaledObjects and scaling policies.
 

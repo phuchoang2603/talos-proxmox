@@ -1,0 +1,17 @@
+{{- range .Values.tunnel.sharedUIBindings }}
+---
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: {{ .name }}
+  namespace: istio-system
+subjects:
+  - kind: Service
+    name: istio-ingressgateway
+    spec:
+      fqdn: {{ .hostname }}
+      target: http://istio-ingressgateway.istio-system.svc.cluster.local:80
+tunnelRef:
+  kind: ClusterTunnel
+  name: {{ $.Values.tunnel.clusterTunnel }}
+{{- end }}

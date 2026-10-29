@@ -5,12 +5,13 @@ oauth2-proxy:
     oidc-issuer-url: https://auth-dev.phuchoang.sbs/dex
     login-url: https://auth-dev.phuchoang.sbs/dex/auth
     redirect-url: /oauth2/callback
-    cookie-domain: kubeflow-dev.phuchoang.sbs,kagent-dev.phuchoang.sbs,agentregistry-dev.phuchoang.sbs
-    whitelist-domain: kubeflow-dev.phuchoang.sbs,kagent-dev.phuchoang.sbs,agentregistry-dev.phuchoang.sbs
+    cookie-domain: kubeflow-dev.phuchoang.sbs,kagent-dev.phuchoang.sbs,agentregistry-dev.phuchoang.sbs,langfuse-dev.phuchoang.sbs
+    whitelist-domain: kubeflow-dev.phuchoang.sbs,kagent-dev.phuchoang.sbs,agentregistry-dev.phuchoang.sbs,langfuse-dev.phuchoang.sbs
 identity:
   sharedUIHosts:
     - kagent-dev.phuchoang.sbs
     - agentregistry-dev.phuchoang.sbs
+    - langfuse-dev.phuchoang.sbs
   issuer: https://auth-dev.phuchoang.sbs/dex
   redirectURI: https://kubeflow-dev.phuchoang.sbs/oauth2/callback
   grafanaRedirectURI: https://grafana-dev.phuchoang.sbs/login/generic_oauth
@@ -19,3 +20,6 @@ identity:
   openmetadataRedirectURI: https://openmetadata-dev.phuchoang.sbs/callback
 tunnel:
   hostname: auth-dev.phuchoang.sbs
+  sharedUIBindings:
+    - name: langfuse-ui
+      hostname: langfuse-dev.phuchoang.sbs
