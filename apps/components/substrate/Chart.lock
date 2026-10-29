@@ -3,7 +3,7 @@ dependencies:
   repository: oci://ghcr.io/kagent-dev/substrate/helm
   version: 0.0.9
 - name: substrate
-  repository: oci://ghcr.io/kagent-dev/substrate/helm
+  repository: file://vendor/substrate
   version: 0.0.9
-digest: sha256:2d80aa3f6749632ece30dc520fc4d77eae506abd3bd25598b6b6d96227a86c9e
-generated: "2026-10-29T13:30:43.935175863-04:00"
+digest: sha256:942f371865e20c07b55bdbb8f51840b25f0ee79ff5e44a72a1323cfb8affbfde
+generated: "2026-10-29T14:14:26.837391033-04:00"

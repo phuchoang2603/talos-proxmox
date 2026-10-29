@@ -8,4 +8,4 @@ dependencies:
     repository: oci://ghcr.io/kagent-dev/substrate/helm
   - name: substrate
     version: 0.0.9
-    repository: oci://ghcr.io/kagent-dev/substrate/helm
+    repository: file://vendor/substrate

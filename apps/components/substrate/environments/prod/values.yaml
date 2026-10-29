@@ -11,6 +11,9 @@ caBundle: |
   ZvEQzsr3H5Ru+FZ2wX1SOlPmND6VoXbOSdB/qEP8zw==
   -----END CERTIFICATE-----
 substrate:
+  valkey:
+    nodeSelector:
+      karpenter.sh/capacity-type: on-demand
   atelet:
     extraEnv:
       - {name: AWS_REGION, value: us-east-1}

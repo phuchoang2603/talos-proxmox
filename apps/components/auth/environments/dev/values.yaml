@@ -4,8 +4,8 @@ oauth2-proxy:
   extraArgs:
     oidc-issuer-url: https://auth-dev.phuchoang.sbs/dex
     login-url: https://auth-dev.phuchoang.sbs/dex/auth
-    redirect-url: https://kubeflow-dev.phuchoang.sbs/oauth2/callback
-    cookie-domain: .phuchoang.sbs
+    redirect-url: /oauth2/callback
+    cookie-domain: kubeflow-dev.phuchoang.sbs,kagent-dev.phuchoang.sbs,agentregistry-dev.phuchoang.sbs
     whitelist-domain: kubeflow-dev.phuchoang.sbs,kagent-dev.phuchoang.sbs,agentregistry-dev.phuchoang.sbs
 identity:
   sharedUIHosts:
