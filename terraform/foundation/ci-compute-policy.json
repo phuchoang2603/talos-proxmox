@@ -70,6 +70,20 @@
       }
     },
     {
+      "Sid": "ManageOwnedVolumeTags",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateTags",
+        "ec2:DeleteTags"
+      ],
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:volume/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/managed-by": "talos-proxmox"
+        }
+      }
+    },
+    {
       "Sid": "ManageFixedControlPlane",
       "Effect": "Allow",
       "Action": [
