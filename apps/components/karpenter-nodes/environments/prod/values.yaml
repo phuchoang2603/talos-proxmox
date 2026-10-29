@@ -1,3 +1,6 @@
+nodePool:
+  replicas: 2
+  limits: {nodes: "3"}
 gpu:
   enabled: true
   capacityTypes: [spot]

@@ -77,7 +77,7 @@ kubectl -n istio-system get daemonset istio-cni-node ztunnel
 # Both environments: kubectl -n observability get svc vmks-grafana
 ```
 
-Expected results: the root and child Applications are Synced/Healthy; the Doppler store and ExternalSecrets are Ready; Istio control plane and node agents are ready; and there is exactly one default StorageClass: local-path in dev or gp3 in prod. Dev has one control-plane/workload VM and two workers; prod has one On-Demand `m6a.xlarge` control-plane/workload node and one On-Demand `m6a.xlarge` worker, with optional Spot burst workers.
+Expected results: the root and child Applications are Synced/Healthy; the Doppler store and ExternalSecrets are Ready; Istio control plane and node agents are ready; and there is exactly one default StorageClass: local-path in dev or gp3 in prod. Dev has one control-plane/workload VM and two workers; prod has one On-Demand `m6a.xlarge` control-plane/workload node and two On-Demand `m6a.xlarge` workers, with optional Spot burst workers.
 
 ## Observability
 
