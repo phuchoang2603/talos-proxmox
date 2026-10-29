@@ -38,6 +38,12 @@ spec:
       when:
         - key: request.headers[authorization]
           notValues: ["*"]
+    - to:
+        - operation:
+            hosts:
+{{ toYaml .Values.identity.sharedUIHosts | indent 14 }}
+            notPaths:
+              - /oauth2/*
 ---
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
@@ -55,6 +61,8 @@ spec:
             notRequestPrincipals: ["*"]
       to:
         - operation:
+            notHosts:
+{{ toYaml .Values.identity.sharedUIHosts | indent 14 }}
             notPaths:
               - /oauth2/*
 ---

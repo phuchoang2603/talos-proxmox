@@ -28,13 +28,23 @@ oauth2-proxy:
     set-authorization-header: "true"
     set-xauthrequest: "true"
     cookie-secure: "true"
-    cookie-domain: kubeflow.phuchoang.sbs
+    cookie-domain: .phuchoang.sbs
+    whitelist-domain: kubeflow.phuchoang.sbs,kagent.phuchoang.sbs,agentregistry.phuchoang.sbs
     cookie-samesite: lax
     pass-authorization-header: "true"
   config:
     existingSecret: oauth2-proxy-credentials
+    cookieName: __Secure-platform
+    emailDomains: []
+  authenticatedEmailsFile:
+    enabled: true
+    restricted_access: |-
+      xuanphuc.a1gv@gmail.com
 
 identity:
+  sharedUIHosts:
+    - kagent.phuchoang.sbs
+    - agentregistry.phuchoang.sbs
   email: xuanphuc.a1gv@gmail.com
   issuer: https://auth.phuchoang.sbs/dex
   internalIssuer: http://dex.auth.svc.cluster.local:5556/dex
@@ -43,8 +53,6 @@ identity:
   argocdRedirectURI: https://argocd.phuchoang.sbs/auth/callback
   workflowsRedirectURI: https://workflows.phuchoang.sbs/oauth2/callback
   openmetadataRedirectURI: https://openmetadata.phuchoang.sbs/callback
-  kagentRedirectURI: https://kagent.phuchoang.sbs/oauth2/callback
-  agentregistryRedirectURI: https://agentregistry.phuchoang.sbs/oauth2/callback
 
 tunnel:
   clusterTunnel: talos-proxmox

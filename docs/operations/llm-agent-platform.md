@@ -19,7 +19,7 @@ The kagent chart creates its WorkerPool and worker pods in its own namespace. Bo
 
 kagent and agentregistry each use a single CNPG PostgreSQL instance and a 2 GiB PVC. Substrate uses JWT authentication and the upstream six-member Valkey cluster. Its RustFS deployment is disabled. The snapshot identity can access only `substrate/` in the environment's existing platform bucket. Application SandboxAgents must set their snapshot location under that prefix; the upstream default is a GCS location.
 
-The UIs use Cloudflare Tunnel through dedicated OAuth2 Proxy 7.15.5 instances (chart 10.7.1), with Dex login restricted to the configured platform operator email. The underlying UI Services remain ClusterIP, and in-cluster registry clients continue using the registry Service directly. Each UI uses its own host-only secure cookie and Dex client; credentials come from the existing platform Doppler authentication keys through External Secrets.
+The UIs use Cloudflare Tunnel and the existing Istio ingress with the shared OAuth2 Proxy in `auth` (7.15.5, chart 10.7.1). Dex login is restricted to the configured platform operator email. The underlying UI Services remain ClusterIP, and in-cluster registry clients continue using the registry Service directly. Browser sessions use the shared Kubeflow OIDC client and callback, with secure cookies scoped to `.phuchoang.sbs` and separate names for dev and prod. The ingress always checks UI requests through the shared proxy, including requests with an Authorization header; the existing Kubeflow JWT policy continues protecting its routes.
 
 | UI | Dev | Prod |
 | --- | --- | --- |
@@ -28,9 +28,9 @@ The UIs use Cloudflare Tunnel through dedicated OAuth2 Proxy 7.15.5 instances (c
 
 ## Credentials
 
-All private credentials live in platform Doppler `dev` / `prod` and reach pods through External Secrets. The public Substrate CA certificate is committed per environment so the upstream CA ConfigMap can be rendered without generating keys during GitOps reconciliation. The TLS server certificate expires after one year; rotate the full credential set and commit the matching public CA before expiry.
+All private credentials live in platform Doppler `dev` / `prod` and reach pods through External Secrets. The public Substrate CA is stored in tracked Helm values (`caBundle`), which Argo CD renders into the upstream `ateapi-ca` ConfigMap. Standalone `.crt` files remain ignored. The TLS server certificate expires after one year; rotate the full credential set and update the matching public CA before expiry.
 
-The CNPG passwords are `KAGENT_POSTGRES_PASSWORD` and `AGENTREGISTRY_POSTGRES_PASSWORD`. JWT-mode TLS and signing material uses `SUBSTRATE_CA_CERT`, `SUBSTRATE_SERVER_CERT`, `SUBSTRATE_SERVER_KEY`, `SUBSTRATE_SESSION_JWT_POOL`, and `SUBSTRATE_SESSION_CA_POOL`. Provision these in Doppler and commit the matching public API CA certificate before installing Substrate.
+The CNPG passwords are `KAGENT_POSTGRES_PASSWORD` and `AGENTREGISTRY_POSTGRES_PASSWORD`. JWT-mode TLS and signing material uses `SUBSTRATE_CA_CERT`, `SUBSTRATE_SERVER_CERT`, `SUBSTRATE_SERVER_KEY`, `SUBSTRATE_SESSION_JWT_POOL`, and `SUBSTRATE_SESSION_CA_POOL`. Provision these in Doppler and set the matching public API CA in Helm values before installing Substrate.
 
 Foundation manages the prod snapshot IAM identity. For dev, attach `terraform/cluster/env/dev/minio-substrate-policy.json` to a dedicated MinIO identity and save its credentials as `OBJECT_SUBSTRATE_ACCESS_KEY_ID` and `OBJECT_SUBSTRATE_SECRET_ACCESS_KEY` in platform Doppler.
 Talos issues new service-account tokens with `https://kubernetes.default.svc.cluster.local` and continues accepting the cluster's API endpoint as a second issuer, preserving existing tokens. Substrate's `auth.jwt.issuer` matches the service DNS issuer so its JWT discovery uses the Kubernetes CA and authenticated discovery requests. Applying this configuration restarts the API server; newly created Substrate and kagent pods obtain tokens with the new issuer. No PodCertificate or ClusterTrustBundle feature gates are enabled.

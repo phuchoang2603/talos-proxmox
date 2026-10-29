@@ -5,8 +5,5 @@ dependencies:
 - name: kagent
   repository: oci://ghcr.io/kagent-dev/kagent/helm
   version: 0.10.4
-- name: oauth2-proxy
-  repository: https://oauth2-proxy.github.io/manifests
-  version: 10.7.1
-digest: sha256:2c0f59bbf1074f39b6f0768334c6b914dae4fded928ea4db6d516a07ee7033b1
-generated: "2026-10-29T13:45:01.321850238-04:00"
+digest: sha256:3aa80acae4b6f220546f82fef7f2e47c5081f4872b5cbabf051eaedf427c6484
+generated: "2026-10-29T13:58:03.125190303-04:00"

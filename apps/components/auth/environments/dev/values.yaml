@@ -1,17 +1,21 @@
 oauth2-proxy:
+  config:
+    cookieName: __Secure-platform-dev
   extraArgs:
     oidc-issuer-url: https://auth-dev.phuchoang.sbs/dex
     login-url: https://auth-dev.phuchoang.sbs/dex/auth
     redirect-url: https://kubeflow-dev.phuchoang.sbs/oauth2/callback
-    cookie-domain: kubeflow-dev.phuchoang.sbs
+    cookie-domain: .phuchoang.sbs
+    whitelist-domain: kubeflow-dev.phuchoang.sbs,kagent-dev.phuchoang.sbs,agentregistry-dev.phuchoang.sbs
 identity:
+  sharedUIHosts:
+    - kagent-dev.phuchoang.sbs
+    - agentregistry-dev.phuchoang.sbs
   issuer: https://auth-dev.phuchoang.sbs/dex
   redirectURI: https://kubeflow-dev.phuchoang.sbs/oauth2/callback
   grafanaRedirectURI: https://grafana-dev.phuchoang.sbs/login/generic_oauth
   argocdRedirectURI: https://argocd-dev.phuchoang.sbs/auth/callback
   workflowsRedirectURI: https://workflows-dev.phuchoang.sbs/oauth2/callback
   openmetadataRedirectURI: https://openmetadata-dev.phuchoang.sbs/callback
-  kagentRedirectURI: https://kagent-dev.phuchoang.sbs/oauth2/callback
-  agentregistryRedirectURI: https://agentregistry-dev.phuchoang.sbs/oauth2/callback
 tunnel:
   hostname: auth-dev.phuchoang.sbs

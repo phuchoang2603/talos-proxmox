@@ -1,7 +1,2 @@
 tunnel:
   hostname: agentregistry-dev.phuchoang.sbs
-oauth2-proxy:
-  extraArgs:
-    oidc-issuer-url: https://auth-dev.phuchoang.sbs/dex
-    login-url: https://auth-dev.phuchoang.sbs/dex/auth
-    redirect-url: https://agentregistry-dev.phuchoang.sbs/oauth2/callback
