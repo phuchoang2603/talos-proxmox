@@ -11,5 +11,7 @@ identity:
   argocdRedirectURI: https://argocd-dev.phuchoang.sbs/auth/callback
   workflowsRedirectURI: https://workflows-dev.phuchoang.sbs/oauth2/callback
   openmetadataRedirectURI: https://openmetadata-dev.phuchoang.sbs/callback
+  kagentRedirectURI: https://kagent-dev.phuchoang.sbs/oauth2/callback
+  agentregistryRedirectURI: https://agentregistry-dev.phuchoang.sbs/oauth2/callback
 tunnel:
   hostname: auth-dev.phuchoang.sbs

@@ -1,0 +1,35 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: {{ (index .Values "oauth2-proxy").config.existingSecret }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  refreshInterval: 1h
+  secretStoreRef: {kind: ClusterSecretStore, name: doppler}
+  target:
+    template:
+      engineVersion: v2
+      data:
+        client-id: {{ .Values.identity.clientID }}
+        client-secret: '{{ "{{ .clientSecret }}" }}'
+        cookie-secret: '{{ "{{ .cookieSecret }}" }}'
+  data:
+    - secretKey: clientSecret
+      remoteRef: {key: AUTH_OIDC_CLIENT_SECRET}
+    - secretKey: cookieSecret
+      remoteRef: {key: AUTH_OAUTH2_COOKIE_SECRET}
+---
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: agentregistry-ui
+subjects:
+  - kind: Service
+    name: {{ (index .Values "oauth2-proxy").fullnameOverride }}
+    spec:
+      fqdn: {{ .Values.tunnel.hostname }}
+      target: http://{{ (index .Values "oauth2-proxy").fullnameOverride }}.{{ .Release.Namespace }}.svc.cluster.local:80
+tunnelRef:
+  kind: ClusterTunnel
+  name: {{ .Values.tunnel.clusterTunnel }}

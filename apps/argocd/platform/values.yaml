@@ -249,6 +249,8 @@ components:
         pod-security.kubernetes.io/warn: privileged
         istio.io/dataplane-mode: ambient
     valueFilesByCluster:
+      dev:
+        - environments/dev/values.yaml
       prod:
         - environments/prod/values.yaml
   agentregistry:
@@ -258,5 +260,7 @@ components:
     releaseName: agentregistry
     clusters: [dev, prod]
     valueFilesByCluster:
+      dev:
+        - environments/dev/values.yaml
       prod:
         - environments/prod/values.yaml

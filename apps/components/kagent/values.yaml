@@ -56,3 +56,42 @@ kagent:
   cilium-policy-agent: {enabled: false}
   cilium-manager-agent: {enabled: false}
   cilium-debug-agent: {enabled: false}
+
+identity:
+  clientID: kagent-ui
+
+tunnel:
+  clusterTunnel: talos-proxmox
+  hostname: kagent.phuchoang.sbs
+
+oauth2-proxy:
+  enabled: true
+  fullnameOverride: kagent-ui-auth
+  image: {tag: v7.15.5}
+  config:
+    existingSecret: kagent-ui-oidc
+    cookieName: __Host-kagent
+    emailDomains: []
+    upstreams: [http://kagent-ui.kagent.svc.cluster.local:8080]
+  authenticatedEmailsFile:
+    enabled: true
+    restricted_access: |-
+      xuanphuc.a1gv@gmail.com
+  extraArgs:
+    provider: oidc
+    oidc-issuer-url: https://auth.phuchoang.sbs/dex
+    skip-oidc-discovery: "true"
+    login-url: https://auth.phuchoang.sbs/dex/auth
+    redeem-url: http://dex.auth.svc.cluster.local:5556/dex/token
+    oidc-jwks-url: http://dex.auth.svc.cluster.local:5556/dex/keys
+    redirect-url: https://kagent.phuchoang.sbs/oauth2/callback
+    skip-provider-button: "true"
+    approval-prompt: auto
+    reverse-proxy: "true"
+    cookie-secure: "true"
+    cookie-samesite: lax
+    pass-basic-auth: "false"
+  service: {type: ClusterIP}
+  resources:
+    requests: {cpu: 10m, memory: 32Mi}
+    limits: {memory: 128Mi}

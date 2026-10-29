@@ -19,6 +19,13 @@ The kagent chart creates its WorkerPool and worker pods in its own namespace. Bo
 
 kagent and agentregistry each use a single CNPG PostgreSQL instance and a 2 GiB PVC. Substrate uses JWT authentication and the upstream six-member Valkey cluster. Its RustFS deployment is disabled. The snapshot identity can access only `substrate/` in the environment's existing platform bucket. Application SandboxAgents must set their snapshot location under that prefix; the upstream default is a GCS location.
 
+The UIs use Cloudflare Tunnel through dedicated OAuth2 Proxy 7.15.5 instances (chart 10.7.1), with Dex login restricted to the configured platform operator email. The underlying UI Services remain ClusterIP, and in-cluster registry clients continue using the registry Service directly. Each UI uses its own host-only secure cookie and Dex client; credentials come from the existing platform Doppler authentication keys through External Secrets.
+
+| UI | Dev | Prod |
+| --- | --- | --- |
+| kagent | `https://kagent-dev.phuchoang.sbs` | `https://kagent.phuchoang.sbs` |
+| Agent Registry | `https://agentregistry-dev.phuchoang.sbs` | `https://agentregistry.phuchoang.sbs` |
+
 ## Credentials
 
 All private credentials live in platform Doppler `dev` / `prod` and reach pods through External Secrets. The public Substrate CA certificate is committed per environment so the upstream CA ConfigMap can be rendered without generating keys during GitOps reconciliation. The TLS server certificate expires after one year; rotate the full credential set and commit the matching public CA before expiry.

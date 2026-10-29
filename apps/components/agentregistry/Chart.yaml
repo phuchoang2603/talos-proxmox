@@ -6,3 +6,7 @@ dependencies:
   - name: agentregistry
     version: 0.4.0
     repository: oci://ghcr.io/agentregistry-dev/agentregistry/charts
+  - name: oauth2-proxy
+    version: 10.7.1
+    repository: https://oauth2-proxy.github.io/manifests
+    condition: oauth2-proxy.enabled

@@ -43,6 +43,8 @@ identity:
   argocdRedirectURI: https://argocd.phuchoang.sbs/auth/callback
   workflowsRedirectURI: https://workflows.phuchoang.sbs/oauth2/callback
   openmetadataRedirectURI: https://openmetadata.phuchoang.sbs/callback
+  kagentRedirectURI: https://kagent.phuchoang.sbs/oauth2/callback
+  agentregistryRedirectURI: https://agentregistry.phuchoang.sbs/oauth2/callback
 
 tunnel:
   clusterTunnel: talos-proxmox
