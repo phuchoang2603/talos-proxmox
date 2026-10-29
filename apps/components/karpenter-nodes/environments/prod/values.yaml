@@ -6,4 +6,4 @@ gpu:
   limits: {nodes: "1", cpu: "4", memory: 16Gi}
   expireAfter: Never
 cpuBurst:
-  limits: {nodes: "4", cpu: "16", memory: 64Gi}
+  limits: {nodes: "12", cpu: "48", memory: 192Gi}

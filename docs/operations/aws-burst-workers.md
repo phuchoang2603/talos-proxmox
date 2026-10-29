@@ -13,7 +13,7 @@ nodeSelector:
   karpenter.sh/nodepool: aws-cpu-burst
 ```
 
-Spark job definitions are owned by the application repository; installing the Spark operator starts no jobs. Dev enables only the demand-driven CPU pool; its controller stays on the Proxmox control plane. Prod maintains one On-Demand `m6a.xlarge` CPU worker in `aws-workers` even when idle. The demand-driven `aws-cpu-burst` pool accepts `large` and `xlarge` instances from the C5–C7, M5–M7 and R5–R7 x86 families, including AMD variants. Prod permits up to four Spot workers within 16 vCPUs and 64 GiB RAM; dev retains its 4-vCPU/16-GiB bound. Idle/underutilized burst capacity consolidates after five minutes. Both pools share the `aws-cpu` EC2NodeClass and the same Karpenter controller. The baseline permits one extra worker during replacement. Select the burst pool explicitly only when a job must run on Spot.
+Spark job definitions are owned by the application repository; installing the Spark operator starts no jobs. Dev enables only the demand-driven CPU pool; its controller stays on the Proxmox control plane. Prod maintains one On-Demand `m6a.xlarge` CPU worker in `aws-workers` even when idle. The demand-driven `aws-cpu-burst` pool accepts `large` and `xlarge` instances from the C5–C7, M5–M7 and R5–R7 x86 families, including AMD variants. Prod permits up to twelve Spot workers within 48 vCPUs and 192 GiB RAM; dev retains its 4-vCPU/16-GiB bound. Idle/underutilized burst capacity consolidates after five minutes. Both pools share the `aws-cpu` EC2NodeClass and the same Karpenter controller. The baseline permits one extra worker during replacement. Select the burst pool explicitly only when a job must run on Spot.
 
 ## Observe scaling
 
