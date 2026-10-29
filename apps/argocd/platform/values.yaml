@@ -220,25 +220,12 @@ components:
         - environments/dev/values.yaml
       prod:
         - environments/prod/values.yaml
-  agentgateway-crds:
-    path: apps/components/agentgateway-crds
-    namespace: operators
-    syncWave: "2"
-    releaseName: agentgateway-crds
-    clusters: [dev, prod]
   agentgateway:
     path: apps/components/agentgateway
     namespace: operators
     syncWave: "3"
     releaseName: agentgateway
     clusters: [dev, prod]
-  substrate-crds:
-    path: apps/components/substrate-crds
-    namespace: ate-system
-    syncWave: "2"
-    releaseName: substrate-crds
-    clusters: [dev, prod]
-    managedNamespaceMetadata: *privileged
   substrate:
     path: apps/components/substrate
     namespace: ate-system
@@ -249,12 +236,6 @@ components:
     valueFilesByCluster:
       prod:
         - environments/prod/values.yaml
-  kagent-crds:
-    path: apps/components/kagent-crds
-    namespace: kagent
-    syncWave: "2"
-    releaseName: kagent-crds
-    clusters: [dev, prod]
   kagent:
     path: apps/components/kagent
     namespace: kagent

@@ -2,7 +2,7 @@
 
 The platform pins KServe presets to v0.21.0, agentgateway to v1.7.0, kagent to 0.10.4, agentregistry to 0.4.0, and Agent Substrate to 0.0.9. Talos remains 1.13.9 and Kubernetes remains 1.36.3. KEDA and Kueue are not installed.
 
-KServe's upstream `kserve-runtime-configs` chart contains the `kserve-config-llm-*` presets; `kserve-llmisvc-resources` contains controller resources. The Kubeflow component installs only the presets in `ml`, without another controller, serving runtimes, or GIE CRDs. agentgateway starts after the existing inference CRDs and supplies GatewayClass `agentgateway`; application charts own Gateways, routes, and policies.
+KServe's upstream `kserve-runtime-configs` chart contains the `kserve-config-llm-*` presets; `kserve-llmisvc-resources` contains controller resources. The Kubeflow component installs only the presets in `ml`, without another controller, serving runtimes, or GIE CRDs. Each agentgateway, kagent, and Substrate component includes its own pinned CRD chart. agentgateway starts after the existing inference CRDs and supplies GatewayClass `agentgateway`; application charts own Gateways, routes, and policies.
 
 | Consumer contract | Name |
 | --- | --- |
@@ -23,15 +23,9 @@ kagent and agentregistry each use a single CNPG PostgreSQL instance and a 2 GiB 
 
 All private credentials live in platform Doppler `dev` / `prod` and reach pods through External Secrets. The public Substrate CA certificate is committed per environment so the upstream CA ConfigMap can be rendered without generating keys during GitOps reconciliation. The TLS server certificate expires after one year; rotate the full credential set and commit the matching public CA before expiry.
 
-Enter the repository's devenv with OpenSSL available, then run:
+The CNPG passwords are `KAGENT_POSTGRES_PASSWORD` and `AGENTREGISTRY_POSTGRES_PASSWORD`. JWT-mode TLS and signing material uses `SUBSTRATE_CA_CERT`, `SUBSTRATE_SERVER_CERT`, `SUBSTRATE_SERVER_KEY`, `SUBSTRATE_SESSION_JWT_POOL`, and `SUBSTRATE_SESSION_CA_POOL`. Provision these in Doppler and commit the matching public API CA certificate before installing Substrate.
 
-```sh
-python hack/bootstrap-agent-platform-secrets.py --environment dev
-python hack/bootstrap-agent-platform-secrets.py --environment prod
-```
-
-The helper preserves existing complete credential sets and creates missing database passwords and JWT-mode certificates/signing pools. It never prints values. Foundation includes the database passwords and the prod snapshot IAM identity. Dev's dedicated MinIO policy is `terraform/cluster/env/dev/minio-substrate-policy.json`; provision its identity using the helper's optional `--minio-admin-file` with `minio-client` available. The private file is JSON with `accessKey` and `secretKey` fields. The helper writes the resulting keys to `OBJECT_SUBSTRATE_ACCESS_KEY_ID` and `OBJECT_SUBSTRATE_SECRET_ACCESS_KEY`.
-
+Foundation manages the prod snapshot IAM identity. For dev, attach `terraform/cluster/env/dev/minio-substrate-policy.json` to a dedicated MinIO identity and save its credentials as `OBJECT_SUBSTRATE_ACCESS_KEY_ID` and `OBJECT_SUBSTRATE_SECRET_ACCESS_KEY` in platform Doppler.
 Talos issues new service-account tokens with `https://kubernetes.default.svc.cluster.local` and continues accepting the cluster's API endpoint as a second issuer, preserving existing tokens. Substrate's `auth.jwt.issuer` matches the service DNS issuer so its JWT discovery uses the Kubernetes CA and authenticated discovery requests. Applying this configuration restarts the API server; newly created Substrate and kagent pods obtain tokens with the new issuer. No PodCertificate or ClusterTrustBundle feature gates are enabled.
 
 ## Rollout

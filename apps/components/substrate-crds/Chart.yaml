@@ -1,8 +1,0 @@
-apiVersion: v2
-name: platform-substrate-crds
-type: application
-version: 0.1.0
-dependencies:
-  - name: substrate-crds
-    version: 0.0.9
-    repository: oci://ghcr.io/kagent-dev/substrate/helm
