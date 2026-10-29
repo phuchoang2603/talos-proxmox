@@ -187,6 +187,9 @@ victoria-metrics-k8s-stack:
   vmagent:
     enabled: true
     spec:
+      podMetadata:
+        labels:
+          istio.io/dataplane-mode: ambient
       selectAllByDefault: true
       statefulMode: true
       statefulStorage:
