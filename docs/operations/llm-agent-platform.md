@@ -1,6 +1,6 @@
 # LLM and agent platform
 
-The platform pins KServe presets to v0.21.0, agentgateway to v1.7.0, kagent to 0.10.4, agentregistry to 0.4.0, and Agent Substrate to 0.0.9. Talos remains 1.13.9 and Kubernetes remains 1.36.3. KEDA and Kueue are not installed.
+The platform pins KServe presets to v0.21.0, agentgateway to v1.7.0, kagent to 0.10.4, agentregistry to 0.4.0, and Agent Substrate to 0.0.9. Talos remains 1.13.9 and Kubernetes remains 1.36.3. KEDA is pinned to 2.21.0 in `operators`; Kueue is not installed.
 
 KServe's upstream `kserve-runtime-configs` chart contains the `kserve-config-llm-*` presets; `kserve-llmisvc-resources` contains controller resources. The Kubeflow component installs only the presets in `ml`, without another controller, serving runtimes, or GIE CRDs. Each agentgateway, kagent, and Substrate component includes its own pinned CRD chart. agentgateway starts after the existing inference CRDs and supplies GatewayClass `agentgateway`; application charts own Gateways, routes, and policies.
 
@@ -13,11 +13,11 @@ KServe's upstream `kserve-runtime-configs` chart contains the `kserve-config-llm
 | WorkerPool | `kagent/kagent-default`, one gVisor worker |
 | Worker mesh principal | `cluster.local/ns/kagent/sa/default` |
 | Substrate API | `dns:///api.ate-system.svc:443` |
-| Substrate snapshots | `s3://platform-dev/substrate/` in dev; `s3://platform-prod-142737101504-us-east-1/substrate/` in prod |
+| Substrate snapshots | `gs://platform-dev/substrate/llm/…` in dev; `gs://platform-prod-142737101504-us-east-1/substrate/llm/…` in prod |
 
 The kagent chart creates its WorkerPool and worker pods in its own namespace. Both `kagent` and `ate-system` allow privileged pods; `kagent` joins Istio ambient so actor traffic carries the worker identity. The app's mesh policy must admit that principal to its gateway. No gateway, model, default ModelConfig, built-in agent, or built-in tool is installed by this platform set. Application charts create and label their own `llm` namespace; KServe presets remain in `ml`. kagent watches `llm` and `kagent`; agentregistry's namespaced RBAC is restricted to `llm`.
 
-kagent and agentregistry each use a single CNPG PostgreSQL instance and a 2 GiB PVC. Substrate uses JWT authentication and the upstream six-member Valkey cluster. Its RustFS deployment is disabled. Prod PostgreSQL instances select On-Demand capacity. Valkey uses the unmodified upstream chart and may schedule on Spot nodes. The snapshot identity can access only `substrate/` in the environment's existing platform bucket. Application SandboxAgents must set their snapshot location under that prefix; the upstream default is a GCS location.
+kagent and agentregistry each use a single CNPG PostgreSQL instance and a 2 GiB PVC. Substrate uses JWT authentication and the upstream six-member Valkey cluster. Its RustFS deployment is disabled. Prod PostgreSQL instances select On-Demand capacity. Valkey uses the unmodified upstream chart and may schedule on Spot nodes. The snapshot identity can access only `substrate/` in the environment's existing platform bucket. Application SandboxAgents must set their snapshot location under that prefix. The kagent 0.10.4 CRD requires `gs://` paths; Substrate's S3 backend accepts that syntax for the configured S3/MinIO bucket.
 
 The UIs use Cloudflare Tunnel and the existing Istio ingress with the shared OAuth2 Proxy in `auth` (7.15.5, chart 10.7.1). Dex login is restricted to the configured platform operator email. The underlying UI Services remain ClusterIP, and in-cluster registry clients continue using the registry Service directly. Browser sessions use the shared Kubeflow OIDC client with a callback on each UI host. Secure cookies are scoped to the matching UI hostname, with separate names for dev and prod. The ingress always checks UI requests through the shared proxy, including requests with an Authorization header; the existing Kubeflow JWT policy continues protecting its routes.
 
@@ -25,6 +25,8 @@ The UIs use Cloudflare Tunnel and the existing Istio ingress with the shared OAu
 | --- | --- | --- |
 | kagent | `https://kagent-dev.phuchoang.sbs` | `https://kagent.phuchoang.sbs` |
 | Agent Registry | `https://agentregistry-dev.phuchoang.sbs` | `https://agentregistry.phuchoang.sbs` |
+
+KEDA can query VictoriaMetrics at `http://vmsingle-vmks.observability.svc.cluster.local:8428/prometheus/api/v1/query`; Prometheus scalers should set `serverAddress` to `http://vmsingle-vmks.observability.svc.cluster.local:8428/prometheus`. Application charts own their ScaledObjects and scaling policies.
 
 ## Credentials
 

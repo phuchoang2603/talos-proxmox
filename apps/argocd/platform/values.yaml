@@ -183,6 +183,12 @@ components:
     syncWave: "0"
     releaseName: strimzi-cluster-operator
     clusters: [dev, prod]
+  keda:
+    path: apps/components/keda
+    namespace: operators
+    syncWave: "0"
+    releaseName: keda
+    clusters: [dev, prod]
   redis-operator:
     path: apps/components/redis-operator
     namespace: operators
