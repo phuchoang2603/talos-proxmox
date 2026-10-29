@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */}}
 
-{{- if .Values.valkey.enabled -}}
 {{- $sts := include "substrate.fullname" (list "valkey-cluster" .) -}}
 {{- $headless := include "substrate.fullname" (list "valkey-cluster-service" .) -}}
 {{- $ns := .Release.Namespace -}}
@@ -25,7 +24,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 data:
   valkey.conf: |
-{{- if eq .Values.auth.mode "mtls" }}
+{{- if eq .Values.substrate.auth.mode "mtls" }}
     # Enforce TLS and disable standard port
     port 0
     tls-port 6379
@@ -103,7 +102,7 @@ spec:
       {{- end }}
       containers:
       - name: valkey
-        image: {{ .Values.images.valkey }}
+        image: {{ .Values.substrate.images.valkey }}
         command: ["valkey-server", "/etc/valkey/valkey.conf"]
         ports:
         - name: valkey
@@ -113,7 +112,7 @@ spec:
         volumeMounts:
         - name: config
           mountPath: /etc/valkey
-{{- if eq .Values.auth.mode "mtls" }}
+{{- if eq .Values.substrate.auth.mode "mtls" }}
         - name: servicedns
           mountPath: /run/servicedns.podcert.ate.dev
         - name: valkey-ca-certs
@@ -126,7 +125,7 @@ spec:
       - name: config
         configMap:
           name: {{ include "substrate.fullname" (list "valkey-config" .) }}
-{{- if eq .Values.auth.mode "mtls" }}
+{{- if eq .Values.substrate.auth.mode "mtls" }}
       - name: servicedns
         projected:
           sources:
@@ -170,8 +169,8 @@ spec:
       {{- end }}
       containers:
       - name: init
-        image: {{ .Values.images.valkey }}
-{{- if eq .Values.auth.mode "mtls" }}
+        image: {{ .Values.substrate.images.valkey }}
+{{- if eq .Values.substrate.auth.mode "mtls" }}
         volumeMounts:
         - name: servicedns
           mountPath: /run/servicedns.podcert.ate.dev
@@ -200,7 +199,7 @@ spec:
           done
 
           echo "Checking if Valkey cluster is already initialized..."
-{{- if eq .Values.auth.mode "mtls" }}
+{{- if eq .Values.substrate.auth.mode "mtls" }}
           until valkey-cli --tls --cacert /etc/valkey-ca/ca.crt --cert /run/servicedns.podcert.ate.dev/credential-bundle.pem --key /run/servicedns.podcert.ate.dev/credential-bundle.pem -h {{ $sts }}-0.{{ $headless }}.{{ $ns }}.svc ping >/dev/null 2>&1; do
             echo "Waiting for {{ $sts }}-0 to respond to ping..."
             sleep 2
@@ -240,7 +239,7 @@ spec:
             echo "Cluster already initialized."
           fi
 {{- end }}
-{{- if eq .Values.auth.mode "mtls" }}
+{{- if eq .Values.substrate.auth.mode "mtls" }}
       volumes:
       - name: servicedns
         projected:
@@ -257,5 +256,4 @@ spec:
               items:
               - key: ca.crt
                 path: ca.crt
-{{- end }}
 {{- end }}
