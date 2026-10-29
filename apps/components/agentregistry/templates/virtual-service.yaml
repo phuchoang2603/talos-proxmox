@@ -1,0 +1,19 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: agentregistry-ui
+spec:
+  gateways: [ml/kubeflow-gateway]
+  hosts:
+    - {{ .Values.tunnel.hostname }}
+  http:
+    - match:
+        - uri: {prefix: /oauth2/}
+      route:
+        - destination:
+            host: oauth2-proxy.auth.svc.cluster.local
+            port: {number: 80}
+    - route:
+        - destination:
+            host: agentregistry.{{ .Release.Namespace }}.svc.cluster.local
+            port: {number: 12121}

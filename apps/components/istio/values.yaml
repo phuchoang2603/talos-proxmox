@@ -45,6 +45,10 @@ istiod:
         includeRequestHeadersInCheck:
         - authorization
         - cookie
+        - x-forwarded-host
+        - x-forwarded-uri
+        includeAdditionalHeadersInCheck:
+          x-forwarded-proto: https
         headersToUpstreamOnAllow:
         - authorization
         - x-auth-request-email
@@ -53,6 +57,7 @@ istiod:
         headersToDownstreamOnDeny:
         - content-type
         - set-cookie
+        - location
 cni:
   resources:
     requests: {cpu: 25m, memory: 64Mi}

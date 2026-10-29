@@ -220,3 +220,47 @@ components:
         - environments/dev/values.yaml
       prod:
         - environments/prod/values.yaml
+  agentgateway:
+    path: apps/components/agentgateway
+    namespace: operators
+    syncWave: "3"
+    releaseName: agentgateway
+    clusters: [dev, prod]
+  substrate:
+    path: apps/components/substrate
+    namespace: ate-system
+    syncWave: "3"
+    releaseName: substrate
+    clusters: [dev, prod]
+    managedNamespaceMetadata: *privileged
+    valueFilesByCluster:
+      prod:
+        - environments/prod/values.yaml
+  kagent:
+    path: apps/components/kagent
+    namespace: kagent
+    syncWave: "4"
+    releaseName: kagent
+    clusters: [dev, prod]
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
+        pod-security.kubernetes.io/audit: privileged
+        pod-security.kubernetes.io/warn: privileged
+        istio.io/dataplane-mode: ambient
+    valueFilesByCluster:
+      dev:
+        - environments/dev/values.yaml
+      prod:
+        - environments/prod/values.yaml
+  agentregistry:
+    path: apps/components/agentregistry
+    namespace: agentregistry
+    syncWave: "4"
+    releaseName: agentregistry
+    clusters: [dev, prod]
+    valueFilesByCluster:
+      dev:
+        - environments/dev/values.yaml
+      prod:
+        - environments/prod/values.yaml

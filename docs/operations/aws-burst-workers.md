@@ -28,7 +28,7 @@ Prod desires one baseline CPU worker; a second baseline worker is allowed tempor
 
 ## GPU training pool
 
-Prod enables `aws-gpu-training` under the same controller: Spot-only `g4dn.xlarge`, `g5.xlarge` or `g6.xlarge` in `us-east-1a`, bounded to one node, 4 vCPUs and 16 GiB RAM. It consolidates only when empty after five minutes and has no scheduled expiry. AWS must approve the G/VT Spot vCPU quota before jobs can provision capacity. Dev keeps this pool disabled.
+Prod enables `aws-gpu-training` under the same controller: Spot-only `g6.xlarge` (L4) in `us-east-1a`, bounded to one node, 4 vCPUs and 16 GiB RAM. It consolidates only when empty after five minutes and has no scheduled expiry. AWS must approve the G/VT Spot vCPU quota before jobs can provision capacity. Dev keeps this pool disabled.
 
 Kubeflow runtime `aws-gpu-training` selects this pool, tolerates its GPU taint and allocates one GPU through an explicit NVIDIA DRA claim. The platform creates `ResourceClaimTemplate/aws-gpu-training` in `ml`; consumers using another training namespace must create the same template there. Training jobs need checkpoints in object storage and caller-managed retries after Spot interruption. Idle GPU capacity returns to zero. The CPU baseline remains one worker.
 

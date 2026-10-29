@@ -1,0 +1,6 @@
+dependencies:
+- name: agentregistry
+  repository: oci://ghcr.io/agentregistry-dev/agentregistry/charts
+  version: 0.4.0
+digest: sha256:c7bcb8fe4d99967496e740bb1e1ad9230a3f94ea5866c20f3207fc7eeda092ee
+generated: "2026-10-29T13:58:05.695767338-04:00"

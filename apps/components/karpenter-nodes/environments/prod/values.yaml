@@ -2,7 +2,7 @@ gpu:
   enabled: true
   capacityTypes: [spot]
   zones: [us-east-1a]
-  instanceTypes: [g4dn.xlarge, g5.xlarge, g6.xlarge]
+  instanceTypes: [g6.xlarge]
   limits: {nodes: "1", cpu: "4", memory: 16Gi}
   expireAfter: Never
 cpuBurst:

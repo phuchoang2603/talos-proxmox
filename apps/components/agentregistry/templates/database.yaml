@@ -1,0 +1,45 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: agentregistry-database
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  refreshInterval: 1h
+  secretStoreRef: {kind: ClusterSecretStore, name: doppler}
+  target:
+    template:
+      type: kubernetes.io/basic-auth
+      data:
+        username: agentregistry
+        password: '{{ "{{ .password }}" }}'
+        url: 'postgresql://agentregistry:{{ "{{ .password }}" }}@agentregistry-postgres-rw:5432/agentregistry?sslmode=require'
+  data:
+    - secretKey: password
+      remoteRef: {key: AGENTREGISTRY_POSTGRES_PASSWORD}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: agentregistry-postgres
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  instances: 1
+  {{- with .Values.databaseNodeSelector }}
+  affinity:
+    nodeSelector:
+      {{- toYaml . | nindent 6 }}
+  {{- end }}
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
+  bootstrap:
+    initdb:
+      database: agentregistry
+      owner: agentregistry
+      secret: {name: agentregistry-database}
+  storage:
+    storageClass: {{ .Values.storageClass | quote }}
+    size: 2Gi
+  resources:
+    requests: {cpu: 50m, memory: 256Mi}
+    limits: {memory: 1Gi}
