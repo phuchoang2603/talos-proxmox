@@ -32,7 +32,7 @@ python hack/bootstrap-agent-platform-secrets.py --environment prod
 
 The helper preserves existing complete credential sets and creates missing database passwords and JWT-mode certificates/signing pools. It never prints values. Foundation includes the database passwords and the prod snapshot IAM identity. Dev's dedicated MinIO policy is `terraform/cluster/env/dev/minio-substrate-policy.json`; provision its identity using the helper's optional `--minio-admin-file` with `minio-client` available. The private file is JSON with `accessKey` and `secretKey` fields. The helper writes the resulting keys to `OBJECT_SUBSTRATE_ACCESS_KEY_ID` and `OBJECT_SUBSTRATE_SECRET_ACCESS_KEY`.
 
-`auth.jwt.issuer` must match the cluster's `/.well-known/openid-configuration` issuer. Check it after rebuilding a cluster, especially when its API address changes. No PodCertificate or ClusterTrustBundle feature gates are enabled.
+Talos issues new service-account tokens with `https://kubernetes.default.svc.cluster.local` and continues accepting the cluster's API endpoint as a second issuer, preserving existing tokens. Substrate's `auth.jwt.issuer` matches the service DNS issuer so its JWT discovery uses the Kubernetes CA and authenticated discovery requests. Applying this configuration restarts the API server; newly created Substrate and kagent pods obtain tokens with the new issuer. No PodCertificate or ClusterTrustBundle feature gates are enabled.
 
 ## Rollout
 

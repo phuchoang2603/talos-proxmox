@@ -4,7 +4,7 @@ substrate:
   auth:
     mode: jwt
     jwt:
-      issuer: https://10.69.12.11:6443
+      issuer: https://kubernetes.default.svc.cluster.local
       bootstrap: {enabled: false}
   rustfs: {enabled: false}
   valkey:

@@ -5,6 +5,9 @@ locals {
     cluster = {
       apiServer = {
         auditPolicy = yamldecode(file("${path.module}/audit-policy.yaml"))
+        extraArgs = {
+          "service-account-issuer" = ["https://kubernetes.default.svc.cluster.local", var.cluster_endpoint]
+        }
       }
     }
   }

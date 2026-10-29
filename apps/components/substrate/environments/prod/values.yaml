@@ -1,8 +1,5 @@
 caFile: environments/prod/ateapi-ca.crt
 substrate:
-  auth:
-    jwt:
-      issuer: https://98.85.236.5:6443
   atelet:
     extraEnv:
       - {name: AWS_REGION, value: us-east-1}
