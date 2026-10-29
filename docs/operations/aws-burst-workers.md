@@ -36,7 +36,7 @@ Kubeflow runtime `aws-gpu-training` selects this pool, tolerates its GPU taint a
 
 Prod uses the generic bucket `platform-prod-<account>-<region>`, with platform identities for training, artifacts and backups. Worker instance roles grant no object access. Dev uses `platform-dev` on external MinIO; attach `terraform/cluster/env/dev/minio-artifacts-policy.json` to the shared Kubeflow/training identity for `artifacts/`, `datasets/` and `runs/`. Dev's `OBJECT_TRAINING_*` and `OBJECT_ARTIFACTS_*` values use the same access key and secret key. The payment gateway repository owns its runtime integrations. Foundation owns the gateway prefix policy, provisions the unified prod storage identity and publishes `OBJECT_GATEWAY_*` credentials to gateway Doppler `prd`. Dev MinIO credentials remain externally provisioned using `terraform/cluster/env/dev/minio-gateway-policy.json`.
 
-Apache Polaris provides authenticated Iceberg REST at `http://iceberg-catalog.data.svc.cluster.local:8181/api/catalog`, with warehouse `lakehouse`. Table files and metadata JSON live in MinIO/S3; catalog state lives in single-instance CNPG. Clients use OAuth and their own scoped object credentials. Catalog availability does not prove an exported dataset is complete.
+The payment gateway application deploys Apache Polaris and its CNPG database, providing authenticated Iceberg REST at `http://iceberg-catalog.data.svc.cluster.local:8181/api/catalog`, with warehouse `lakehouse`. Table files and metadata JSON live in MinIO/S3; catalog state lives in single-instance CNPG. Clients use OAuth and their own scoped object credentials. Catalog availability does not prove an exported dataset is complete.
 
 ## Rotate the Karpenter key
 

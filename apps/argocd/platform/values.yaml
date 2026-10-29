@@ -76,15 +76,6 @@ components:
     syncWave: "1"
     releaseName: flink-kubernetes-operator
     clusters: [dev, prod]
-  iceberg-catalog:
-    path: apps/components/iceberg-catalog
-    namespace: data
-    syncWave: "1"
-    releaseName: iceberg-catalog
-    clusters: [dev, prod]
-    valueFilesByCluster:
-      prod:
-        - environments/prod/values.yaml
   auth:
     path: apps/components/auth
     namespace: auth
