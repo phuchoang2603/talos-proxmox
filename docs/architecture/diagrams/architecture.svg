@@ -1450,15 +1450,15 @@ been cleared for every commercial, promotional, or redistributive use.</metadata
         <text x="750" y="752" class="t-backend" font-size="7" text-anchor="middle">sole worker provisioner</text>
         </g>
 
-        <g id="node-baseline" data-node-id="baseline" data-node-label="Baseline Talos worker" tabindex="0" role="button" aria-label="Focus Baseline Talos worker, 1 x m6a.xlarge / On-Demand, PROD / AWS us-east-1" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="1 x m6a.xlarge / On-Demand" data-node-tag="aws-workers; static replicas" data-node-context="PROD / AWS us-east-1">
-          <title>Baseline Talos worker · 1 x m6a.xlarge / On-Demand · PROD / AWS us-east-1 · aws-workers; static replicas</title>
+        <g id="node-baseline" data-node-id="baseline" data-node-label="Baseline Talos workers" tabindex="0" role="button" aria-label="Focus Baseline Talos workers, 2 x m6a.xlarge / On-Demand, PROD / AWS us-east-1" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="2 x m6a.xlarge / On-Demand" data-node-tag="aws-workers; static replicas" data-node-context="PROD / AWS us-east-1">
+          <title>Baseline Talos workers · 2 x m6a.xlarge / On-Demand · PROD / AWS us-east-1 · aws-workers; static replicas</title>
           <rect x="640" y="900" width="220" height="80" rx="8" class="c-mask"/>
           <rect x="640" y="900" width="220" height="80" rx="8" class="c-cloud" data-animate="node" style="--step: 12; --flow-node-name: archify-relay-node-15;" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(646 906) scale(0.6875)">
             <path d="M4.3 12.5h7.3a2.4 2.4 0 0 0 .2-4.8 4 4 0 0 0-7.5-1.3A3.1 3.1 0 0 0 4.3 12.5Z"/>
           </g>
-          <text data-node-label="" x="750" y="938" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Baseline Talos worker</text>
-        <text x="750" y="954" class="t-muted" font-size="9" text-anchor="middle">1 x m6a.xlarge / On-Demand</text>
+          <text data-node-label="" x="750" y="938" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Baseline Talos workers</text>
+        <text x="750" y="954" class="t-muted" font-size="9" text-anchor="middle">2 x m6a.xlarge / On-Demand</text>
         <text x="750" y="972" class="t-cloud" font-size="7" text-anchor="middle">aws-workers; static replicas</text>
         </g>
 

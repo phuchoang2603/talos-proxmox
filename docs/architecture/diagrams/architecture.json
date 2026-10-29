@@ -406,8 +406,8 @@
     {
       "id": "baseline",
       "type": "cloud",
-      "label": "Baseline Talos worker",
-      "sublabel": "1 x m6a.xlarge / On-Demand",
+      "label": "Baseline Talos workers",
+      "sublabel": "2 x m6a.xlarge / On-Demand",
       "pos": [
         640,
         900
@@ -775,7 +775,7 @@
       "title": "Capacity and scaling",
       "items": [
         "Dev: pve 8 CPU / 32 GiB + GPU; pve2 8 / 16; pve3 4 / 16. Independent AWS Spot pool scales from zero.",
-        "Prod baseline: two m6a.xlarge nodes, 8 vCPU / 32 GiB total. One control plane, not HA.",
+        "Prod baseline: three m6a.xlarge nodes, 12 vCPU / 48 GiB total. One control plane, not HA.",
         "Each Spot pool scales from pending pod requests up to one worker. Prod permits one extra baseline node during replacement. GPU pools disabled."
       ]
     },
