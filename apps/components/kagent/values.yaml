@@ -1,4 +1,6 @@
 storageClass: local-path
+workerAmbient:
+  exclude: false
 kagent:
   fullnameOverride: kagent
   providers: false

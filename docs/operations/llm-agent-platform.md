@@ -11,11 +11,13 @@ KServe's upstream `kserve-runtime-configs` chart contains the `kserve-config-llm
 | Registry HTTP API | `http://agentregistry.agentregistry.svc:12121` |
 | kagent namespace / UI | `kagent` / `kagent-ui:8080`, ClusterIP |
 | WorkerPool | `kagent/kagent-default`, one gVisor worker |
-| Worker mesh principal | `cluster.local/ns/kagent/sa/default` |
+| Worker mesh principal | Prod: `cluster.local/ns/kagent/sa/default`; dev workers are outside ambient |
 | Substrate API | `dns:///api.ate-system.svc:443` |
 | Substrate snapshots | `gs://platform-dev/substrate/llm/…` in dev; `gs://platform-prod-142737101504-us-east-1/substrate/llm/…` in prod |
 
 The kagent chart creates its WorkerPool and worker pods in its own namespace. Both `kagent` and `ate-system` allow privileged pods; `kagent` joins Istio ambient so actor traffic carries the worker identity. The app's mesh policy must admit that principal to its gateway. No gateway, model, default ModelConfig, built-in agent, or built-in tool is installed by this platform set. The platform owns the `llm` namespace through `argocd-post`, with Istio ambient enabled and Pod Security enforce/audit/warn set to `restricted`. Application charts deploy only namespaced resources there; KServe presets remain in `ml`. kagent watches `llm` and `kagent`; agentregistry's namespaced RBAC is restricted to `llm`.
+
+Dev opts only `kagent-default` workers out of ambient capture with `istio.io/dataplane-mode: none`, because Substrate's nested gVisor networking fails under capture. A native MutatingAdmissionPolicy adds the label at pod creation; Substrate 0.0.9's WorkerPool has no pod-label override. Other kagent pods remain meshed. Dev actor egress has no mesh principal, so the app must provide an authenticated gateway path for these workers rather than relying only on a principal-based allow rule.
 
 kagent and agentregistry each use a single CNPG PostgreSQL instance and a 2 GiB PVC. Substrate uses JWT authentication and the upstream six-member Valkey cluster. Its RustFS deployment is disabled. Prod PostgreSQL instances select On-Demand capacity. Valkey uses the unmodified upstream chart and may schedule on Spot nodes. The snapshot identity can access only `substrate/` in the environment's existing platform bucket. Application SandboxAgents must set their snapshot location under that prefix. The kagent 0.10.4 CRD requires `gs://` paths; Substrate's S3 backend accepts that syntax for the configured S3/MinIO bucket.
 

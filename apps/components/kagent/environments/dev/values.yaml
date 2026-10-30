@@ -1,5 +1,7 @@
 tunnel:
   hostname: kagent-dev.phuchoang.sbs
+workerAmbient:
+  exclude: true
 kagent:
   otel:
     tracing:
