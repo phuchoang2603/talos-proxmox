@@ -65,7 +65,7 @@ jobs:
           tofu_version: v1.13.2
           tofu_wrapper: false
 
-      - uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::142737101504:role/talos-proxmox-ci
           aws-region: us-east-1
