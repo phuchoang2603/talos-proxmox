@@ -1,38 +1,38 @@
-caBundle: |
-  -----BEGIN CERTIFICATE-----
-  MIIBmjCCAUGgAwIBAgIUHAmHpUpiwrnLCYi8y+72f6VL3jkwCgYIKoZIzj0EAwIw
-  GzEZMBcGA1UEAwwQc3Vic3RyYXRlLWFwaS1jYTAeFw0yNjEwMjkxNjUzMzRaFw0z
-  NjEwMjYxNjUzMzRaMBsxGTAXBgNVBAMMEHN1YnN0cmF0ZS1hcGktY2EwWTATBgcq
-  hkjOPQIBBggqhkjOPQMBBwNCAAT60f6rBIa2euc5f1EXNi4M+SjVUNbpWlSbABgc
-  G3D7CGPOoQFNs+z4J6+9gN+5Fu5Quk7WdEQh7ZF8ygUCjmJIo2MwYTAdBgNVHQ4E
-  FgQUIWAlYFsCovqu9Dh3pKRW8bmjKj8wHwYDVR0jBBgwFoAUIWAlYFsCovqu9Dh3
-  pKRW8bmjKj8wDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMCAQYwCgYIKoZI
-  zj0EAwIDRwAwRAIgFMGh1ewIVGC7sBVCMMy51r8mmft6vR9pvIoz7SUWzKICIE02
-  BQsUbbpxkw6XEDnfua+QCOTeDHNU4xC3uui+2EQu
-  -----END CERTIFICATE-----
+storageClass: local-path
 substrate:
-  image: {tag: "v0.0.9"}
-  auth:
-    mode: jwt
-    jwt:
-      issuer: https://kubernetes.default.svc.cluster.local
-      bootstrap: {enabled: false}
-  rustfs: {enabled: false}
-  valkey:
-    enabled: true
-    replicas: 6
-    storageSize: 1Gi
-  images:
-    valkey: valkey/valkey:8.0.6
-  atelet:
-    storageBackend: s3
+  image:
+    tag: v1.0.0-rc1
+  preview:
+  - PerTemplateSnapshotLocation
+  rustfs:
+    enabled: false
+  ateApi:
+    authorization:
+      bootstrapOwners:
+      - spiffe://cluster.local/ns/kagent/sa/kagent-controller
+  atenetRouter:
+    ingressAllowedSPIFFEIDs:
+    - spiffe://cluster.local/ns/kagent/sa/kagent-controller
+  credentialProvider:
+    namespacePolicies:
+    - atespace: llm-agents
+      allowedNamespaces:
+      - llm-agents
+  objectStorePlugin:
     extraEnv:
-      - {name: AWS_REGION, value: us-east-1}
-      - {name: AWS_ENDPOINT_URL, value: "https://minio.home.phuchoang.sbs"}
-      - {name: AWS_S3_USE_PATH_STYLE, value: "true"}
-      - name: AWS_ACCESS_KEY_ID
-        valueFrom:
-          secretKeyRef: {name: substrate-snapshots, key: access-key}
-      - name: AWS_SECRET_ACCESS_KEY
-        valueFrom:
-          secretKeyRef: {name: substrate-snapshots, key: secret-key}
+    - name: AWS_REGION
+      value: us-east-1
+    - name: AWS_ENDPOINT_URL
+      value: https://minio.home.phuchoang.sbs
+    - name: AWS_S3_USE_PATH_STYLE
+      value: 'true'
+    - name: AWS_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          name: substrate-snapshots
+          key: access-key
+    - name: AWS_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: substrate-snapshots
+          key: secret-key

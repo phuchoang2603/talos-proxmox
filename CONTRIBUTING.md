@@ -27,8 +27,8 @@ tofu -chdir=terraform/cluster/dev validate
 For a component chart, lint its base values and any changed environment overlay. For example:
 
 ```bash
-helm lint apps/components/karpenter --kube-version 1.36.3
-helm lint apps/components/karpenter --kube-version 1.36.3 \
+helm lint apps/components/karpenter --kube-version 1.37.2
+helm lint apps/components/karpenter --kube-version 1.37.2 \
   --values apps/components/karpenter/environments/prod/values.yaml
 ```
 
@@ -36,7 +36,7 @@ For changes to platform membership, check both environments:
 
 ```bash
 for cluster in dev prod; do
-  helm lint apps/argocd/platform --kube-version 1.36.3 --set cluster="$cluster"
+  helm lint apps/argocd/platform --kube-version 1.37.2 --set cluster="$cluster"
 done
 ```
 

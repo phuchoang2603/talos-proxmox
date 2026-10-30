@@ -1,0 +1,6 @@
+dependencies:
+- name: substrate-podcert
+  repository: oci://ghcr.io/kagent-dev/substrate/helm
+  version: 1.0.0-rc1
+digest: sha256:2b297d50ef1c0914aea86f4039ac130140d0144385e08ead28999a2c3ec4e602
+generated: "2026-10-30T19:40:54.356673872-04:00"

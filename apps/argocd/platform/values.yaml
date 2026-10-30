@@ -220,6 +220,13 @@ components:
     syncWave: "3"
     releaseName: agentgateway
     clusters: [dev, prod]
+  substrate-podcert:
+    path: apps/components/substrate-podcert
+    namespace: podcertificate-controller-system
+    syncWave: "2"
+    releaseName: substrate-podcert
+    clusters: [dev, prod]
+    managedNamespaceMetadata: *privileged
   substrate:
     path: apps/components/substrate
     namespace: ate-system
@@ -242,6 +249,8 @@ components:
         pod-security.kubernetes.io/audit: privileged
         pod-security.kubernetes.io/warn: privileged
         istio.io/dataplane-mode: ambient
+        ate.dev/api-access: "true"
+        istio.io/use-waypoint: kagent-waypoint
     valueFilesByCluster:
       dev:
         - environments/dev/values.yaml

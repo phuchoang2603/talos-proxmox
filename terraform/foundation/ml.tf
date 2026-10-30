@@ -1,5 +1,5 @@
 locals {
-  talos_version = "v1.13.9"
+  talos_version = "v1.14.5"
   object_bucket = "platform-prod-${data.aws_caller_identity.current.account_id}-us-east-1"
 }
 

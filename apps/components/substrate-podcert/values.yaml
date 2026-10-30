@@ -1,0 +1,2 @@
+substrate-podcert:
+  image: {tag: v1.0.0-rc1}

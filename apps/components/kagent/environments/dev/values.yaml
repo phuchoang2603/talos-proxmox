@@ -1,10 +1,9 @@
 tunnel:
   hostname: kagent-dev.phuchoang.sbs
-workerAmbient:
-  exclude: true
-kagent:
-  controller:
-    watchNamespaces: [llm, llm-agents, kagent]
-  otel:
-    tracing:
-      enabled: true
+auth:
+  dexIssuer: https://auth-dev.phuchoang.sbs/dex
+  gatewayJWKS: '{"keys": [{"kty": "EC", "crv": "P-256", "x": "MrerAdWvHiFpy-AZOmqI82ezQRnMCVdZxl1dEe3sN2s",
+    "y": "3SdkFfq5MRwbTdba4_XYrq0QYlM9evnqeOgSpk0Jto0", "use": "sig", "alg": "ES256"}]}'
+  actorJWKS: '{"keys": [{"kty": "EC", "crv": "P-256", "x": "UA33eYqwnRL18vQXdLjvYRloWXZ75jCv2eZa-Kw6f8w",
+    "y": "DhHXaJfU68Elbbz8zal5LrTXqQBedXdpJbsferwIw8I", "kid": "gINq9oxaiwfqVvPADAbnI9fSMO2bhK4YMAOBeiYh_VE",
+    "alg": "ES256", "use": "sig"}]}'

@@ -131,7 +131,7 @@ To inspect rendered membership without connecting to a cluster:
 
 ```bash
 helm template platform apps/argocd/platform \
-  --namespace argo-cd --set cluster=dev --kube-version 1.36.3
+  --namespace argo-cd --set cluster=dev --kube-version 1.37.2
 ```
 
 For deployment status and UI addresses, use [cluster access](../operations/cluster-access.md).

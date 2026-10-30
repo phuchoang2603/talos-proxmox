@@ -1,0 +1,127 @@
+{{- range $name, $entry := dict
+  "agent-runtime-database" (dict "user" "agent_runtime_admin" "key" "AGENT_RUNTIME_POSTGRES_PASSWORD")
+  "kagent-postgres-owner" (dict "user" "kagent_owner_user" "key" "KAGENT_POSTGRES_OWNER_PASSWORD")
+  "kagent-postgres-readwrite" (dict "user" "kagent_readwrite_user" "key" "KAGENT_POSTGRES_READWRITE_PASSWORD")
+  "substrate-postgres-owner" (dict "user" "substrate_owner_user" "key" "SUBSTRATE_POSTGRES_OWNER_PASSWORD")
+  "substrate-postgres-readwrite" (dict "user" "substrate_readwrite_user" "key" "SUBSTRATE_POSTGRES_READWRITE_PASSWORD") }}
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: {{ $name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-3"
+spec:
+  refreshInterval: 1h
+  secretStoreRef: {kind: ClusterSecretStore, name: doppler}
+  target:
+    template:
+      type: kubernetes.io/basic-auth
+      data:
+        username: {{ $entry.user }}
+        password: '{{ "{{ .password }}" }}'
+        ownerConnectionString: 'postgresql://{{ $entry.user }}:{{ "{{ .password }}" }}@agent-runtime-postgres-rw.ate-system.svc:5432/agents?sslmode=require'
+        readWriteConnectionString: 'postgresql://{{ $entry.user }}:{{ "{{ .password }}" }}@agent-runtime-postgres-rw.ate-system.svc:5432/agents?sslmode=require'
+  data:
+    - secretKey: password
+      remoteRef: {key: {{ $entry.key }}}
+{{- end }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: agent-runtime-postgres
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  instances: 1
+  {{- with .Values.databaseNodeSelector }}
+  affinity:
+    nodeSelector:
+      {{- toYaml . | nindent 6 }}
+  {{- end }}
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
+  bootstrap:
+    initdb:
+      database: agents
+      owner: agent_runtime_admin
+      secret: {name: agent-runtime-database}
+      postInitApplicationSQL:
+        - CREATE ROLE kagent_owner NOLOGIN;
+        - CREATE ROLE kagent_readwrite NOLOGIN;
+        - CREATE SCHEMA kagent AUTHORIZATION kagent_owner;
+        - REVOKE ALL ON SCHEMA kagent FROM PUBLIC;
+        - GRANT USAGE ON SCHEMA kagent TO kagent_readwrite;
+        - ALTER DEFAULT PRIVILEGES FOR ROLE kagent_owner IN SCHEMA kagent GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO kagent_readwrite;
+        - ALTER DEFAULT PRIVILEGES FOR ROLE kagent_owner IN SCHEMA kagent GRANT USAGE, SELECT, UPDATE ON SEQUENCES TO kagent_readwrite;
+        - ALTER DEFAULT PRIVILEGES FOR ROLE kagent_owner IN SCHEMA kagent GRANT EXECUTE ON ROUTINES TO kagent_readwrite;
+        - ALTER DEFAULT PRIVILEGES FOR ROLE kagent_owner IN SCHEMA kagent GRANT USAGE ON TYPES TO kagent_readwrite;
+        - CREATE ROLE substrate_owner NOLOGIN;
+        - CREATE ROLE substrate_readwrite NOLOGIN;
+        - CREATE SCHEMA substrate AUTHORIZATION substrate_owner;
+        - REVOKE ALL ON SCHEMA substrate FROM PUBLIC;
+        - GRANT USAGE ON SCHEMA substrate TO substrate_readwrite;
+        - ALTER DEFAULT PRIVILEGES FOR ROLE substrate_owner IN SCHEMA substrate GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO substrate_readwrite;
+        - ALTER DEFAULT PRIVILEGES FOR ROLE substrate_owner IN SCHEMA substrate GRANT USAGE, SELECT, UPDATE ON SEQUENCES TO substrate_readwrite;
+        - ALTER DEFAULT PRIVILEGES FOR ROLE substrate_owner IN SCHEMA substrate GRANT EXECUTE ON ROUTINES TO substrate_readwrite;
+        - ALTER DEFAULT PRIVILEGES FOR ROLE substrate_owner IN SCHEMA substrate GRANT USAGE ON TYPES TO substrate_readwrite;
+        - REVOKE CREATE ON SCHEMA public FROM PUBLIC;
+  managed:
+    roles:
+      - name: kagent_owner_user
+        ensure: present
+        login: true
+        inherit: false
+        inRoles: [kagent_owner]
+        passwordSecret: {name: kagent-postgres-owner}
+      - name: kagent_readwrite_user
+        ensure: present
+        login: true
+        inherit: false
+        inRoles: [kagent_readwrite]
+        passwordSecret: {name: kagent-postgres-readwrite}
+      - name: substrate_owner_user
+        ensure: present
+        login: true
+        inherit: false
+        inRoles: [substrate_owner]
+        passwordSecret: {name: substrate-postgres-owner}
+      - name: substrate_readwrite_user
+        ensure: present
+        login: true
+        inherit: false
+        inRoles: [substrate_readwrite]
+        passwordSecret: {name: substrate-postgres-readwrite}
+  storage:
+    storageClass: {{ .Values.storageClass | quote }}
+    size: 2Gi
+  resources:
+    requests: {cpu: 100m, memory: 256Mi}
+    limits: {cpu: "2", memory: 1Gi}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: agent-runtime-postgres
+spec:
+  podSelector:
+    matchLabels: {cnpg.io/cluster: agent-runtime-postgres}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels: {kubernetes.io/metadata.name: kagent}
+          podSelector:
+            matchLabels: {app.kubernetes.io/component: controller}
+        - podSelector:
+            matchLabels: {app: ate-api-server}
+        - podSelector:
+            matchLabels: {cnpg.io/cluster: agent-runtime-postgres}
+      ports:
+        - {protocol: TCP, port: 5432}
+    - from:
+        - namespaceSelector:
+            matchLabels: {kubernetes.io/metadata.name: operators}
+      ports:
+        - {protocol: TCP, port: 8000}
+        - {protocol: TCP, port: 5432}

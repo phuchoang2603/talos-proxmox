@@ -1,7 +1,7 @@
-storageClass: gp3
-databaseNodeSelector:
-  karpenter.sh/capacity-type: on-demand
-kagent:
-  otel:
-    tracing:
-      enabled: true
+auth:
+  dexIssuer: https://auth.phuchoang.sbs/dex
+  gatewayJWKS: '{"keys": [{"kty": "EC", "crv": "P-256", "x": "NavrGdA_xoEL7-lPXnCShh8nbZ5PxnFeT-q7gsEEZy4",
+    "y": "91MePK63xtPJixjHab9snqFcTJdqrliiIXBUFV9ImS0", "use": "sig", "alg": "ES256"}]}'
+  actorJWKS: '{"keys": [{"kty": "EC", "crv": "P-256", "x": "vMQ_PxEJK-7OgY0oMBTyCEd22y7JTaRKPIpPxuxgWZE",
+    "y": "whkT5iUFINNRaJuJXnGwYczgUuAX9iTScjK3uxWEv-o", "kid": "830YXHGpIClPKyzcHUJqlAsk5FGRuUghjYZtIyz1wRY",
+    "alg": "ES256", "use": "sig"}]}'

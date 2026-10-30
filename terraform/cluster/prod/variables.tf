@@ -17,13 +17,13 @@ variable "env" {
 variable "talos_version" {
   description = "Talos Linux version (including v prefix)"
   type        = string
-  default     = "v1.13.9"
+  default     = "v1.14.5"
 }
 
 variable "kubernetes_version" {
   description = "Kubernetes version shipped with Talos (including v prefix)"
   type        = string
-  default     = "v1.36.3"
+  default     = "v1.37.2"
 }
 
 variable "aws_region" {

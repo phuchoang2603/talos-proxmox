@@ -1,0 +1,8 @@
+apiVersion: v2
+name: platform-substrate-podcert
+type: application
+version: 0.1.0
+dependencies:
+  - name: substrate-podcert
+    version: 1.0.0-rc1
+    repository: oci://ghcr.io/kagent-dev/substrate/helm

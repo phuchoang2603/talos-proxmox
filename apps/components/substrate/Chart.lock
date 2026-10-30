@@ -1,9 +1,9 @@
 dependencies:
 - name: substrate-crds
   repository: oci://ghcr.io/kagent-dev/substrate/helm
-  version: 0.0.9
+  version: 1.0.0-rc1
 - name: substrate
   repository: oci://ghcr.io/kagent-dev/substrate/helm
-  version: 0.0.9
-digest: sha256:2d80aa3f6749632ece30dc520fc4d77eae506abd3bd25598b6b6d96227a86c9e
-generated: "2026-10-29T14:22:27.963945311-04:00"
+  version: 1.0.0-rc1
+digest: sha256:23ee742979dcd4bfba9d01b14e44896dd33db18c047a1f4f999546ad7336b40a
+generated: "2026-10-30T19:40:50.399019052-04:00"

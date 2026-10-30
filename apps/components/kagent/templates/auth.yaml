@@ -1,0 +1,130 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: kagent-waypoint
+  labels:
+    istio.io/waypoint-for: all
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  gatewayClassName: istio-waypoint
+  listeners:
+    - name: mesh
+      port: 15008
+      protocol: HBONE
+---
+apiVersion: security.istio.io/v1
+kind: RequestAuthentication
+metadata:
+  name: kagent-controller
+spec:
+  targetRefs:
+    - group: ""
+      kind: Service
+      name: kagent-controller
+  jwtRules:
+    - issuer: {{ .Values.auth.dexIssuer | quote }}
+      jwksUri: http://dex.auth.svc.cluster.local:5556/dex/keys
+      audiences: [kubeflow]
+      forwardOriginalToken: true
+    - issuer: urn:platform:kagent:gateway
+      audiences: [kagent]
+      jwks: {{ .Values.auth.gatewayJWKS | quote }}
+      forwardOriginalToken: true
+    - issuer: https://idp.ate-system.svc
+      jwks: {{ .Values.auth.actorJWKS | quote }}
+      forwardOriginalToken: true
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: kagent-controller-api
+spec:
+  targetRefs:
+    - group: ""
+      kind: Service
+      name: kagent-controller
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals: [cluster.local/ns/kagent/sa/kagent-ui]
+      when:
+        - key: request.auth.claims[iss]
+          values: [{{ .Values.auth.dexIssuer | quote }}]
+    - from:
+        - source:
+            principals: [cluster.local/ns/llm/sa/agentgateway]
+      when:
+        - key: request.auth.claims[iss]
+          values: [urn:platform:kagent:gateway]
+        - key: request.auth.claims[sub]
+          values: [agentgateway]
+    - from:
+        - source:
+            principals: [cluster.local/ns/ate-system/sa/atenet-egress]
+      to:
+        - operation:
+            paths:
+              - /kagent.runtime.v1.TaskStoreService/*
+              - /kagent.runtime.v1.MemoryService/*
+      when:
+        - key: request.auth.claims[iss]
+          values: [https://idp.ate-system.svc]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: kagent-controller-transport
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kagent
+      app.kubernetes.io/component: controller
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals: [cluster.local/ns/kagent/sa/kagent-waypoint]
+      to:
+        - operation:
+            ports: ["8083", "8443"]
+    - from:
+        - source:
+            principals: [cluster.local/ns/observability/sa/vmagent-vmks]
+      to:
+        - operation:
+            ports: ["8443"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: kagent-ui
+spec:
+  targetRefs:
+    - group: ""
+      kind: Service
+      name: kagent-ui
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals: [cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: kagent-ui-transport
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kagent
+      app.kubernetes.io/component: ui
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals: [cluster.local/ns/kagent/sa/kagent-waypoint]
+      to:
+        - operation:
+            ports: ["8080"]

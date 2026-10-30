@@ -1,9 +1,13 @@
+{{- range $name, $entry := dict
+  "kagent-postgres-owner" (dict "user" "kagent_owner_user" "key" "KAGENT_POSTGRES_OWNER_PASSWORD")
+  "kagent-postgres-readwrite" (dict "user" "kagent_readwrite_user" "key" "KAGENT_POSTGRES_READWRITE_PASSWORD") }}
+---
 apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
-  name: kagent-database
+  name: {{ $name }}
   annotations:
-    argocd.argoproj.io/sync-wave: "-2"
+    argocd.argoproj.io/sync-wave: "-3"
 spec:
   refreshInterval: 1h
   secretStoreRef: {kind: ClusterSecretStore, name: doppler}
@@ -11,35 +15,11 @@ spec:
     template:
       type: kubernetes.io/basic-auth
       data:
-        username: kagent
+        username: {{ $entry.user }}
         password: '{{ "{{ .password }}" }}'
-        url: 'postgresql://kagent:{{ "{{ .password }}" }}@kagent-postgres-rw:5432/kagent?sslmode=require'
+        ownerConnectionString: 'postgresql://{{ $entry.user }}:{{ "{{ .password }}" }}@agent-runtime-postgres-rw.ate-system.svc:5432/agents?sslmode=require'
+        readWriteConnectionString: 'postgresql://{{ $entry.user }}:{{ "{{ .password }}" }}@agent-runtime-postgres-rw.ate-system.svc:5432/agents?sslmode=require'
   data:
     - secretKey: password
-      remoteRef: {key: KAGENT_POSTGRES_PASSWORD}
----
-apiVersion: postgresql.cnpg.io/v1
-kind: Cluster
-metadata:
-  name: kagent-postgres
-  annotations:
-    argocd.argoproj.io/sync-wave: "-1"
-spec:
-  instances: 1
-  {{- with .Values.databaseNodeSelector }}
-  affinity:
-    nodeSelector:
-      {{- toYaml . | nindent 6 }}
-  {{- end }}
-  imageName: ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
-  bootstrap:
-    initdb:
-      database: kagent
-      owner: kagent
-      secret: {name: kagent-database}
-  storage:
-    storageClass: {{ .Values.storageClass | quote }}
-    size: 2Gi
-  resources:
-    requests: {cpu: 50m, memory: 256Mi}
-    limits: {memory: 1Gi}
+      remoteRef: {key: {{ $entry.key }}}
+{{- end }}

@@ -35,7 +35,7 @@ jobs:
     name: Platform charts
     runs-on: ubuntu-latest
     env:
-      KUBE_VERSION: 1.36.3
+      KUBE_VERSION: 1.37.2
     steps:
       - uses: actions/checkout@v4
       - uses: azure/setup-helm@v4

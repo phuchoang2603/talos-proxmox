@@ -1,0 +1,16 @@
+{{- range $app, $port := dict "ate-api-server" "prometheus" "ate-controller" "metrics" }}
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: {{ $app }}
+spec:
+  namespaceSelector:
+    matchNames: [ate-system]
+  selector:
+    matchLabels: {app: {{ $app }}}
+  podMetricsEndpoints:
+    - port: {{ $port }}
+      path: /metrics
+      interval: 30s
+{{- end }}
