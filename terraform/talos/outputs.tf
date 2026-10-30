@@ -25,6 +25,7 @@ output "common_patch" {
   value = {
     machine = {
       features = { kubePrism = { enabled = true, port = 7445 } }
+      sysctls  = { "user.max_user_namespaces" = "1024" }
       kubelet = {
         extraConfig = {
           systemReserved = { cpu = "250m", memory = "1Gi" }

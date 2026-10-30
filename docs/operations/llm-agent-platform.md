@@ -38,6 +38,8 @@ All private credentials live in platform Doppler `dev` / `prod` and reach pods t
 The CNPG passwords are `KAGENT_POSTGRES_PASSWORD` and `AGENTREGISTRY_POSTGRES_PASSWORD`. JWT-mode TLS and signing material uses `SUBSTRATE_CA_CERT`, `SUBSTRATE_SERVER_CERT`, `SUBSTRATE_SERVER_KEY`, `SUBSTRATE_SESSION_JWT_POOL`, and `SUBSTRATE_SESSION_CA_POOL`. Provision these in Doppler and set the matching public API CA in Helm values before installing Substrate.
 
 Foundation manages the prod snapshot IAM identity. For dev, attach `terraform/cluster/env/dev/minio-substrate-policy.json` to a dedicated MinIO identity and save its credentials as `OBJECT_SUBSTRATE_ACCESS_KEY_ID` and `OBJECT_SUBSTRATE_SECRET_ACCESS_KEY` in platform Doppler.
+Talos sets `user.max_user_namespaces=1024` for gVisor's gofer and sandbox processes. With this limit set to zero, `runsc create` fails with `fork/exec /proc/self/exe: no space left on device` even when disk space is available. This sysctl can be applied without a reboot.
+
 Talos issues new service-account tokens with `https://kubernetes.default.svc.cluster.local` and continues accepting the cluster's API endpoint as a second issuer, preserving existing tokens. Substrate's `auth.jwt.issuer` matches the service DNS issuer so its JWT discovery uses the Kubernetes CA and authenticated discovery requests. Applying this configuration restarts the API server; newly created Substrate and kagent pods obtain tokens with the new issuer. No PodCertificate or ClusterTrustBundle feature gates are enabled.
 
 ## Rollout
