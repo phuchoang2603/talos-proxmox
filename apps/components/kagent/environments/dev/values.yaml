@@ -1,2 +1,6 @@
 tunnel:
   hostname: kagent-dev.phuchoang.sbs
+kagent:
+  otel:
+    tracing:
+      enabled: true
