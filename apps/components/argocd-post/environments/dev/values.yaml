@@ -1,2 +1,8 @@
 tunnel:
   hostname: argocd-dev.phuchoang.sbs
+additionalNamespaces:
+  - name: llm-agents
+    labels:
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged

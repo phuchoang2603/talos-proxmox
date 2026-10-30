@@ -1,4 +1,4 @@
-{{- range .Values.namespaces }}
+{{- range concat .Values.namespaces .Values.additionalNamespaces }}
 ---
 apiVersion: v1
 kind: Namespace

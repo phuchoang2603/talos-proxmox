@@ -3,6 +3,8 @@ tunnel:
 workerAmbient:
   exclude: true
 kagent:
+  controller:
+    watchNamespaces: [llm, llm-agents, kagent]
   otel:
     tracing:
       enabled: true

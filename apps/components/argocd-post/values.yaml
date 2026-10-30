@@ -3,6 +3,7 @@ tunnel:
   clusterTunnel: talos-proxmox
   hostname: argocd.phuchoang.sbs
 
+additionalNamespaces: []
 namespaces:
   - name: data
   - name: llm
