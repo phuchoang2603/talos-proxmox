@@ -4,6 +4,8 @@ workerAmbient:
 kagent:
   fullnameOverride: kagent
   providers: false
+  proxy:
+    url: http://sandbox-egress.llm.svc.cluster.local
   database:
     postgres:
       bundled: {enabled: false}

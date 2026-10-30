@@ -79,6 +79,9 @@ victoria-metrics-k8s-stack:
             datasourceUid: VictoriaMetrics
   grafana:
     fullnameOverride: grafana
+    sidecar:
+      dashboards:
+        searchNamespace: [observability, llm]
     admin:
       existingSecret: grafana-admin
       userKey: admin-user
