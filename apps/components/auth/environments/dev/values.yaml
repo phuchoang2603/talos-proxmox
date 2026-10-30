@@ -18,6 +18,7 @@ identity:
   argocdRedirectURI: https://argocd-dev.phuchoang.sbs/auth/callback
   workflowsRedirectURI: https://workflows-dev.phuchoang.sbs/oauth2/callback
   openmetadataRedirectURI: https://openmetadata-dev.phuchoang.sbs/callback
+  langfuseRedirectURI: https://langfuse-dev.phuchoang.sbs/api/auth/callback/custom
 tunnel:
   hostname: auth-dev.phuchoang.sbs
   sharedUIBindings:
