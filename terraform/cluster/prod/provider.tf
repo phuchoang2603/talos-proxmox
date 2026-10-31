@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.13.2, < 1.14.0"
+  required_version = "< 1.18.0"
   required_providers {
     talos   = { source = "siderolabs/talos", version = "0.12.0" }
     doppler = { source = "DopplerHQ/doppler", version = "1.22.1" }
