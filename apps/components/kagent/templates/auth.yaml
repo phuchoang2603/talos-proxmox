@@ -55,6 +55,9 @@ spec:
     - from:
         - source:
             principals: [cluster.local/ns/llm/sa/agentgateway]
+      to:
+        - operation:
+            paths: [/agents/llm-agents/*]
       when:
         - key: request.auth.claims[iss]
           values: [urn:platform:kagent:gateway]
