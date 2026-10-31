@@ -64,7 +64,7 @@ resource "aws_instance" "controlplane" {
   }
   tags = merge(local.tags, { Name = "${var.cluster_name}-controlplane", "kubernetes.io/cluster/${var.cluster_name}" = "owned", purpose = "control-plane" })
   lifecycle {
-    ignore_changes = [user_data]
+    ignore_changes = [user_data, ami]
     precondition {
       condition     = length(var.management_cidrs) > 0
       error_message = "Supply operator and current CI egress CIDRs before provisioning the AWS API."

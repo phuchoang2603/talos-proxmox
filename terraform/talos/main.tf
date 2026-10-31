@@ -7,7 +7,7 @@ locals {
         auditPolicy = yamldecode(file("${path.module}/audit-policy.yaml"))
         extraArgs = {
           "runtime-config"         = "certificates.k8s.io/v1beta1=true"
-          "service-account-issuer" = ["https://kubernetes.default.svc.cluster.local", var.cluster_endpoint]
+          "service-account-issuer" = "https://kubernetes.default.svc.cluster.local"
         }
       }
     }
