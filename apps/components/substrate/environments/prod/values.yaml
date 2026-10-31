@@ -1,4 +1,9 @@
 storageClass: gp3
+routerRequestParking:
+  budget: 30s
+  max: 1024
+  retryInterval: 100ms
+  retryFactor: 1.1
 databaseNodeSelector:
   karpenter.sh/capacity-type: on-demand
 substrate:

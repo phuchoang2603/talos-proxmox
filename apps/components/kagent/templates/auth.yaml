@@ -131,3 +131,9 @@ spec:
       to:
         - operation:
             ports: ["8080"]
+    - from:
+        - source:
+            principals: [cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account]
+      to:
+        - operation:
+            ports: ["8080"]
