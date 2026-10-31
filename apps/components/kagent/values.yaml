@@ -15,6 +15,10 @@ kagent:
     server:
       auth:
         mode: trusted-proxy
+    telemetry:
+      traces:
+        endpoint: http://vtagent-vmks.observability.svc.cluster.local:10429/insert/opentelemetry/v1/traces
+        protocol: http/protobuf
   controller:
     substrateClientCertificate:
       enabled: true
