@@ -1088,8 +1088,8 @@ spec:
         name: ml-pipeline-persistenceagent
         resources:
           requests:
-            cpu: 120m
-            memory: 500Mi
+            cpu: 25m
+            memory: 64Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

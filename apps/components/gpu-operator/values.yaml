@@ -1,4 +1,8 @@
 gpu-operator:
+  operator:
+    resources:
+      requests: {cpu: 50m, memory: 256Mi}
+      limits: {cpu: 500m, memory: 512Mi}
   driver:
     enabled: false
   toolkit:

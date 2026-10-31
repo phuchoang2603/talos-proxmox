@@ -7,10 +7,15 @@ substrate:
   rustfs:
     enabled: false
   ateApi:
+    resources:
+      requests: {cpu: 100m, memory: 128Mi}
     authorization:
       bootstrapOwners:
       - spiffe://cluster.local/ns/kagent/sa/kagent-controller
   atenetRouter:
+    agentgateway:
+      resources:
+        requests: {cpu: 50m, memory: 64Mi}
     ingressAllowedSPIFFEIDs:
     - spiffe://cluster.local/ns/kagent/sa/kagent-controller
   credentialProvider:
