@@ -1,0 +1,79 @@
+{{- if .Values.routerRequestParking }}
+{{- $rendered := include (printf "%s/charts/substrate/templates/atenet-router.yaml" .Chart.Name) .Subcharts.substrate }}
+{{- $router := dict }}
+{{- range splitList "\n---\n" $rendered }}
+{{- $resource := fromYaml . }}
+{{- if eq ($resource.kind | default "") "ConfigMap" }}
+{{- $router = fromYaml (index $resource.data "config.yaml") }}
+{{- end }}
+{{- end }}
+{{- if not $router }}
+{{- fail "Substrate router ConfigMap was not found in the dependency chart" }}
+{{- end }}
+{{- $routes := $router.routes }}
+{{- range $router.binds }}
+{{- range .listeners }}
+{{- $routes = concat $routes (.routes | default list) }}
+{{- end }}
+{{- end }}
+{{- range $routes }}
+{{- if hasKey .policies "substrateIngress" }}
+{{- $_ := set .policies.substrateIngress "requestParking" $.Values.routerRequestParking }}
+{{- end }}
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: atenet-router-platform-config
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+data:
+  config.yaml: |
+{{ toYaml $router | indent 4 }}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: substrate-router-parking
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  failurePolicy: Fail
+  reinvocationPolicy: IfNeeded
+  matchConstraints:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: ate-system
+    objectSelector:
+      matchLabels: {app: atenet-router}
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [CREATE]
+        resources: [pods]
+  mutations:
+    - patchType: ApplyConfiguration
+      applyConfiguration:
+        expression: >-
+          Object{
+            spec: Object.spec{
+              volumes: [
+                Object.spec.volumes{
+                  name: "agentgateway-config",
+                  configMap: Object.spec.volumes.configMap{
+                    name: "atenet-router-platform-config"
+                  }
+                }
+              ]
+            }
+          }
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: substrate-router-parking
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  policyName: substrate-router-parking
+{{- end }}

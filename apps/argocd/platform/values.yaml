@@ -235,6 +235,8 @@ components:
     clusters: [dev, prod]
     managedNamespaceMetadata: *privileged
     valueFilesByCluster:
+      dev:
+        - environments/dev/values.yaml
       prod:
         - environments/prod/values.yaml
   kagent:
