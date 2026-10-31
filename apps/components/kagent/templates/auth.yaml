@@ -3,7 +3,7 @@ kind: Gateway
 metadata:
   name: kagent-waypoint
   labels:
-    istio.io/waypoint-for: all
+    istio.io/waypoint-for: service
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
 spec:
