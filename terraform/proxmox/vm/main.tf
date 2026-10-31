@@ -77,4 +77,8 @@ resource "proxmox_virtual_environment_vm" "vm" {
       }
     }
   }
+
+  lifecycle {
+    ignore_changes = [disk[0].file_id]
+  }
 }
