@@ -1,3 +1,7 @@
+kagent:
+  config:
+    runtimeDefaults:
+      cpu: '2'
 tunnel:
   hostname: kagent-dev.phuchoang.sbs
 auth:
