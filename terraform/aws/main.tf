@@ -20,38 +20,15 @@ data "talos_machine_configuration" "worker" {
 
   config_patches = concat(local.worker_config_patches, [
     yamlencode({
-      machine = {
-        kubelet = {
-          extraArgs = {
-            "cloud-provider"       = "external"
-            "node-labels"          = "${local.node_label}=aws"
-            "register-with-taints" = "karpenter.sh/unregistered=true:NoExecute"
-          }
-        }
-        network = {
-          kubespan = { enabled = !var.create_controlplane }
-        }
-        features = {
-          kubePrism = {
-            enabled = true
-            port    = 7445
-          }
-        }
-      }
-      cluster = {
-        discovery = {
-          enabled = true
-          registries = {
-            kubernetes = { disabled = true }
-            service    = {}
-          }
-        }
-        network = {
-          cni = { name = "none" }
-        }
-        proxy = { disabled = true }
+      apiVersion = "v1alpha1"
+      kind       = "KubeletConfig"
+      extraArgs = {
+        "cloud-provider"       = "external"
+        "node-labels"          = "${local.node_label}=aws"
+        "register-with-taints" = "karpenter.sh/unregistered=true:NoExecute"
       }
     }),
+    yamlencode({ apiVersion = "v1alpha1", kind = "KubeSpanConfig", enabled = !var.create_controlplane }),
   ])
 }
 

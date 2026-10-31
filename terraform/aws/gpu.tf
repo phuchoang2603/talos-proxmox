@@ -43,49 +43,16 @@ data "talos_machine_configuration" "worker_gpu" {
   examples           = false
 
   config_patches = concat(local.worker_config_patches, [
+    yamlencode({ apiVersion = "v1alpha1", kind = "UnattendedInstallConfig", installer = { image = data.talos_image_factory_urls.gpu.urls.installer }, provisioning = { diskSelector = { match = "disk.dev_path == \"/dev/nvme0n1\"" }, wipe = false } }),
     yamlencode({
-      machine = {
-        install = {
-          image = data.talos_image_factory_urls.gpu.urls.installer
-        }
-        kernel = {
-          modules = [
-            { name = "nvidia" },
-            { name = "nvidia_uvm" },
-            { name = "nvidia_drm" },
-            { name = "nvidia_modeset" },
-          ]
-        }
-        kubelet = {
-          extraArgs = {
-            "cloud-provider"       = "external"
-            "node-labels"          = "${local.node_label}=aws,${local.gpu_label_key}=gpu-training"
-            "register-with-taints" = "${local.gpu_taint_key}=true:NoSchedule,karpenter.sh/unregistered=true:NoExecute"
-          }
-        }
-        network = {
-          kubespan = { enabled = !var.create_controlplane }
-        }
-        features = {
-          kubePrism = {
-            enabled = true
-            port    = 7445
-          }
-        }
-      }
-      cluster = {
-        discovery = {
-          enabled = true
-          registries = {
-            kubernetes = { disabled = true }
-            service    = {}
-          }
-        }
-        network = {
-          cni = { name = "none" }
-        }
-        proxy = { disabled = true }
+      apiVersion = "v1alpha1"
+      kind       = "KubeletConfig"
+      extraArgs = {
+        "cloud-provider"       = "external"
+        "node-labels"          = "${local.node_label}=aws,${local.gpu_label_key}=gpu-training"
+        "register-with-taints" = "${local.gpu_taint_key}=true:NoSchedule,karpenter.sh/unregistered=true:NoExecute"
       }
     }),
-  ])
+    yamlencode({ apiVersion = "v1alpha1", kind = "KubeSpanConfig", enabled = !var.create_controlplane }),
+  ], [for module in ["nvidia", "nvidia_uvm", "nvidia_drm", "nvidia_modeset"] : yamlencode({ apiVersion = "v1alpha1", kind = "KernelModuleConfig", name = module })])
 }

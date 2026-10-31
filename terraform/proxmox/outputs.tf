@@ -36,8 +36,5 @@ output "gpu_schematic_id" {
 }
 
 output "aws_worker_config_patches" {
-  value = [
-    yamlencode(module.talos.common_patch),
-    yamlencode({ machine = { kubelet = { extraMounts = local.common_machine_patch.machine.kubelet.extraMounts } } }),
-  ]
+  value = module.talos.common_patches
 }

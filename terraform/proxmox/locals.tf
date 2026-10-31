@@ -10,104 +10,65 @@ locals {
   cert_sans          = local.controlplane_ips
   gpu_nodes          = { for name, node in var.nodes : name => node if length(node.pci) > 0 }
 
-  common_machine_patch = {
-    machine = {
-      install = {
-        disk = var.talos_install_disk
-      }
-      certSANs = local.cert_sans
-      kubelet = {
-        # The kubelet sees /var/mnt read-only; local-path needs it writable to create volumes and subPaths.
-        extraMounts = [
-          {
+  common_machine_patches = [
+    yamlencode({ machine = { certSANs = local.cert_sans } }),
+  ]
+
+  # Native KubeletConfig cannot expose writable extra mounts needed by local-path subPaths.
+  local_storage_kubelet_patches = [
+    yamlencode({ apiVersion = "v1alpha1", kind = "KubeletConfig", "$patch" = "delete" }),
+    yamlencode({
+      machine = {
+        kubelet = {
+          image = "ghcr.io/siderolabs/kubelet:${var.kubernetes_version}"
+          extraConfig = {
+            systemReserved = { cpu = "250m", memory = "1Gi" }
+            kubeReserved   = { cpu = "250m", memory = "512Mi" }
+          }
+          extraMounts = [{
             destination = "/var/mnt/local-path-provisioner"
             type        = "bind"
             source      = "/var/mnt/local-path-provisioner"
             options     = ["bind", "rshared", "rw"]
-          }
-        ]
-      }
-    }
-    cluster = {
-      apiServer = {
-        certSANs = local.cert_sans
-      }
-    }
-  }
-
-  kubespan_machine_patches = [
-    yamlencode({
-      machine = {
-        network = {
-          kubespan = { enabled = true }
-        }
-        features = {
-          kubePrism = {
-            enabled = true
-            port    = 7445
-          }
-        }
-      }
-      cluster = {
-        discovery = {
-          enabled = true
-          registries = {
-            kubernetes = { disabled = true }
-            service    = {}
-          }
+          }]
         }
       }
     }),
   ]
 
+  kubespan_machine_patches = [
+    yamlencode({ apiVersion = "v1alpha1", kind = "KubeSpanConfig", enabled = true }),
+  ]
+
   controlplane_machine_patches = [
+    yamlencode({ apiVersion = "v1alpha1", kind = "KubeAPIServerConfig", certExtraSANs = local.cert_sans }),
     yamlencode({
-      machine = {
-        features = {
-          kubernetesTalosAPIAccess = {
-            enabled                     = true
-            allowedRoles                = ["os:reader"]
-            allowedKubernetesNamespaces = ["kube-system"]
-          }
-        }
-      }
+      apiVersion                  = "v1alpha1"
+      kind                        = "KubeTalosAPIAccessConfig"
+      allowedRoles                = ["os:reader"]
+      allowedKubernetesNamespaces = ["kube-system"]
     }),
   ]
 
   node_machine_patches = {
-    for name, node in var.nodes : name => yamlencode({
-      machine = {
-        install = {
-          image = contains(keys(local.gpu_nodes), name) ? one(data.talos_image_factory_urls.gpu[*].urls.installer) : data.talos_image_factory_urls.default.urls.installer
-        }
-        network = {
-          nameservers = [var.dns_server]
-          interfaces = [
-            {
-              interface = var.talos_network_interface
-              dhcp      = false
-              addresses = [node.address]
-              routes = [
-                {
-                  network = "0.0.0.0/0"
-                  gateway = var.vm_ip_gateway
-                }
-              ]
-            }
-          ]
-        }
-        kernel = {
-          modules = contains(keys(local.gpu_nodes), name) ? [
-            { name = "nvidia" },
-            { name = "nvidia_uvm" },
-            { name = "nvidia_drm" },
-            { name = "nvidia_modeset" },
-          ] : []
-        }
-        nodeLabels = contains(keys(local.gpu_nodes), name) ? {
-          "nvidia.com/gpu.deploy.device-plugin" = "false"
-        } : {}
-      }
-    })
+    for name, node in var.nodes : name => concat([
+      yamlencode({
+        apiVersion   = "v1alpha1"
+        kind         = "UnattendedInstallConfig"
+        provisioning = { diskSelector = { match = "disk.dev_path == \"${var.talos_install_disk}\"" } }
+        installer    = { image = contains(keys(local.gpu_nodes), name) ? one(data.talos_image_factory_urls.gpu[*].urls.installer) : data.talos_image_factory_urls.default.urls.installer }
+      }),
+      yamlencode({ apiVersion = "v1alpha1", kind = "ResolverConfig", nameservers = [{ address = var.dns_server }] }),
+      yamlencode({
+        apiVersion = "v1alpha1"
+        kind       = "LinkConfig"
+        name       = var.talos_network_interface
+        up         = true
+        addresses  = [{ address = node.address }]
+        routes     = [{ gateway = var.vm_ip_gateway }]
+      }),
+      ], contains(keys(local.gpu_nodes), name) ? concat([
+        yamlencode({ apiVersion = "v1alpha1", kind = "KubeNodeConfig", labels = { "nvidia.com/gpu.deploy.device-plugin" = "false" } }),
+    ], [for module in ["nvidia", "nvidia_uvm", "nvidia_drm", "nvidia_modeset"] : yamlencode({ apiVersion = "v1alpha1", kind = "KernelModuleConfig", name = module })]) : [])
   }
 }

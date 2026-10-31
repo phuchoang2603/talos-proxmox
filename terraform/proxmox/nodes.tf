@@ -6,10 +6,7 @@ resource "talos_machine_configuration_apply" "controlplane" {
   node                        = each.value.ip
   endpoint                    = each.value.ip
 
-  config_patches = concat([
-    yamlencode(module.talos.common_patch),
-    yamlencode(local.common_machine_patch),
-    local.node_machine_patches[each.key],
+  config_patches = concat(module.talos.common_patches, local.common_machine_patches, local.local_storage_kubelet_patches, local.node_machine_patches[each.key], [
     yamlencode({
       apiVersion = "v1alpha1"
       kind       = "HostnameConfig"
@@ -31,10 +28,7 @@ resource "talos_machine_configuration_apply" "worker" {
   node                        = each.value.ip
   endpoint                    = each.value.ip
 
-  config_patches = concat([
-    yamlencode(module.talos.common_patch),
-    yamlencode(local.common_machine_patch),
-    local.node_machine_patches[each.key],
+  config_patches = concat(module.talos.common_patches, local.common_machine_patches, local.local_storage_kubelet_patches, local.node_machine_patches[each.key], [
     yamlencode({
       apiVersion = "v1alpha1"
       kind       = "HostnameConfig"

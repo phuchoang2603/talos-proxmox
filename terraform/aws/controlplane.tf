@@ -1,7 +1,7 @@
 locals {
   cluster_endpoint      = var.create_controlplane ? "https://${aws_eip.controlplane[0].public_ip}:6443" : var.external_cluster.endpoint
   machine_secrets       = var.create_controlplane ? module.talos[0].machine_secrets : var.external_cluster.machine_secrets
-  worker_config_patches = var.create_controlplane ? [yamlencode(module.talos[0].common_patch)] : var.external_cluster.worker_config_patches
+  worker_config_patches = var.create_controlplane ? module.talos[0].common_patches : var.external_cluster.worker_config_patches
 }
 resource "aws_eip" "controlplane" {
   count  = var.create_controlplane ? 1 : 0
@@ -28,18 +28,12 @@ data "talos_machine_configuration" "controlplane" {
   kubernetes_version = var.kubernetes_version
   docs               = false
   examples           = false
-  config_patches = [yamlencode(module.talos[0].common_patch), yamlencode(module.talos[0].controlplane_patch), yamlencode({
-    machine = {
-      certSANs = [aws_eip.controlplane[0].public_ip]
-      kubelet  = { extraArgs = { "cloud-provider" = "external" } }
-      features = { kubernetesTalosAPIAccess = {
-        enabled                     = true
-        allowedRoles                = ["os:reader"]
-        allowedKubernetesNamespaces = ["kube-system"]
-      } }
-    }
-    cluster = { apiServer = { certSANs = [aws_eip.controlplane[0].public_ip] } }
-  })]
+  config_patches = concat(module.talos[0].common_patches, module.talos[0].controlplane_patches, [
+    yamlencode({ machine = { certSANs = [aws_eip.controlplane[0].public_ip] } }),
+    yamlencode({ apiVersion = "v1alpha1", kind = "KubeletConfig", extraArgs = { "cloud-provider" = "external" } }),
+    yamlencode({ apiVersion = "v1alpha1", kind = "KubeAPIServerConfig", certExtraSANs = [aws_eip.controlplane[0].public_ip] }),
+    yamlencode({ apiVersion = "v1alpha1", kind = "KubeTalosAPIAccessConfig", allowedRoles = ["os:reader"], allowedKubernetesNamespaces = ["kube-system"] }),
+  ])
 }
 resource "aws_instance" "controlplane" {
   count                       = var.create_controlplane ? 1 : 0
