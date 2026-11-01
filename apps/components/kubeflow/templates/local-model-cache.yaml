@@ -73,7 +73,7 @@ spec:
     storageClassName: kserve-local-model
     persistentVolumeReclaimPolicy: Delete
     local:
-      path: /var/lib/kserve-localmodel
+      path: /var/lib/kubelet/kserve-localmodel
     nodeAffinity:
       required:
         nodeSelectorTerms:
@@ -162,7 +162,7 @@ spec:
       volumes:
         - name: models
           hostPath:
-            path: /var/lib/kserve-localmodel
+            path: /var/lib/kubelet/kserve-localmodel
             type: DirectoryOrCreate
 ---
 apiVersion: admissionregistration.k8s.io/v1
