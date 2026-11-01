@@ -8577,10 +8577,7 @@ webhooks:
       path: /mutate-pods
   failurePolicy: Fail
   name: inferenceservice.kserve-webhook-server.pod-mutator
-  namespaceSelector:
-    matchExpressions:
-    - key: control-plane
-      operator: DoesNotExist
+  namespaceSelector: {}
   objectSelector:
     matchExpressions:
     - key: serving.kserve.io/inferenceservice
