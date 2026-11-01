@@ -3,6 +3,8 @@ kind: Namespace
 metadata:
   labels:
     control-plane: kubeflow
+    katib.kubeflow.org/metrics-collector-injection: enabled
+    pipelines.kubeflow.org/enabled: "true"
     istio.io/dataplane-mode: ambient
     pod-security.kubernetes.io/enforce: restricted
   name: ml
