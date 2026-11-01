@@ -64,6 +64,8 @@ components:
     valueFilesByCluster:
       dev:
         - environments/dev/values.yaml
+      prod:
+        - environments/prod/values.yaml
   spark-operator:
     path: apps/components/spark-operator
     namespace: operators
