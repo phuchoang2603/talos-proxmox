@@ -5779,54 +5779,6 @@ spec:
           runAsNonRoot: true
           seccompProfile:
             type: RuntimeDefault
-      - args:
-        - --leader-elect
-        - --health-probe-bind-address=:9876
-        - --metrics-bind-address=0
-        command:
-        - /manager
-        - -userid-header
-        - $(USERID_HEADER)
-        - -userid-prefix
-        - $(USERID_PREFIX)
-        - -workload-identity
-        - $(WORKLOAD_IDENTITY)
-        envFrom:
-        - configMapRef:
-            name: profiles-config-5h9m86f79f
-        image: ghcr.io/kubeflow/dashboard/profile-controller:v2.0.0
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: 9876
-          initialDelaySeconds: 15
-          periodSeconds: 30
-          timeoutSeconds: 5
-        name: manager
-        ports:
-        - containerPort: 9876
-          name: http
-          protocol: TCP
-        readinessProbe:
-          httpGet:
-            path: /readyz
-            port: 9876
-          initialDelaySeconds: 5
-          periodSeconds: 10
-          timeoutSeconds: 5
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
-          runAsNonRoot: true
-          seccompProfile:
-            type: RuntimeDefault
-        volumeMounts:
-        - mountPath: /etc/profile-controller
-          name: namespace-labels
-          readOnly: true
       serviceAccountName: profiles-controller-service-account
       volumes:
       - configMap:

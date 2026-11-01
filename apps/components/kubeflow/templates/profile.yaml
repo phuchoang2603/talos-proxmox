@@ -34,3 +34,14 @@ subjects:
   - kind: ServiceAccount
     name: default-editor
     namespace: ml
+---
+apiVersion: kubeflow.org/v1
+kind: Profile
+metadata:
+  name: ml
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  owner:
+    kind: User
+    name: {{ .Values.profile.ownerEmail | quote }}
