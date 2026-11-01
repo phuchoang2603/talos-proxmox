@@ -1,8 +1,36 @@
-apiVersion: kubeflow.org/v1
-kind: Profile
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
 metadata:
-  name: ml
-spec:
-  owner:
-    kind: User
+  name: namespace-owner
+  namespace: ml
+  annotations:
+    user: {{ .Values.profile.ownerEmail | quote }}
+    role: admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubeflow-admin
+subjects:
+  - kind: User
+    apiGroup: rbac.authorization.k8s.io
     name: {{ .Values.profile.ownerEmail | quote }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: default-editor
+  namespace: ml
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: default-editor
+  namespace: ml
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubeflow-edit
+subjects:
+  - kind: ServiceAccount
+    name: default-editor
+    namespace: ml
