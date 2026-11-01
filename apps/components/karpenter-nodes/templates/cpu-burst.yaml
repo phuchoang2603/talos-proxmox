@@ -22,6 +22,10 @@ spec:
         name: aws-cpu
       expireAfter: {{ .Values.nodePool.expireAfter }}
       terminationGracePeriod: {{ .Values.nodePool.terminationGracePeriod }}
+      {{- with .Values.cpuBurst.taints }}
+      taints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       startupTaints:
         - key: node.cloudprovider.kubernetes.io/uninitialized
           value: "true"

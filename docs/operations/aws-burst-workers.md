@@ -6,11 +6,21 @@ Both environments have independent AWS worker pools. Dev has fixed Proxmox VMs a
 
 ## Schedule a workload
 
-Ordinary workloads may use any eligible node, including EBS-backed workloads. No stateless admission restriction or CPU worker taint exists. To require a Karpenter CPU worker, use this Pod selector and declare container CPU/memory requests:
+Ordinary workloads may use any eligible node, including EBS-backed workloads. Prod CPU workers have no permanent taint. Dev CPU burst nodes carry `burst.talos.dev/cpu-burst=true:NoSchedule`; only workloads with a matching toleration may use them. Dev bucket-dependent workloads must remain on home nodes because the AWS burst nodes cannot reach the private MinIO endpoint. To require a Karpenter CPU worker, use this Pod selector and declare container CPU/memory requests:
 
 ```yaml
 nodeSelector:
   karpenter.sh/nodepool: aws-cpu-burst
+```
+
+For dev, also add this Pod toleration:
+
+```yaml
+tolerations:
+  - key: burst.talos.dev/cpu-burst
+    operator: Equal
+    value: "true"
+    effect: NoSchedule
 ```
 
 Spark job definitions are owned by the application repository; installing the Spark operator starts no jobs. Dev enables only the demand-driven CPU pool; its controller stays on the Proxmox control plane. Prod maintains two On-Demand `m6a.xlarge` CPU workers in `aws-workers` even when idle. The demand-driven `aws-cpu-burst` pool accepts `large` and `xlarge` instances from the C5–C7, M5–M7 and R5–R7 x86 families, including AMD variants. Prod permits up to twelve Spot workers within 48 vCPUs and 192 GiB RAM; dev retains its 4-vCPU/16-GiB bound. Idle/underutilized burst capacity consolidates after five minutes. Both pools share the `aws-cpu` EC2NodeClass and the same Karpenter controller. The baseline permits one extra worker during replacement. Select the burst pool explicitly only when a job must run on Spot.
