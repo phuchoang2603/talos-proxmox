@@ -3,6 +3,10 @@ argo-workflows:
   crds:
     full: true
   controller:
+    workflowDefaults:
+      spec:
+        nodeSelector:
+          karpenter.sh/nodepool: aws-cpu-burst
     workflowNamespaces:
       - ml
       - data
@@ -12,6 +16,17 @@ argo-workflows:
         memory: 256Mi
       limits:
         memory: 1Gi
+  executor:
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: [ALL]
+      runAsNonRoot: true
+      seccompProfile:
+        type: RuntimeDefault
+    resources:
+      requests: {cpu: 10m, memory: 64Mi}
+      limits: {memory: 256Mi}
   server:
     enabled: true
     replicas: 1
