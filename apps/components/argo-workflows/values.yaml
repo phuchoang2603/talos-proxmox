@@ -22,6 +22,8 @@ argo-workflows:
       capabilities:
         drop: [ALL]
       runAsNonRoot: true
+      runAsUser: 8737
+      runAsGroup: 8737
       seccompProfile:
         type: RuntimeDefault
     resources:
