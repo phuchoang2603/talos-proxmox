@@ -1,0 +1,21 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: trainer-runtimes-reader
+rules:
+  - apiGroups: [trainer.kubeflow.org]
+    resources: [clustertrainingruntimes]
+    verbs: [get, list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ml-fraud-training-runtimes-reader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: trainer-runtimes-reader
+subjects:
+  - kind: ServiceAccount
+    name: fraud-training
+    namespace: ml

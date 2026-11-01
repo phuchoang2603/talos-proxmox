@@ -412,6 +412,7 @@ data:
     init:
       controller:
         webhookPort: 8443
+        injectSecurityContext: true
         trialResources:
           - TrainJob.v1alpha1.trainer.kubeflow.org
           - Job.v1.batch
