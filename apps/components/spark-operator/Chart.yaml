@@ -1,6 +1,6 @@
 apiVersion: v2
 name: platform-spark-operator
-description: Apache Spark Kubernetes Operator scoped to the fraud data namespace
+description: Apache Spark Kubernetes Operator scoped to data and ML workload namespaces
 type: application
 version: 0.1.0
 dependencies:
