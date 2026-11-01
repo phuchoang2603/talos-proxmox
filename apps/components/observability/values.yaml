@@ -61,6 +61,19 @@ victoria-metrics-k8s-stack:
     victoriatraces:
       datasources: []
     extra:
+      - name: ClickHouse marts
+        uid: clickhouse-marts
+        type: grafana-clickhouse-datasource
+        access: proxy
+        jsonData:
+          host: clickhouse.data.svc.cluster.local
+          port: 9000
+          protocol: native
+          secure: false
+          username: grafana
+          defaultDatabase: marts
+        secureJsonData:
+          password: $CLICKHOUSE_GRAFANA_PASSWORD
       - name: VictoriaTraces
         type: tempo
         access: proxy
@@ -81,12 +94,17 @@ victoria-metrics-k8s-stack:
     fullnameOverride: grafana
     sidecar:
       dashboards:
-        searchNamespace: [observability, llm]
+        searchNamespace: [observability, llm, data]
+        folderAnnotation: grafana_folder
+        provider:
+          foldersFromFilesStructure: true
     admin:
       existingSecret: grafana-admin
       userKey: admin-user
       passwordKey: admin-password
     envFromSecret: grafana-oidc
+    envFromSecrets:
+      - name: grafana-clickhouse
     service:
       type: ClusterIP
     persistence:
@@ -102,6 +120,7 @@ victoria-metrics-k8s-stack:
       limits:
         memory: 1Gi
     plugins:
+      - grafana-clickhouse-datasource@4.23.3
       - victoriametrics-metrics-datasource
       - victoriametrics-logs-datasource
     grafana.ini:
