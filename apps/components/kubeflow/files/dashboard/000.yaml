@@ -5729,7 +5729,7 @@ spec:
   template:
     metadata:
       annotations:
-        kubectl.kubernetes.io/default-container: manager
+        kubectl.kubernetes.io/default-container: access-management
       labels:
         app: profile-controller
         app.kubernetes.io/component: controller-manager

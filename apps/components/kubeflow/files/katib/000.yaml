@@ -979,6 +979,10 @@ webhooks:
   - expression: request.userInfo.username != "system:serviceaccount:kubeflow:katib-controller"
     name: exclude-katib-controller
   name: mutator.pod.katib.kubeflow.org
+  objectSelector:
+    matchExpressions:
+    - key: katib.kubeflow.org/trial
+      operator: Exists
   namespaceSelector:
     matchLabels:
       katib.kubeflow.org/metrics-collector-injection: enabled
