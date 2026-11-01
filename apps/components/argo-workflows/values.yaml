@@ -3,10 +3,6 @@ argo-workflows:
   crds:
     full: true
   controller:
-    workflowDefaults:
-      spec:
-        nodeSelector:
-          karpenter.sh/nodepool: aws-cpu-burst
     workflowNamespaces:
       - ml
       - data
