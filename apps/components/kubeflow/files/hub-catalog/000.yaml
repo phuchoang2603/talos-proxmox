@@ -2701,26 +2701,6 @@ spec:
     app.kubernetes.io/part-of: model-catalog
   type: ClusterIP
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app.kubernetes.io/component: database
-    app.kubernetes.io/name: model-catalog
-    app.kubernetes.io/part-of: model-catalog
-  name: model-catalog-postgres
-  namespace: ml
-spec:
-  ports:
-  - name: postgres
-    port: 5432
-    protocol: TCP
-  selector:
-    app.kubernetes.io/component: database
-    app.kubernetes.io/name: postgres
-    app.kubernetes.io/part-of: model-catalog
-  type: ClusterIP
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -2757,17 +2737,23 @@ spec:
         - catalog
         env:
         - name: PGHOST
-          value: model-catalog-postgres
+          value: kubeflow-catalog-db-rw.ml.svc
+        - name: PGDATABASE
+          value: catalog
+        - name: PGSSLMODE
+          value: verify-full
+        - name: PGSSLROOTCERT
+          value: /etc/db-ca/ca.crt
         - name: PGUSER
           valueFrom:
             secretKeyRef:
-              key: POSTGRES_USER
-              name: model-catalog-postgres
+              key: username
+              name: kubeflow-catalog-db-credentials
         - name: PGPASSWORD
           valueFrom:
             secretKeyRef:
-              key: POSTGRES_PASSWORD
-              name: model-catalog-postgres
+              key: password
+              name: kubeflow-catalog-db-credentials
         - name: HF_API_KEY
           valueFrom:
             secretKeyRef:
@@ -2797,6 +2783,9 @@ spec:
             drop:
             - ALL
         volumeMounts:
+        - mountPath: /etc/db-ca
+          name: db-ca
+          readOnly: true
         - mountPath: /perf-data
           name: perf-data
         - mountPath: /catalog
@@ -2832,6 +2821,9 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       volumes:
+      - name: db-ca
+        secret:
+          secretName: kubeflow-catalog-db-ca
       - configMap:
           name: model-catalog-demo-perf-data
         name: demo-perf-data
@@ -2850,56 +2842,3 @@ spec:
         secret:
           optional: true
           secretName: skill-catalog-git-credentials
----
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  labels:
-    component: model-catalog-server
-  name: model-catalog-postgres
-  namespace: ml
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: postgres
-      app.kubernetes.io/part-of: model-catalog
-  template:
-    metadata:
-      labels:
-        app.kubernetes.io/component: database
-        app.kubernetes.io/name: postgres
-        app.kubernetes.io/part-of: model-catalog
-        sidecar.istio.io/inject: "false"
-      name: postgres
-    spec:
-      containers:
-      - env:
-        - name: PGDATA
-          value: /var/lib/postgresql/data/pgdata
-        envFrom:
-        - secretRef:
-            name: model-catalog-postgres
-        image: postgres:17.6
-        name: postgres
-        ports:
-        - containerPort: 5432
-          name: postgres
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
-          runAsGroup: 70
-          runAsUser: 70
-        volumeMounts:
-        - mountPath: /var/lib/postgresql/data
-          name: model-catalog-postgres
-      securityContext:
-        fsGroup: 70
-        runAsNonRoot: true
-        seccompProfile:
-          type: RuntimeDefault
-      volumes:
-      - emptyDir: {}
-        name: model-catalog-postgres

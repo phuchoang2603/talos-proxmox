@@ -1,4 +1,7 @@
 argo-cd:
+  controller:
+    nodeSelector:
+      karpenter.sh/nodepool: aws-workers
   configs:
     cm:
       url: https://argocd.phuchoang.sbs
