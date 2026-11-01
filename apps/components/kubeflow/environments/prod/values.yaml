@@ -6,3 +6,7 @@ objectStorage:
   forcePathStyle: false
 databaseNodeSelector:
   karpenter.sh/capacity-type: on-demand
+localModel:
+  nodeSelector:
+    kubernetes.io/hostname: null
+    karpenter.sh/nodepool: aws-gpu-training

@@ -7039,8 +7039,8 @@ data:
     }
   localModel: |-
     {
-      "enabled": false,
-      "jobNamespace": "ml",
+      "enabled": true,
+      "jobNamespace": "kserve-localmodel",
       "defaultJobImage" : "kserve/storage-initializer:v0.21.0",
       "fsGroup": 1000,
       "jobTTLSecondsAfterFinished": 3600,

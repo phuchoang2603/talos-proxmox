@@ -1,0 +1,264 @@
+{{- if .Values.localModel.enabled }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kserve-localmodel
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kserve-localmodel-download
+  namespace: kserve-localmodel
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kserve-localmodelnode-agent
+  namespace: kserve-localmodel
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kserve-localmodelnode-agent
+rules:
+  - apiGroups: [""]
+    resources: [nodes, nodes/status]
+    verbs: [get, list, watch]
+  - apiGroups: [serving.kserve.io]
+    resources: [clusterstoragecontainers, localmodelnodegroups]
+    verbs: [get, list, watch]
+  - apiGroups: [serving.kserve.io]
+    resources: [localmodelnodes, localmodelnodes/status]
+    verbs: [create, delete, get, list, patch, update, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kserve-localmodelnode-agent
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kserve-localmodelnode-agent
+subjects:
+  - kind: ServiceAccount
+    name: kserve-localmodelnode-agent
+    namespace: kserve-localmodel
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: kserve-local-model
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Delete
+---
+apiVersion: serving.kserve.io/v1alpha1
+kind: LocalModelNodeGroup
+metadata:
+  name: llm-gpu
+spec:
+  storageLimit: {{ .Values.localModel.storageLimit }}
+  persistentVolumeSpec:
+    accessModes: [ReadWriteOnce]
+    capacity:
+      storage: {{ .Values.localModel.storageLimit }}
+    storageClassName: kserve-local-model
+    persistentVolumeReclaimPolicy: Delete
+    local:
+      path: /var/lib/kserve-localmodel
+    nodeAffinity:
+      required:
+        nodeSelectorTerms:
+          - matchExpressions:
+            {{- range $key, $value := .Values.localModel.nodeSelector }}
+              - key: {{ $key }}
+                operator: In
+                values: [{{ $value | quote }}]
+            {{- end }}
+  persistentVolumeClaimSpec:
+    accessModes: [ReadWriteOnce]
+    storageClassName: kserve-local-model
+    resources:
+      requests:
+        storage: {{ .Values.localModel.storageLimit }}
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kserve-localmodelnode-agent
+  namespace: kserve-localmodel
+spec:
+  selector:
+    matchLabels:
+      app: kserve-localmodelnode-agent
+  template:
+    metadata:
+      labels:
+        app: kserve-localmodelnode-agent
+    spec:
+      nodeSelector:
+        {{- toYaml .Values.localModel.nodeSelector | nindent 8 }}
+      tolerations:
+        - key: burst.talos.dev/gpu-training
+          operator: Equal
+          value: "true"
+          effect: NoSchedule
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+      serviceAccountName: kserve-localmodelnode-agent
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: prepare-cache
+          image: busybox:1.37.0
+          command: [sh, -c, "mkdir -p /cache/models && chown 1000:1000 /cache /cache/models"]
+          securityContext:
+            runAsUser: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+              add: [CHOWN]
+          resources:
+            requests: {cpu: 10m, memory: 16Mi}
+            limits: {memory: 32Mi}
+          volumeMounts:
+            - name: models
+              mountPath: /cache
+      containers:
+        - name: agent
+          image: kserve/kserve-localmodelnode-agent:v0.21.0
+          command: [/manager]
+          env:
+            - name: POD_NAMESPACE
+              value: ml
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests: {cpu: 50m, memory: 100Mi}
+            limits: {cpu: 200m, memory: 300Mi}
+          volumeMounts:
+            - name: models
+              mountPath: /mnt/models
+      volumes:
+        - name: models
+          hostPath:
+            path: /var/lib/kserve-localmodel
+            type: DirectoryOrCreate
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: kserve-localmodel-download
+spec:
+  failurePolicy: Fail
+  reinvocationPolicy: Never
+  matchConstraints:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kserve-localmodel
+    objectSelector:
+      matchExpressions:
+        - key: model
+          operator: Exists
+        - key: node
+          operator: Exists
+    resourceRules:
+      - apiGroups: [batch]
+        apiVersions: [v1]
+        operations: [CREATE]
+        resources: [jobs]
+  mutations:
+    - patchType: JSONPatch
+      jsonPatch:
+        expression: >-
+          [JSONPatch{op: "add", path: "/spec/template/spec/serviceAccountName", value: "kserve-localmodel-download"},
+           JSONPatch{op: "add", path: "/spec/template/spec/automountServiceAccountToken", value: false},
+           JSONPatch{op: "add", path: "/spec/template/spec/securityContext", value: {"runAsNonRoot": dyn(true), "runAsUser": dyn(1000), "runAsGroup": dyn(1000), "fsGroup": dyn(1000), "seccompProfile": dyn({"type": "RuntimeDefault"})}},
+           JSONPatch{op: "add", path: "/spec/template/spec/containers/0/securityContext", value: {"allowPrivilegeEscalation": dyn(false), "capabilities": dyn({"drop": ["ALL"]})}},
+           JSONPatch{op: "add", path: "/spec/template/spec/containers/0/resources", value: {"requests": {"cpu": "100m", "memory": "256Mi"}, "limits": {"cpu": "1", "memory": "1Gi"}}},
+           JSONPatch{op: "add", path: "/spec/template/spec/tolerations", value: [
+             {"key": "burst.talos.dev/gpu-training", "operator": "Equal", "value": "true", "effect": "NoSchedule"},
+             {"key": "node-role.kubernetes.io/control-plane", "operator": "Exists", "effect": "NoSchedule"}]}]
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: kserve-localmodel-download
+spec:
+  policyName: kserve-localmodel-download
+{{- end }}
+
+{{- if .Values.localModel.enabled }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kserve-localmodelnode-agent
+  namespace: kserve-localmodel
+rules:
+  - apiGroups: [batch]
+    resources: [jobs]
+    verbs: [create, delete, get, list, patch, update, watch]
+  - apiGroups: [batch]
+    resources: [jobs/status]
+    verbs: [get]
+  - apiGroups: [""]
+    resources: [secrets, serviceaccounts]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kserve-localmodelnode-agent
+  namespace: kserve-localmodel
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kserve-localmodelnode-agent
+subjects:
+  - kind: ServiceAccount
+    name: kserve-localmodelnode-agent
+    namespace: kserve-localmodel
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kserve-localmodelnode-config
+  namespace: ml
+rules:
+  - apiGroups: [""]
+    resources: [configmaps]
+    resourceNames: [inferenceservice-config]
+    verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kserve-localmodelnode-config
+  namespace: ml
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kserve-localmodelnode-config
+subjects:
+  - kind: ServiceAccount
+    name: kserve-localmodelnode-agent
+    namespace: kserve-localmodel
+{{- end }}

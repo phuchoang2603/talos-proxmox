@@ -34,3 +34,9 @@ kserve-runtime-configs:
 
 profile:
   ownerEmail: xuanphuc.a1gv@gmail.com
+
+localModel:
+  enabled: true
+  storageLimit: 40Gi
+  nodeSelector:
+    kubernetes.io/hostname: dev-server1
