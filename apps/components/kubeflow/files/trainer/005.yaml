@@ -25,7 +25,6 @@ spec:
                 restartPolicy: Never
                 nodeSelector:
                   karpenter.sh/nodepool: aws-gpu-training
-                  karpenter.sh/capacity-type: spot
                   burst.talos.dev/compute: aws
                   burst.talos.dev/workload: gpu-training
                 tolerations:

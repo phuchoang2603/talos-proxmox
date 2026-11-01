@@ -1,0 +1,71 @@
+apiVersion: trainer.kubeflow.org/v1alpha1
+kind: ClusterTrainingRuntime
+metadata:
+  labels:
+    trainer.kubeflow.org/framework: xgboost
+  name: xgboost-gpu-distributed
+spec:
+  mlPolicy:
+    numNodes: 2
+    xgboost: {}
+  template:
+    spec:
+      replicatedJobs:
+      - name: node
+        template:
+          metadata:
+            labels:
+              trainer.kubeflow.org/trainjob-ancestor-step: trainer
+          spec:
+            backoffLimit: 0
+            template:
+              spec:
+                restartPolicy: Never
+                nodeSelector:
+                  karpenter.sh/nodepool: aws-gpu-training
+                  burst.talos.dev/compute: aws
+                  burst.talos.dev/workload: gpu-training
+                tolerations:
+                - key: burst.talos.dev/gpu-training
+                  operator: Equal
+                  value: 'true'
+                  effect: NoSchedule
+                resourceClaims:
+                - name: gpu
+                  resourceClaimTemplateName: aws-gpu-training
+                containers:
+                - image: ghcr.io/kubeflow/trainer/xgboost-runtime:v2.3.0
+                  name: node
+                  resources:
+                    claims:
+                    - name: gpu
+                    requests:
+                      cpu: '1'
+                      memory: 2Gi
+                    limits:
+                      cpu: '3'
+                      memory: 8Gi
+                  securityContext:
+                    allowPrivilegeEscalation: false
+                    capabilities:
+                      drop:
+                      - ALL
+                  env:
+                  - name: NCCL_SOCKET_IFNAME
+                    value: eth0
+                  - name: NCCL_IB_DISABLE
+                    value: '1'
+                securityContext:
+                  runAsNonRoot: true
+                  runAsUser: 1000
+                  runAsGroup: 1000
+                  seccompProfile:
+                    type: RuntimeDefault
+                affinity:
+                  podAntiAffinity:
+                    requiredDuringSchedulingIgnoredDuringExecution:
+                    - labelSelector:
+                        matchExpressions:
+                        - key: jobset.sigs.k8s.io/jobset-name
+                          operator: Exists
+                      topologyKey: kubernetes.io/hostname

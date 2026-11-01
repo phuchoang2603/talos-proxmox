@@ -3,10 +3,10 @@ nodePool:
   limits: {nodes: "3"}
 gpu:
   enabled: true
-  capacityTypes: [spot]
+  capacityTypes: [spot, on-demand]
   zones: [us-east-1a]
   instanceTypes: [g6.xlarge]
-  limits: {nodes: "1", cpu: "4", memory: 16Gi}
+  limits: {nodes: "2", cpu: "8", memory: 32Gi}
   expireAfter: Never
 cpuBurst:
   limits: {nodes: "12", cpu: "48", memory: 192Gi}

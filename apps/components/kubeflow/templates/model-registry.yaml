@@ -1,0 +1,49 @@
+apiVersion: serving.kserve.io/v1alpha1
+kind: ClusterStorageContainer
+metadata:
+  name: model-registry-storage-initializer
+spec:
+  container:
+    name: storage-initializer
+    image: ghcr.io/kubeflow/hub/storage-initializer:v0.3.17
+    env:
+      - name: MODEL_REGISTRY_BASE_URL
+        value: model-registry-service.ml.svc.cluster.local:8080
+      - name: ALLOWED_ARTIFACT_URI_PREFIXES
+        value: {{ printf "s3://%s/" .Values.objectStorage.bucket | quote }}
+    resources:
+      requests: {cpu: 100m, memory: 100Mi}
+      limits: {memory: 1Gi}
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: [ALL]
+  supportedUriFormats:
+    - prefix: model-registry://
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: model-registry-service
+  namespace: ml
+spec:
+  selector:
+    matchLabels:
+      component: model-registry-server
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            namespaces: [ml]
+      to:
+        - operation:
+            ports: ["8080"]
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account
+      to:
+        - operation:
+            ports: ["8080"]

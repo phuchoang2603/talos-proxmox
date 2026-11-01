@@ -61,3 +61,59 @@ spec:
   storage:
     storageClass: {{ .Values.storageClass | quote }}
     size: 10Gi
+
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+  name: kubeflow-registry-db
+  namespace: ml
+spec:
+  instances: 1
+  {{- with .Values.databaseNodeSelector }}
+  affinity:
+    nodeSelector:
+      {{- toYaml . | nindent 6 }}
+  {{- end }}
+  resources:
+    requests: {cpu: 50m, memory: 256Mi}
+    limits: {memory: 1Gi}
+  bootstrap:
+    initdb:
+      database: registry
+      owner: registry
+      secret:
+        name: kubeflow-registry-db-credentials
+  storage:
+    storageClass: {{ .Values.storageClass | quote }}
+    size: 10Gi
+
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+  name: kubeflow-catalog-db
+  namespace: ml
+spec:
+  instances: 1
+  {{- with .Values.databaseNodeSelector }}
+  affinity:
+    nodeSelector:
+      {{- toYaml . | nindent 6 }}
+  {{- end }}
+  resources:
+    requests: {cpu: 50m, memory: 256Mi}
+    limits: {memory: 1Gi}
+  bootstrap:
+    initdb:
+      database: catalog
+      owner: catalog
+      secret:
+        name: kubeflow-catalog-db-credentials
+  storage:
+    storageClass: {{ .Values.storageClass | quote }}
+    size: 10Gi

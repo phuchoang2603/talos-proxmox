@@ -11,6 +11,7 @@ components:
   kserve: true
   kserve-ui: true
   hub-catalog: true
+  hub-registry: true
 
 tunnel:
   clusterTunnel: talos-proxmox
@@ -30,3 +31,6 @@ kserve-runtime-configs:
       enabled: true
     servingruntime:
       enabled: false
+
+profile:
+  ownerEmail: xuanphuc.a1gv@gmail.com
