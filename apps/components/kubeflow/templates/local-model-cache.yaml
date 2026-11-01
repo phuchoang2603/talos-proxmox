@@ -26,6 +26,9 @@ kind: ClusterRole
 metadata:
   name: kserve-localmodelnode-agent
 rules:
+  - apiGroups: [batch]
+    resources: [jobs]
+    verbs: [get, list, watch]
   - apiGroups: [""]
     resources: [nodes, nodes/status]
     verbs: [get, list, watch]
