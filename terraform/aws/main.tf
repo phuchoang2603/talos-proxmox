@@ -8,6 +8,8 @@ locals {
   }, var.enable_spot ? { spot = { min = 0, max = var.spot_max, spot = true } } : {})
   cloud_patches = [
     yamlencode({ apiVersion = "v1alpha1", kind = "KubeletConfig", extraArgs = { "cloud-provider" = "external" } }),
+  ]
+  controlplane_cloud_patches = [
     yamlencode({ apiVersion = "v1alpha1", kind = "KubeTalosAPIAccessConfig", allowedRoles = ["os:reader"], allowedKubernetesNamespaces = ["kube-system"] }),
   ]
 }
