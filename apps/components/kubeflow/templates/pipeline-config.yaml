@@ -212,6 +212,8 @@ spec:
               name: mlpipeline-minio-artifact
         - name: COMPILED_PIPELINE_SPEC_PATCH
           value: '{}'
+        - name: ALLOWEDSERVICEACCOUNTS
+          value: fraud-training
         - name: DEFAULT_SECURITY_CONTEXT_RUN_AS_USER
           valueFrom:
             configMapKeyRef:
