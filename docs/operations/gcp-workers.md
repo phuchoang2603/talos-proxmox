@@ -27,7 +27,7 @@ Check pending pod events, quota/capacity, GCE provider IDs, Talos CCM, Cilium an
 
 ## Object storage
 
-Production uses `talos-proxmox-prod-training`, `-artifacts`, `-backups`, `-substrate` and `-gateway` buckets. Each consumer's HMAC key has access only to its own bucket. `OBJECT_STORAGE_BUCKET` points to training; `OBJECT_<PURPOSE>_BUCKET` identifies each purpose. Foundation publishes gateway bucket/endpoint/region and credentials to application Doppler `prd`. Application repositories must consume these updated settings; platform changes alone do not migrate their runtime configurations or restore deleted AWS data.
+Production uses three buckets: `talos-proxmox-prod-platform`, shared by training and the gateway, plus `-artifacts` and `-substrate`. There is no backups bucket. Each consumer has its own HMAC key, and training and the gateway both have object admin on the shared bucket. `OBJECT_STORAGE_BUCKET` names the shared bucket; `OBJECT_ARTIFACTS_BUCKET` and `OBJECT_SUBSTRATE_BUCKET` name the others. The gateway's application repository holds its own copy of the gateway credentials, bucket and endpoint in its Doppler project; platform changes alone do not migrate its runtime configuration or restore deleted AWS data.
 
 Use GCP endpoint `https://storage.googleapis.com`, signing region `auto` and path-style addressing. Do not use S3 object tagging or assume every S3 API is available. Run objects have no automatic expiry; keep explicit completed-run cleanup in the owning application. Dev retains MinIO and its existing externally provisioned credentials and policies. The payment gateway continues to own Polaris and its PostgreSQL catalog; external data and artifacts must be restored from available backups before jobs can use them.
 

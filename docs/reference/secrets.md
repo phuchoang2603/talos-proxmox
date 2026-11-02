@@ -35,8 +35,8 @@ The foundation root accepts a sensitive `operator_secrets` map keyed by environm
 | `CLOUD_PROVIDER` | Foundation | CI and platform select GCP or AWS |
 | `GRAFANA_ADMIN_PASSWORD` (both environments) | Operator | Grafana local admin login |
 | Application/database passwords, OIDC client secrets, signing keys and catalog credentials | Operator | Entered by hand per environment |
-| `OBJECT_<PURPOSE>_ACCESS_KEY_ID`, `OBJECT_<PURPOSE>_SECRET_ACCESS_KEY` (prod) | Foundation | Separate GCS HMAC or S3 IAM identities/buckets for training, artifacts, backups, substrate and gateway; dev MinIO credentials remain externally provisioned |
-| `OBJECT_STORAGE_BUCKET`, `OBJECT_<PURPOSE>_BUCKET` (prod) | Foundation | Training bucket alias and separate purpose buckets |
+| `OBJECT_<PURPOSE>_ACCESS_KEY_ID`, `OBJECT_<PURPOSE>_SECRET_ACCESS_KEY` (prod) | Foundation | Separate GCS HMAC or S3 IAM identities for training, artifacts, substrate and gateway; dev MinIO credentials remain externally provisioned |
+| `OBJECT_STORAGE_BUCKET`, `OBJECT_<PURPOSE>_BUCKET` (prod) | Foundation | Shared training/gateway bucket alias and the artifacts and substrate buckets |
 | `OBJECT_STORAGE_ENDPOINT`, `OBJECT_STORAGE_REGION` (prod) | Foundation | Selected cloud object-storage endpoint and signing region |
 
 Foundation generates production object-storage credentials, so they survive environment destroys. HCP state access and the scoped Cloudflare API token may be shared. Tunnel tokens remain specific to each existing tunnel; cluster, autoscaler, ESO and application credentials remain independent. Do not restore kubeconfigs, Talos bootstrap material, image IDs or controller credentials belonging to deleted resources.

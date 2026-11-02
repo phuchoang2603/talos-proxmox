@@ -6,7 +6,7 @@ resource "google_service_account" "objects" {
 
 resource "google_storage_bucket_iam_member" "objects" {
   for_each = local.object_consumers
-  bucket   = google_storage_bucket.objects[each.key].name
+  bucket   = google_storage_bucket.objects[each.value].name
   role     = "roles/storage.objectAdmin"
   member   = "serviceAccount:${google_service_account.objects[each.key].email}"
 }
@@ -18,12 +18,13 @@ resource "google_storage_hmac_key" "objects" {
 
 locals {
   object_secret_values = merge({
-    OBJECT_STORAGE_BUCKET   = google_storage_bucket.objects["training"].name
+    OBJECT_STORAGE_BUCKET   = google_storage_bucket.objects["platform"].name
     OBJECT_STORAGE_ENDPOINT = "https://storage.googleapis.com"
     OBJECT_STORAGE_REGION   = "auto"
-    }, [for consumer in local.object_consumers : {
+    }, [for consumer, bucket in local.object_consumers : merge({
       "OBJECT_${upper(consumer)}_ACCESS_KEY_ID"     = google_storage_hmac_key.objects[consumer].access_id
       "OBJECT_${upper(consumer)}_SECRET_ACCESS_KEY" = google_storage_hmac_key.objects[consumer].secret
-      "OBJECT_${upper(consumer)}_BUCKET"            = google_storage_bucket.objects[consumer].name
-  }]...)
+      }, bucket == "platform" ? {} : {
+      "OBJECT_${upper(consumer)}_BUCKET" = google_storage_bucket.objects[bucket].name
+  })]...)
 }
