@@ -66,8 +66,10 @@ resource "google_compute_instance_group_manager" "worker" {
   target_size        = each.value.min
   version { instance_template = google_compute_instance_template.worker[each.key].self_link_unique }
   update_policy {
-    type           = "OPPORTUNISTIC"
-    minimal_action = "REPLACE"
+    type                  = "OPPORTUNISTIC"
+    minimal_action        = "REPLACE"
+    max_surge_fixed       = 0
+    max_unavailable_fixed = 1
   }
   lifecycle {
     ignore_changes = [target_size]
