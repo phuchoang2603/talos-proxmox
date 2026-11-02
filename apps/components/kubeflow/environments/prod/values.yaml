@@ -10,5 +10,15 @@ localModel:
   nodeSelector:
     kubernetes.io/hostname: null
     karpenter.sh/nodepool: aws-gpu-training
-localGpuTraining:
-  enabled: false
+gpuTraining:
+  numNodes: 2
+  nodeSelector:
+    nvidia.com/gpu.present: null
+    karpenter.sh/nodepool: aws-gpu-training
+    burst.talos.dev/compute: aws
+    burst.talos.dev/workload: gpu-training
+  tolerations:
+  - key: burst.talos.dev/gpu-training
+    operator: Equal
+    value: 'true'
+    effect: NoSchedule

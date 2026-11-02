@@ -35,8 +35,11 @@ kserve-runtime-configs:
 profile:
   ownerEmail: xuanphuc.a1gv@gmail.com
 
-localGpuTraining:
-  enabled: true
+gpuTraining:
+  numNodes: 1
+  nodeSelector:
+    nvidia.com/gpu.present: 'true'
+  tolerations: []
 
 localModel:
   enabled: true

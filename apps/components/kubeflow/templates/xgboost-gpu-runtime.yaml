@@ -1,13 +1,13 @@
-{{- if .Values.localGpuTraining.enabled }}
+{{- if .Values.components.trainer }}
 apiVersion: trainer.kubeflow.org/v1alpha1
 kind: ClusterTrainingRuntime
 metadata:
   labels:
     trainer.kubeflow.org/framework: xgboost
-  name: xgboost-gpu-local
+  name: xgboost-gpu-distributed
 spec:
   mlPolicy:
-    numNodes: 1
+    numNodes: {{ .Values.gpuTraining.numNodes }}
     xgboost: {}
   template:
     spec:
@@ -23,7 +23,11 @@ spec:
               spec:
                 restartPolicy: Never
                 nodeSelector:
-                  nvidia.com/gpu.present: 'true'
+                  {{- toYaml .Values.gpuTraining.nodeSelector | nindent 18 }}
+                {{- with .Values.gpuTraining.tolerations }}
+                tolerations:
+                  {{- toYaml . | nindent 18 }}
+                {{- end }}
                 resourceClaims:
                 - name: gpu
                   resourceClaimTemplateName: aws-gpu-training
@@ -44,7 +48,23 @@ spec:
                     capabilities:
                       drop:
                       - ALL
+                  env:
+                  - name: NCCL_SOCKET_IFNAME
+                    value: eth0
+                  - name: NCCL_IB_DISABLE
+                    value: '1'
                 securityContext:
                   runAsNonRoot: true
                   runAsUser: 1000
+                  runAsGroup: 1000
+                  seccompProfile:
+                    type: RuntimeDefault
+                affinity:
+                  podAntiAffinity:
+                    requiredDuringSchedulingIgnoredDuringExecution:
+                    - labelSelector:
+                        matchExpressions:
+                        - key: jobset.sigs.k8s.io/jobset-name
+                          operator: Exists
+                      topologyKey: kubernetes.io/hostname
 {{- end }}
