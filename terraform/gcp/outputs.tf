@@ -17,5 +17,5 @@ output "controller_keys" {
 }
 
 output "autoscaler_groups" {
-  value = [for name, pool in local.pools : "${pool.min}:${pool.max}:${google_compute_instance_group_manager.worker[name].self_link}"]
+  value = [for name, pool in local.pools : "${pool.min}:${pool.max}:${google_compute_instance_group_manager.worker[name].instance_group}"]
 }
