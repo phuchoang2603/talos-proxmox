@@ -53,7 +53,7 @@ resource "google_compute_instance_template" "worker" {
     preemptible                 = each.value.spot
     automatic_restart           = !each.value.spot
     on_host_maintenance         = each.value.spot ? "TERMINATE" : "MIGRATE"
-    instance_termination_action = each.value.spot ? "DELETE" : null
+    instance_termination_action = each.value.spot ? "STOP" : null
   }
   lifecycle { create_before_destroy = true }
 }
