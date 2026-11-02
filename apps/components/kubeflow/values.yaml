@@ -35,6 +35,9 @@ kserve-runtime-configs:
 profile:
   ownerEmail: xuanphuc.a1gv@gmail.com
 
+localGpuTraining:
+  enabled: true
+
 localModel:
   enabled: true
   storageLimit: 40Gi

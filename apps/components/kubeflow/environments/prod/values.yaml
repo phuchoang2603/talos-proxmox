@@ -10,3 +10,5 @@ localModel:
   nodeSelector:
     kubernetes.io/hostname: null
     karpenter.sh/nodepool: aws-gpu-training
+localGpuTraining:
+  enabled: false

@@ -1,0 +1,50 @@
+{{- if .Values.localGpuTraining.enabled }}
+apiVersion: trainer.kubeflow.org/v1alpha1
+kind: ClusterTrainingRuntime
+metadata:
+  labels:
+    trainer.kubeflow.org/framework: xgboost
+  name: xgboost-gpu-local
+spec:
+  mlPolicy:
+    numNodes: 1
+    xgboost: {}
+  template:
+    spec:
+      replicatedJobs:
+      - name: node
+        template:
+          metadata:
+            labels:
+              trainer.kubeflow.org/trainjob-ancestor-step: trainer
+          spec:
+            backoffLimit: 0
+            template:
+              spec:
+                restartPolicy: Never
+                nodeSelector:
+                  nvidia.com/gpu.present: 'true'
+                resourceClaims:
+                - name: gpu
+                  resourceClaimTemplateName: aws-gpu-training
+                containers:
+                - image: ghcr.io/kubeflow/trainer/xgboost-runtime:v2.3.0
+                  name: node
+                  resources:
+                    claims:
+                    - name: gpu
+                    requests:
+                      cpu: '1'
+                      memory: 2Gi
+                    limits:
+                      cpu: '3'
+                      memory: 8Gi
+                  securityContext:
+                    allowPrivilegeEscalation: false
+                    capabilities:
+                      drop:
+                      - ALL
+                securityContext:
+                  runAsNonRoot: true
+                  runAsUser: 1000
+{{- end }}
