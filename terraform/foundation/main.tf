@@ -1,47 +1,3 @@
-terraform {
-  required_version = ">= 1.13.2, < 1.14.0"
-
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 6.0"
-    }
-    doppler = {
-      source  = "DopplerHQ/doppler"
-      version = "1.22.1"
-    }
-    github = {
-      source  = "integrations/github"
-      version = "6.13.0"
-    }
-    talos = {
-      source  = "siderolabs/talos"
-      version = "0.12.0"
-    }
-    tls = {
-      source  = "hashicorp/tls"
-      version = "~> 4.0"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = "3.9.1"
-    }
-    tfe = {
-      source  = "hashicorp/tfe"
-      version = "0.82.0"
-    }
-  }
-
-  # The organization's default execution mode must be Local before the first init.
-  cloud {
-    hostname     = "app.terraform.io"
-    organization = "phuchoang2603"
-    workspaces {
-      name = "talos-proxmox"
-    }
-  }
-}
-
 locals {
   doppler_project  = "talos-proxmox"
   hcp_organization = "phuchoang2603"
@@ -49,21 +5,4 @@ locals {
     dev  = "Development"
     prod = "Production"
   }
-}
-
-provider "aws" {
-  region = "us-east-1"
-}
-
-# Authenticates with a workspace-level token from DOPPLER_TOKEN (e.g. `doppler configure get token --plain`).
-provider "doppler" {}
-
-# Authenticates with GITHUB_TOKEN (e.g. `gh auth token`).
-provider "github" {
-  owner = "phuchoang2603"
-}
-
-# Authenticates with the `tofu login app.terraform.io` credentials, or TFE_TOKEN.
-provider "tfe" {
-  organization = local.hcp_organization
 }

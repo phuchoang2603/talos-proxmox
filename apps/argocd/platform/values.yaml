@@ -2,6 +2,9 @@ repoURL: https://github.com/phuchoang2603/talos-proxmox.git
 targetRevision: main
 # Set by the root Application to the environment this Argo CD runs in.
 cluster: ""
+cloudProvider: gcp
+cloudRegion: us-central1
+cloudStorage: {}
 
 # Waves only order Application submission; retries absorb CRDs and
 # dependencies that another Application has not finished installing yet.
@@ -116,12 +119,21 @@ components:
     syncWave: "-1"
     releaseName: metrics-server
     clusters: [dev, prod]
+  gce-pd-csi:
+    clouds: [gcp]
+    path: apps/components/gce-pd-csi
+    namespace: operators
+    syncWave: "0"
+    releaseName: gce-pd-csi
+    clusters: [prod]
+    managedNamespaceMetadata: *privileged
   ebs-csi:
     path: apps/components/ebs-csi
     namespace: operators
     syncWave: "0"
     releaseName: ebs-csi
     clusters: [prod]
+    clouds: [aws]
     managedNamespaceMetadata: *privileged
   local-path-provisioner:
     path: apps/components/local-path-provisioner

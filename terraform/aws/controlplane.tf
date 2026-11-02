@@ -1,48 +1,43 @@
 locals {
-  cluster_endpoint      = var.create_controlplane ? "https://${aws_eip.controlplane[0].public_ip}:6443" : var.external_cluster.endpoint
-  machine_secrets       = var.create_controlplane ? module.talos[0].machine_secrets : var.external_cluster.machine_secrets
-  worker_config_patches = var.create_controlplane ? module.talos[0].common_patches : var.external_cluster.worker_config_patches
+  cluster_endpoint = "https://${aws_eip.controlplane.public_ip}:6443"
 }
+
 resource "aws_eip" "controlplane" {
-  count  = var.create_controlplane ? 1 : 0
   domain = "vpc"
   tags   = merge(local.tags, { Name = "${var.cluster_name}-api" })
 }
+
 module "talos" {
-  count              = var.create_controlplane ? 1 : 0
   source             = "../talos"
   cluster_name       = var.cluster_name
   cluster_endpoint   = local.cluster_endpoint
-  controlplane_ips   = [aws_eip.controlplane[0].public_ip]
-  controlplane_nodes = [aws_instance.controlplane[0].private_ip]
-  talos_version      = var.talos_version
-  kubernetes_version = var.kubernetes_version
+  controlplane_ips   = [aws_eip.controlplane.public_ip]
+  controlplane_nodes = [aws_instance.controlplane.private_ip]
 }
+
 data "talos_machine_configuration" "controlplane" {
-  count              = var.create_controlplane ? 1 : 0
   cluster_name       = var.cluster_name
   cluster_endpoint   = local.cluster_endpoint
   machine_type       = "controlplane"
-  machine_secrets    = module.talos[0].machine_secrets
+  machine_secrets    = module.talos.machine_secrets
   talos_version      = var.talos_version
   kubernetes_version = var.kubernetes_version
   docs               = false
   examples           = false
-  config_patches = concat(module.talos[0].common_patches, module.talos[0].controlplane_patches, [
-    yamlencode({ machine = { certSANs = [aws_eip.controlplane[0].public_ip] } }),
-    yamlencode({ apiVersion = "v1alpha1", kind = "KubeletConfig", extraArgs = { "cloud-provider" = "external" } }),
-    yamlencode({ apiVersion = "v1alpha1", kind = "KubeAPIServerConfig", certExtraSANs = [aws_eip.controlplane[0].public_ip] }),
-    yamlencode({ apiVersion = "v1alpha1", kind = "KubeTalosAPIAccessConfig", allowedRoles = ["os:reader"], allowedKubernetesNamespaces = ["kube-system"] }),
+  config_patches = concat(module.talos.common_patches, module.talos.controlplane_patches, local.cloud_patches, [
+    yamlencode({ machine = { certSANs = [aws_eip.controlplane.public_ip] } }),
+    yamlencode({ apiVersion = "v1alpha1", kind = "KubeAPIServerConfig", certExtraSANs = [aws_eip.controlplane.public_ip] }),
+    yamlencode({ apiVersion = "v1alpha1", kind = "KubeNodeConfig", labels = { "talos.dev/nodepool" = "controlplane", "talos.dev/capacity-type" = "on-demand" } }),
   ])
 }
+
 resource "aws_instance" "controlplane" {
-  count                       = var.create_controlplane ? 1 : 0
   ami                         = var.ami_id
-  instance_type               = var.controlplane_instance_type
-  subnet_id                   = aws_subnet.worker[var.availability_zones[0]].id
-  vpc_security_group_ids      = [aws_security_group.worker.id]
+  instance_type               = var.controlplane_machine_type
+  subnet_id                   = aws_subnet.worker[var.zone].id
+  vpc_security_group_ids      = [aws_security_group.worker.id, aws_security_group.controlplane.id]
   iam_instance_profile        = aws_iam_instance_profile.worker.name
-  user_data                   = data.talos_machine_configuration.controlplane[0].machine_configuration
+  user_data                   = data.talos_machine_configuration.controlplane.machine_configuration
   user_data_replace_on_change = false
   metadata_options {
     http_endpoint               = "enabled"
@@ -66,24 +61,24 @@ resource "aws_instance" "controlplane" {
   }
   depends_on = [aws_route.internet, terraform_data.storage_cleanup]
 }
+
 resource "aws_eip_association" "controlplane" {
-  count         = var.create_controlplane ? 1 : 0
-  instance_id   = aws_instance.controlplane[0].id
-  allocation_id = aws_eip.controlplane[0].id
+  instance_id   = aws_instance.controlplane.id
+  allocation_id = aws_eip.controlplane.id
 }
+
 resource "talos_machine_configuration_apply" "controlplane" {
-  count                       = var.create_controlplane ? 1 : 0
-  client_configuration        = module.talos[0].client_configuration
-  machine_configuration_input = data.talos_machine_configuration.controlplane[0].machine_configuration
-  node                        = aws_instance.controlplane[0].private_ip
-  endpoint                    = aws_eip.controlplane[0].public_ip
+  client_configuration        = module.talos.client_configuration
+  machine_configuration_input = data.talos_machine_configuration.controlplane.machine_configuration
+  node                        = aws_instance.controlplane.private_ip
+  endpoint                    = aws_eip.controlplane.public_ip
   depends_on                  = [module.bootstrap]
 }
+
 module "bootstrap" {
-  count                = var.create_controlplane ? 1 : 0
   source               = "../talos/bootstrap"
-  client_configuration = module.talos[0].client_configuration
-  endpoint             = aws_eip.controlplane[0].public_ip
-  node                 = aws_instance.controlplane[0].private_ip
+  client_configuration = module.talos.client_configuration
+  endpoint             = aws_eip.controlplane.public_ip
+  node                 = aws_instance.controlplane.private_ip
   depends_on           = [aws_eip_association.controlplane, aws_vpc_security_group_ingress_rule.management]
 }

@@ -17,6 +17,8 @@
     doppler
     gh
     awscli2
+    google-cloud-sdk
+    azure-cli
 
     jq
     openspec

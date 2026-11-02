@@ -1,9 +1,0 @@
-clusterName: dev-talos
-instanceProfile: dev-talos-worker
-nodePool:
-  enabled: false
-cpuBurst:
-  taints:
-    - key: burst.talos.dev/cpu-burst
-      value: "true"
-      effect: NoSchedule

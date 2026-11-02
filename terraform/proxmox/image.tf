@@ -58,7 +58,7 @@ data "talos_image_factory_urls" "gpu" {
   architecture  = "amd64"
 }
 
-resource "proxmox_virtual_environment_download_file" "talos_image" {
+resource "proxmox_download_file" "talos_image" {
   content_type            = "iso"
   datastore_id            = var.vm_datastore_id
   node_name               = var.vm_node_name
@@ -69,7 +69,7 @@ resource "proxmox_virtual_environment_download_file" "talos_image" {
   url                     = replace(data.talos_image_factory_urls.default.urls.disk_image, ".raw.xz", ".raw.zst")
 }
 
-resource "proxmox_virtual_environment_download_file" "talos_gpu_image" {
+resource "proxmox_download_file" "talos_gpu_image" {
   count = length(local.gpu_nodes) > 0 ? 1 : 0
 
   content_type            = "iso"

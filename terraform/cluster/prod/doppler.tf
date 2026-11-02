@@ -1,6 +1,7 @@
 locals {
   secrets = data.doppler_secrets.this.map
 }
+
 data "doppler_secrets" "this" {
   project = "talos-proxmox"
   config  = var.env
@@ -9,16 +10,14 @@ data "doppler_secrets" "this" {
 module "generated_secrets" {
   source = "../secret-contract"
   env    = var.env
-  secrets = merge({
-    KUBECONFIG                      = { type = "yaml", value = module.aws.kubeconfig }
-    TALOSCONFIG                     = { type = "yaml", value = module.aws.talosconfig }
-    KARPENTER_AWS_ACCESS_KEY_ID     = { type = "string", value = module.aws.karpenter_access_key_id }
-    KARPENTER_AWS_SECRET_ACCESS_KEY = { type = "string", value = module.aws.karpenter_secret_access_key }
-    AWS_WORKER_MACHINE_CONFIG       = { type = "string", value = module.aws.worker_machine_configuration }
-    AWS_WORKER_AMI_ID               = { type = "string", value = module.aws.worker_ami_id }
-    KARPENTER_INTERRUPTION_QUEUE    = { type = "string", value = module.aws.interruption_queue }
-    AWS_WORKER_INSTANCE_PROFILE     = { type = "string", value = module.aws.worker_instance_profile }
-    EBS_CSI_AWS_ACCESS_KEY_ID       = { type = "string", value = module.aws.ebs_access_key_id }
-    EBS_CSI_AWS_SECRET_ACCESS_KEY   = { type = "string", value = module.aws.ebs_secret_access_key }
-  }, nonsensitive(try(local.secrets.AWS_GPU_AMI_ID, "") != "") ? { AWS_GPU_WORKER_MACHINE_CONFIG = { type = "string", value = module.aws.gpu_worker_machine_configuration } } : {})
+  secrets = {
+    KUBECONFIG                = { type = "yaml", value = local.cluster.kubeconfig }
+    TALOSCONFIG               = { type = "yaml", value = local.cluster.talosconfig }
+    AUTOSCALER_CREDENTIALS    = { type = "json", value = var.cloud_provider == "gcp" ? jsonencode({ "key.json" = local.cluster.controller_keys.autoscaler }) : local.cluster.controller_keys.autoscaler }
+    BLOCK_STORAGE_CREDENTIALS = { type = "json", value = var.cloud_provider == "gcp" ? jsonencode({ "cloud-sa.json" = local.cluster.controller_keys.pd-csi }) : local.cluster.controller_keys.pd-csi }
+    AUTOSCALER_GROUPS         = { type = "json", value = jsonencode(local.cluster.autoscaler_groups) }
+    CLOUD_REGION              = { type = "string", value = local.cloud_region }
+    CLOUD_ZONE                = { type = "string", value = local.cloud_zone }
+    CLOUD_PROJECT_ID          = { type = "string", value = var.cloud_provider == "gcp" ? var.gcp_project_id : "" }
+  }
 }

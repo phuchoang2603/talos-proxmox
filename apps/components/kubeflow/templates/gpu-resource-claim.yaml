@@ -1,7 +1,7 @@
 apiVersion: resource.k8s.io/v1
 kind: ResourceClaimTemplate
 metadata:
-  name: aws-gpu-training
+  name: gpu-training
   namespace: ml
 spec:
   spec:

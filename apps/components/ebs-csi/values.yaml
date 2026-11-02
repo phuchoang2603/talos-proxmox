@@ -6,6 +6,8 @@ aws-ebs-csi-driver:
   controller:
     replicaCount: 1
     region: us-east-1
+    nodeSelector:
+      talos.dev/nodepool: controlplane
     extraVolumeTags:
       managed-by: talos-proxmox
       platform-cluster: prod-talos

@@ -1,0 +1,30 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: cloud-block
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: pd.csi.storage.gke.io
+parameters:
+  type: pd-balanced
+  csi.storage.k8s.io/fstype: ext4
+reclaimPolicy: Retain
+allowVolumeExpansion: true
+volumeBindingMode: WaitForFirstConsumer
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: gce-pd-csi-gcp
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: doppler
+  target:
+    name: gce-pd-csi-gcp
+  dataFrom:
+    - extract:
+        key: BLOCK_STORAGE_CREDENTIALS

@@ -1,17 +1,22 @@
-storageClass: gp3
+cloudObjectStorage: true
+storageClass: cloud-block
 routerRequestParking:
   budget: 30s
   max: 1024
   retryInterval: 100ms
   retryFactor: 1.1
 databaseNodeSelector:
-  karpenter.sh/capacity-type: on-demand
+  talos.dev/capacity-type: on-demand
 substrate:
   objectStorePlugin:
     extraEnv:
-      - {name: AWS_REGION, value: us-east-1}
-      - {name: AWS_ENDPOINT_URL, value: "https://s3.us-east-1.amazonaws.com"}
-      - {name: AWS_S3_USE_PATH_STYLE, value: "false"}
+      - name: AWS_REGION
+        valueFrom:
+          secretKeyRef: {name: substrate-snapshots, key: region}
+      - name: AWS_ENDPOINT_URL
+        valueFrom:
+          secretKeyRef: {name: substrate-snapshots, key: endpoint}
+      - {name: AWS_S3_USE_PATH_STYLE, value: "true"}
       - name: AWS_ACCESS_KEY_ID
         valueFrom:
           secretKeyRef: {name: substrate-snapshots, key: access-key}

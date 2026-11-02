@@ -33,9 +33,9 @@ Run both downloads successfully before continuing. The cluster root writes these
 | Environment | Kubernetes API endpoint | Example Talos control-plane endpoint | Argo CD UI |
 | --- | --- | --- | --- |
 | dev | `10.69.12.11:6443` | `10.69.12.11` | <https://argocd-dev.phuchoang.sbs> |
-| prod | Elastic IP in kubeconfig, port 6443 | Elastic IP in Talosconfig | Management port-forward or public tunnel |
+| prod | reserved GCP public address in kubeconfig, port 6443 | reserved GCP public address in Talosconfig | Management port-forward or public tunnel |
 
-`kubectl` uses the control-plane endpoint from its kubeconfig. `talosctl` uses the endpoint and node targets from Talosconfig. Dev addresses the control-plane node directly; prod connects through its Elastic IP and targets the node's private address. The dev inventory contains the complete list of VM addresses:
+`kubectl` uses the control-plane endpoint from its kubeconfig. `talosctl` uses the endpoint and node targets from Talosconfig. Dev addresses the control-plane node directly; prod connects through its reserved GCP public address and targets the node's private address. The dev inventory contains the complete list of VM addresses:
 
 ```bash
 talosctl version
@@ -77,7 +77,7 @@ kubectl -n istio-system get daemonset istio-cni-node ztunnel
 # Both environments: kubectl -n observability get svc vmks-grafana
 ```
 
-Expected results: the root and child Applications are Synced/Healthy; the Doppler store and ExternalSecrets are Ready; Istio control plane and node agents are ready; and there is exactly one default StorageClass: local-path in dev or gp3 in prod. Dev has one control-plane/workload VM and two workers; prod has one On-Demand `m6a.xlarge` control-plane/workload node and two On-Demand `m6a.xlarge` workers, with optional Spot burst workers.
+Expected results: the root and child Applications are Synced/Healthy; the Doppler store and ExternalSecrets are Ready; Istio control plane and node agents are ready; and there is exactly one default StorageClass: local-path in dev or cloud-block in prod. Dev has one control-plane/workload VM and two workers; prod has one On-Demand `e2-standard-4` control-plane/workload node and three On-Demand `e2-standard-4` workers, with optional Spot burst workers.
 
 ## Observability
 
@@ -90,7 +90,7 @@ Both environments run independent telemetry components and Grafana. Dev public h
 | OTLP traces (HTTP/protobuf) | `http://vtagent-vmks.observability.svc:10429/insert/opentelemetry/v1/traces` |
 | OTLP logs (HTTP/protobuf) | `http://vlsingle-vmks.observability.svc:9428/insert/opentelemetry/v1/logs` |
 
-Workloads export cumulative OTLP metrics and traces to VMAgent and VTAgent at their per-signal HTTP endpoints. There are no OpenTelemetry collectors, agents, or gateways. VMAgent scrapes cluster metrics every 60 seconds, and VLAgent collects container logs from all nodes, including AWS workers. Kubernetes scheduler, controller-manager, etcd, and kube-proxy scrapes are disabled because Talos does not expose the default endpoints.
+Workloads export cumulative OTLP metrics and traces to VMAgent and VTAgent at their per-signal HTTP endpoints. There are no OpenTelemetry collectors, agents, or gateways. VMAgent scrapes cluster metrics every 60 seconds, and VLAgent collects container logs from all nodes, including GCP workers. Kubernetes scheduler, controller-manager, etcd, and kube-proxy scrapes are disabled because Talos does not expose the default endpoints.
 
 VMAgent and VTAgent use separate 1 GiB queue volumes on the environment storage class, each capped at 513 MiB per destination (the smallest whole-MiB limit supported by the agents). They buffer during store outages and replay queued data when storage returns; queues survive pod restarts. Losing the queue disk loses buffered telemetry, and filling a queue drops its oldest data. This does not replicate stored telemetry.
 
@@ -119,7 +119,7 @@ Grafana grants the configured operator email an Admin role through Dex and rejec
 | Application OutOfSync or Degraded | Application sync result and resource events in the local Argo CD UI |
 | ExternalSecret not Ready | `kubectl describe externalsecret <name> -n <namespace>` and Doppler store status |
 | Istio node agents Pending | Privileged istio-system namespace, host CNI paths, and node events |
-| AWS workload stays Pending | [AWS worker operations](aws-burst-workers.md#observe-scaling) |
+| Cloud workload stays Pending | [GCP worker operations](gcp-workers.md#schedule-and-observe-workers) |
 
 ## Recover configs from an initialized cluster root
 

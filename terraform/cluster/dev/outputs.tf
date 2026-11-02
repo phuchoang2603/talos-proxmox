@@ -3,12 +3,10 @@ output "cluster_name" {
   value       = module.proxmox.cluster_name
 }
 
-
 output "cluster_endpoint" {
   description = "Kubernetes API endpoint"
   value       = module.proxmox.cluster_endpoint
 }
-
 
 output "talosconfig" {
   description = "talosctl client configuration."

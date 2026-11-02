@@ -1,6 +1,6 @@
 {{- $cluster := .Values.cluster }}
 {{- range $name, $app := $.Values.components }}
-{{- if and (has $cluster $app.clusters) (or (not (hasKey $app "enabled")) $app.enabled) }}
+{{- if and (has $cluster $app.clusters) (or (not (hasKey $app "enabled")) $app.enabled) (or (not $app.clouds) (has $.Values.cloudProvider $app.clouds)) }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -22,6 +22,18 @@ spec:
 {{- else }}
     helm:
       releaseName: {{ required (printf "releaseName is required for Helm component %s" $name) $app.releaseName }}
+{{- if eq $name "ebs-csi" }}
+      parameters:
+        - name: aws-ebs-csi-driver.controller.region
+          value: {{ $.Values.cloudRegion | quote }}
+{{- end }}
+{{- if and (eq $name "kubeflow") (eq $cluster "prod") $.Values.cloudStorage }}
+      parameters:
+        {{- range $key, $value := $.Values.cloudStorage }}
+        - name: objectStorage.{{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+{{- end }}
 {{- with index ($app.valueFilesByCluster | default dict) $cluster }}
       valueFiles:
 {{- toYaml . | nindent 8 }}

@@ -1,7 +1,7 @@
 argo-workflows:
   controller:
-    # Orchestration pods run on the Karpenter burst pool; dev has no Karpenter pools, so this is prod-only.
+    # Production workflow pods use the autoscaled Spot group.
     workflowDefaults:
       spec:
         nodeSelector:
-          karpenter.sh/nodepool: aws-cpu-burst
+          talos.dev/nodepool: spot

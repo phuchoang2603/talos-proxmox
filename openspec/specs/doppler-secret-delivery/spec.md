@@ -15,11 +15,11 @@ The platform SHALL store generated and operator-issued credentials in the matchi
 
 #### Scenario: Cluster apply
 - **WHEN** a cluster root is applied
-- **THEN** its backend-specific generated credentials reach its Doppler config; both environments receive their own AWS worker credentials and only prod receives CSI credentials
+- **THEN** its backend-specific generated credentials reach its Doppler config; only prod receives Autoscaler and CSI credentials; dev receives no cloud worker credentials
 
 #### Scenario: Autoscaler key creation
-- **WHEN** either environment is applied from fresh state
-- **THEN** its independent autoscaler access key is generated and stored in that environment's Doppler config without manual creation
+- **WHEN** prod is applied from fresh state
+- **THEN** its independent autoscaler service-account key is generated and stored in that environment's Doppler config without manual creation
 
 #### Scenario: Telemetry credential generation
 - **WHEN** foundation is applied
@@ -38,7 +38,7 @@ The platform SHALL store generated and operator-issued credentials in the matchi
 - **THEN** that key is deleted from the Doppler configs that held it
 
 ### Requirement: Clusters receive secrets only through the secret store
-Every Kubernetes Secret derived from Doppler SHALL be produced by External Secrets Operator from the cluster's Doppler store, except the bootstrap authentication Secret required by that store and the autoscaler's AWS credential Secret. The platform root SHALL create and own those two Secrets; ESO MUST NOT also manage them. The store's credential MUST be a read-only Doppler token scoped to that environment's config, and MUST be the only Doppler credential placed in the cluster. No provisioning step MAY create other application Secrets from secret values.
+Every Kubernetes Secret derived from Doppler SHALL be produced by External Secrets Operator from the cluster's Doppler store, except the bootstrap authentication Secret required by that store and the production autoscaler's GCP credential Secret. The platform root SHALL create and own those two Secrets; ESO MUST NOT also manage them. The store's credential MUST be a read-only Doppler token scoped to that environment's config, and MUST be the only Doppler credential placed in the cluster. No provisioning step MAY create other application Secrets from secret values.
 
 #### Scenario: Bootstrap store authentication
 - **WHEN** the platform root provisions a fresh environment before ESO is running
@@ -46,7 +46,7 @@ Every Kubernetes Secret derived from Doppler SHALL be produced by External Secre
 
 #### Scenario: Autoscaler credential
 - **WHEN** the platform root installs the autoscaler
-- **THEN** it creates the autoscaler's AWS credential Secret from the environment's Doppler config, and no ExternalSecret manages that Secret
+- **THEN** it creates the production autoscaler's GCP credential Secret from the environment's Doppler config, and no ExternalSecret manages that Secret
 
 #### Scenario: Application secret
 - **WHEN** the Cloudflare tunnel, observability, or telemetry agent component is synced by Argo CD
@@ -59,8 +59,8 @@ Every Kubernetes Secret derived from Doppler SHALL be produced by External Secre
 ### Requirement: Credential separation
 The platform SHALL keep these credentials distinct from one another:
 - the HCP Terraform state token;
-- CI AWS credentials, which come from GitHub OIDC;
-- autoscaler AWS credentials;
+- CI GCP credentials, which come from GitHub OIDC;
+- autoscaler GCP credentials;
 - CI Doppler tokens;
 - secret-store read tokens.
 
@@ -68,15 +68,15 @@ A credential MUST NOT be reused for another purpose. CI Doppler tokens and store
 
 #### Scenario: Backend access
 - **WHEN** OpenTofu initializes a remote-state root
-- **THEN** it authenticates to HCP Terraform with the HCP Terraform token only, and never with CI OIDC or autoscaler AWS credentials
+- **THEN** it authenticates to HCP Terraform with the HCP Terraform token only, and never with CI OIDC or autoscaler GCP credentials
 
 #### Scenario: Workspace mismatch
 - **WHEN** a cluster or platform plan runs with `env` set to one environment and the workspace of the other
 - **THEN** OpenTofu fails before planning any change
 
 #### Scenario: Autoscaler scope
-- **WHEN** the autoscaler's AWS key is used
-- **THEN** it can launch, tag, and terminate only its own environment's AWS workers
+- **WHEN** the production autoscaler's GCP key is used
+- **THEN** it can inspect project Compute inventory and resize/remove workers through the configured production MIGs, with no object-storage access
 
 ### Requirement: Secret changes reach the cluster declaratively
 When a secret value changes in Doppler, the derived Kubernetes Secret SHALL update within the store refresh interval. Workloads that read secrets only at startup SHALL use the new value after a restart triggered from Argo CD. Rotating an OpenTofu-generated credential MUST require only OpenTofu applies and, where needed, that Argo CD restart, with no kubectl or cloud CLI step. Rotating the autoscaler key MUST require only the cluster and platform applies, which restart the autoscaler with the new key.
@@ -94,7 +94,7 @@ Secret values MUST NOT appear in Git, routine CI logs, or OpenTofu plan output. 
 
 #### Scenario: CI log review
 - **WHEN** a user reads a provisioning run's logs
-- **THEN** no Doppler token, AWS key, kubeconfig, or Talos secret appears in plaintext
+- **THEN** no Doppler token, GCP key, kubeconfig, or Talos secret appears in plaintext
 
 #### Scenario: Plan output
 - **WHEN** a plan includes a generated or Doppler-sourced secret
