@@ -127,3 +127,4 @@ opensearch:
 tunnel:
   clusterTunnel: talos-proxmox
   hostname: openmetadata.phuchoang.sbs
+postgresStorage: 10Gi

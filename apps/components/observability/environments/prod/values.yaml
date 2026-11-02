@@ -2,6 +2,7 @@ victoria-metrics-k8s-stack:
   grafana:
     persistence:
       storageClassName: cloud-block
+      size: 2Gi
   vmsingle:
     spec:
       storage:
@@ -14,6 +15,9 @@ victoria-metrics-k8s-stack:
     spec:
       storage:
         storageClassName: cloud-block
+        resources:
+          requests:
+            storage: 5Gi
   vmagent:
     spec:
       statefulStorage:

@@ -2,5 +2,8 @@ storageClass: cloud-block
 opensearch:
   persistence:
     storageClass: cloud-block
+    size: 10Gi
 databaseNodeSelector:
   talos.dev/capacity-type: on-demand
+postgresStorage: 5Gi
+

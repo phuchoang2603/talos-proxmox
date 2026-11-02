@@ -18,3 +18,8 @@ gpuTraining:
     operator: Equal
     value: 'true'
     effect: NoSchedule
+databaseStorage:
+  pipelines: 10Gi
+  katib: 2Gi
+  registry: 2Gi
+  catalog: 2Gi

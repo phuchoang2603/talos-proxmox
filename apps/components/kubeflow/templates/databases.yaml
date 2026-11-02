@@ -33,7 +33,7 @@ spec:
         createdb: true
   storage:
     storageClass: {{ .Values.storageClass | quote }}
-    size: 35Gi
+    size: {{ .Values.databaseStorage.pipelines }}
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
@@ -60,7 +60,7 @@ spec:
         name: katib-postgres-secret
   storage:
     storageClass: {{ .Values.storageClass | quote }}
-    size: 10Gi
+    size: {{ .Values.databaseStorage.katib }}
 
 ---
 apiVersion: postgresql.cnpg.io/v1
@@ -88,7 +88,7 @@ spec:
         name: kubeflow-registry-db-credentials
   storage:
     storageClass: {{ .Values.storageClass | quote }}
-    size: 10Gi
+    size: {{ .Values.databaseStorage.registry }}
 
 ---
 apiVersion: postgresql.cnpg.io/v1
@@ -116,4 +116,4 @@ spec:
         name: kubeflow-catalog-db-credentials
   storage:
     storageClass: {{ .Values.storageClass | quote }}
-    size: 10Gi
+    size: {{ .Values.databaseStorage.catalog }}

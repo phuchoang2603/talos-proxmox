@@ -46,3 +46,8 @@ localModel:
   storageLimit: 40Gi
   nodeSelector:
     kubernetes.io/hostname: dev-server1
+databaseStorage:
+  pipelines: 35Gi
+  katib: 10Gi
+  registry: 10Gi
+  catalog: 10Gi
