@@ -44,3 +44,9 @@ resource "google_service_account_key" "controller" {
   for_each           = local.controller_permissions
   service_account_id = google_service_account.controller[each.key].name
 }
+
+resource "google_service_account_iam_member" "pd_csi_node_user" {
+  service_account_id = google_service_account.node.name
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${google_service_account.controller["pd-csi"].email}"
+}
