@@ -18,6 +18,8 @@ spec:
       runAsNonRoot: true
       runAsUser: 1000
       allowPrivilegeEscalation: false
+      seccompProfile:
+        type: RuntimeDefault
       capabilities:
         drop: [ALL]
   supportedUriFormats:
