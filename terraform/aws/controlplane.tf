@@ -24,7 +24,7 @@ data "talos_machine_configuration" "controlplane" {
   kubernetes_version = var.kubernetes_version
   docs               = false
   examples           = false
-  config_patches = concat(module.talos.common_patches, module.talos.controlplane_patches, local.cloud_patches, [
+  config_patches = concat(module.talos.common_patches, module.talos.controlplane_patches, local.cloud_patches, local.controlplane_cloud_patches, [
     yamlencode({ machine = { certSANs = [aws_eip.controlplane.public_ip] } }),
     yamlencode({ apiVersion = "v1alpha1", kind = "KubeAPIServerConfig", certExtraSANs = [aws_eip.controlplane.public_ip] }),
     yamlencode({ apiVersion = "v1alpha1", kind = "KubeNodeConfig", labels = { "talos.dev/nodepool" = "controlplane", "talos.dev/capacity-type" = "on-demand" } }),
