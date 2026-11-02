@@ -6988,7 +6988,7 @@ data:
     }
   deploy: |-
     {
-      "defaultDeploymentMode": "Serverless"
+      "defaultDeploymentMode": "Standard"
     }
   explainers: |-
     {
@@ -7020,7 +7020,7 @@ data:
       "domainTemplate": "{{ .Name }}-{{ .Namespace }}.{{ .IngressDomain }}",
       "urlScheme": "http",
       "disableIstioVirtualHost": false,
-      "disableIngressCreation": false,
+      "disableIngressCreation": true,
       "pathTemplate": "/serving/{{ .Namespace }}/{{ .Name }}"
     }
   kernelcache: |-

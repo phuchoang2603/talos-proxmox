@@ -89,11 +89,11 @@ The platform root SHALL wait for the Kubernetes API's authenticated `/readyz` en
 - **THEN** the platform apply fails through the release readiness check
 
 ### Requirement: Per-cluster GitOps enablement
-Both environments SHALL reconcile the same applicable platform services with environment values for storage, domains, credentials and lean activity. Provider/hardware components SHALL follow capabilities. Dev SHALL use local-path and prod gp3, with only one default class per cluster. Knative Serving, Eventing and Istio networking SHALL be enabled before Kubeflow in both environments.
+Both environments SHALL reconcile the same applicable platform services with environment values for storage, domains, credentials and lean activity. Provider/hardware components SHALL follow capabilities. Dev SHALL use local-path and prod gp3, with only one default class per cluster. KServe SHALL run InferenceServices as plain Deployments (`Standard` mode) in both environments; Knative is not installed.
 
-#### Scenario: Serverless inference
+#### Scenario: Standard inference
 - **WHEN** a KServe service is submitted in either environment
-- **THEN** Knative serves a request and idle inference can scale to zero
+- **THEN** its predictor runs as a Deployment behind a Service and answers a request
 
 #### Scenario: Storage selection
 - **WHEN** the shared platform reconciles

@@ -46,7 +46,7 @@ The source of truth is [`apps/argocd/platform/values.yaml`](../../apps/argocd/pl
 | -1 | Metrics-server and shared Argo Workflows with the environment's data-workflow lifecycle guard | dev, prod |
 | 0 | local-path (dev) or EBS CSI (prod), auth, Spark operator, cert-manager, CNPG, Strimzi, Redis operator | dev, prod |
 | 1 | GPU operator, NVIDIA DRA | dev, prod |
-| 1 | Flink operator, Iceberg catalog, StarRocks, Knative and observability | dev, prod |
+| 1 | Flink operator, Iceberg catalog, StarRocks and observability | dev, prod |
 | 2 | Kubeflow and ML storage credentials, Cloudflare operator and tunnel | dev, prod |
 | 3 | OpenMetadata | dev, prod |
 
