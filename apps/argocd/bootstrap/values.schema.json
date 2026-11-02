@@ -21,6 +21,34 @@
     "targetRevision": {
       "type": "string",
       "minLength": 1
+    },
+    "cloudProvider": {
+      "type": "string",
+      "enum": [
+        "proxmox",
+        "gcp",
+        "aws"
+      ]
+    },
+    "cloudRegion": {
+      "type": "string"
+    },
+    "cloudStorage": {
+      "type": "object",
+      "properties": {
+        "bucket": {
+          "type": "string"
+        },
+        "endpoint": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "region": {
+          "type": "string"
+        }
+      }
     }
   }
 }

@@ -22,7 +22,7 @@ The platform SHALL provision an environment from empty state to an eventually sy
 - **THEN** OpenTofu reports no changes to cluster components or secrets, and Argo CD applications stay Synced
 
 ### Requirement: Self-contained environments
-Each environment SHALL use an independent Talos identity, credentials, namespaces, object storage and application domains. Inactive provider configuration MUST NOT require credentials for the other backend. Dev SHALL use Proxmox, independent AWS burst workers and existing MinIO; prod SHALL use AWS and S3.
+Each environment SHALL use an independent Talos identity, credentials, namespaces, object storage and application domains. Inactive provider configuration MUST NOT require credentials for the other backend. Dev SHALL use Proxmox, independent GCP autoscaled workers and existing MinIO; prod SHALL use AWS and S3.
 
 #### Scenario: Prod bootstrap
 - **WHEN** prod is applied without Proxmox or MinIO credentials
@@ -48,7 +48,7 @@ Each environment SHALL use an independent Talos identity, credentials, namespace
 Each infrastructure resource, cluster component, and secret SHALL have exactly one declarative owner:
 - the foundation root owns account, identity, and secret-store setup;
 - the cluster root owns machines and generated credentials;
-- the platform root owns Gateway API CRDs, Cilium, Talos CCM, secret-store bootstrap credentials, Karpenter in both environments and Argo CD with its AppProject and root Application;
+- the platform root owns Gateway API CRDs, Cilium, Talos CCM, secret-store bootstrap credentials, Cluster Autoscaler in prod only and Argo CD with its AppProject and root Application;
 - the environment's Argo CD owns Istio, the Cloudflare operator/CRDs/ClusterTunnel, Argo CD OAuth/tunnel access and other applications.
 
 Kubeflow SHALL own the ML training object-storage ExternalSecret. The `argocd-post` chart SHALL own shared namespace declarations and Argo CD OIDC/tunnel access. No standalone ML access or namespace Application SHALL be required.
@@ -59,7 +59,7 @@ Gateway API CRDs SHALL be installed from a pinned Helm chart archive committed t
 
 #### Scenario: Pre-GitOps components
 - **WHEN** the platform root is applied to an environment
-- **THEN** it installs Gateway API CRDs, Cilium, Talos CCM, the bootstrap token Secret, Karpenter in both environments and Argo CD with its root Application, without UI LoadBalancer Services or a bootstrap dependency on ESO/Cloudflare CRDs
+- **THEN** it installs Gateway API CRDs, Cilium, Talos CCM, the bootstrap token Secret, Cluster Autoscaler in prod only and Argo CD with its root Application, without UI LoadBalancer Services or a bootstrap dependency on ESO/Cloudflare CRDs
 
 #### Scenario: Drift on an Argo-owned component
 - **WHEN** an Argo-owned component is changed in Git
@@ -89,7 +89,7 @@ The platform root SHALL wait for the Kubernetes API's authenticated `/readyz` en
 - **THEN** the platform apply fails through the release readiness check
 
 ### Requirement: Per-cluster GitOps enablement
-Both environments SHALL reconcile the same applicable platform services with environment values for storage, domains, credentials and lean activity. Provider/hardware components SHALL follow capabilities. Dev SHALL use local-path and prod gp3, with only one default class per cluster. KServe SHALL run InferenceServices as plain Deployments (`Standard` mode) in both environments; Knative is not installed.
+Both environments SHALL reconcile the same applicable platform services with environment values for storage, domains, credentials and lean activity. Provider/hardware components SHALL follow capabilities. Dev SHALL use local-path and prod cloud-block, with only one default class per cluster. KServe SHALL run InferenceServices as plain Deployments (`Standard` mode) in both environments; Knative is not installed.
 
 #### Scenario: Standard inference
 - **WHEN** a KServe service is submitted in either environment
@@ -97,18 +97,18 @@ Both environments SHALL reconcile the same applicable platform services with env
 
 #### Scenario: Storage selection
 - **WHEN** the shared platform reconciles
-- **THEN** dev runs local-path and prod runs gp3 EBS CSI, each with exactly one default StorageClass and no Longhorn
+- **THEN** dev runs local-path and prod runs GCE PD CSI, each with exactly one default StorageClass and no Longhorn
 
 #### Scenario: Component disabled for an environment
 - **WHEN** a component does not list an environment
 - **THEN** that environment's Argo CD has no Application for it
 
 ### Requirement: Layered roots in CI
-PR validation SHALL lint roots and charts without state or secrets; separate trusted repository PR jobs SHALL deploy dev and plan the prod cluster root without applying production changes. The prod platform root SHALL be planned during deployment after the cluster apply, when live Kubernetes access and generated credentials are available. Main SHALL deploy dev and prod independently after lint succeeds, without a dev-deployment prerequisite. Fork PRs SHALL validate without deployment secrets. Foundation SHALL be applied by the operator. Root and child Argo applications SHALL share the selected revision.
+PR validation SHALL lint roots and charts without state or secrets; separate trusted repository PR jobs SHALL deploy dev and plan the prod cluster root without applying production changes. The prod platform root SHALL be planned during deployment after the cluster apply, when live Kubernetes access and generated credentials are available. Main SHALL deploy dev after lint succeeds; production SHALL apply only through manual dispatch on main. Fork PRs SHALL validate without deployment secrets. Foundation SHALL be applied by the operator. Root and child Argo applications SHALL share the selected revision.
 
 #### Scenario: Independent production deployment
-- **WHEN** a commit reaches main
-- **THEN** prod receives that pinned commit independently of the dev deployment result
+- **WHEN** production is manually deployed from main
+- **THEN** prod receives the selected pinned commit independently of the dev deployment result
 
 #### Scenario: Pull request
 - **WHEN** a pull request targets `main`
@@ -116,7 +116,7 @@ PR validation SHALL lint roots and charts without state or secrets; separate tru
 
 #### Scenario: Push to main
 - **WHEN** a validated change reaches main
-- **THEN** dev and prod receive the selected revision in independent jobs after lint succeeds
+- **THEN** dev receives the selected revision after lint succeeds and production remains unchanged until manual deployment
 
 #### Scenario: Dev on demand
 - **WHEN** dev has been intentionally destroyed
@@ -127,7 +127,7 @@ PR validation SHALL lint roots and charts without state or secrets; separate tru
 - **THEN** CI only lints it, and an operator applies it locally
 
 ### Requirement: Cluster-only environment teardown
-Environment teardown SHALL clean owned external worker and CSI resources through AWS APIs independently of Kubernetes. Normal teardown SHALL retain declared persistent data; explicit purge SHALL delete it. Only successful cluster cleanup SHALL permit platform state reset. Foundation SHALL remain separately owned.
+Environment teardown SHALL clean owned external worker and CSI resources through GCP APIs independently of Kubernetes. Normal teardown SHALL retain declared persistent data; explicit purge SHALL delete it. Only successful cluster cleanup SHALL permit platform state reset. Foundation SHALL remain separately owned.
 
 #### Scenario: Cleanup fails
 - **WHEN** external cleanup returns an error

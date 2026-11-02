@@ -36,17 +36,3 @@ resource "doppler_secret" "eso_token" {
   name    = "ESO_DOPPLER_TOKEN"
   value   = each.value.key
 }
-
-resource "random_password" "grafana_admin" {
-  for_each = local.environments
-  length   = 32
-  special  = false
-}
-
-resource "doppler_secret" "grafana_admin" {
-  for_each = local.environments
-  project  = doppler_project.this.name
-  config   = doppler_environment.this[each.key].slug
-  name     = "GRAFANA_ADMIN_PASSWORD"
-  value    = random_password.grafana_admin[each.key].result
-}

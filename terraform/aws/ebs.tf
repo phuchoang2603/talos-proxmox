@@ -1,17 +1,16 @@
 resource "aws_iam_user" "ebs" {
-  count = var.create_controlplane ? 1 : 0
-  name  = "platform-${var.env}-ebs-csi"
-  tags  = local.tags
+  name = "${var.cluster_name}-pd-csi"
+  tags = local.tags
 }
+
 resource "aws_iam_access_key" "ebs" {
-  count = var.create_controlplane ? 1 : 0
-  user  = aws_iam_user.ebs[0].name
+  user = aws_iam_user.ebs.name
 }
+
 resource "aws_iam_user_policy" "ebs" {
-  count      = var.create_controlplane ? 1 : 0
   depends_on = [terraform_data.storage_cleanup]
   name       = "environment-volumes"
-  user       = aws_iam_user.ebs[0].name
+  user       = aws_iam_user.ebs.name
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -25,12 +24,4 @@ resource "aws_iam_user_policy" "ebs" {
       { Effect = "Allow", Action = ["ec2:DeleteSnapshot"], Resource = "arn:aws:ec2:${var.region}:${data.aws_caller_identity.current.account_id}:snapshot/*", Condition = { StringEquals = { "ec2:ResourceTag/platform-cluster" = var.cluster_name } } }
     ]
   })
-}
-output "ebs_access_key_id" {
-  value     = one(aws_iam_access_key.ebs[*].id)
-  sensitive = true
-}
-output "ebs_secret_access_key" {
-  value     = one(aws_iam_access_key.ebs[*].secret)
-  sensitive = true
 }

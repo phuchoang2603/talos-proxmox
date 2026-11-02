@@ -25,14 +25,14 @@ The [bootstrap chart](../../apps/argocd/bootstrap/) creates the `talos-proxmox` 
 
 | Owner | Components |
 | --- | --- |
-| Platform OpenTofu root | Gateway API CRDs, Cilium, Talos CCM, ESO token namespace/Secret, Karpenter (CRDs, controller, `EC2NodeClass`, `NodePool`, and its AWS key Secret), Argo CD and bootstrap AppProject/root Application |
+| Platform OpenTofu root | Gateway API CRDs, Cilium, Talos CCM, ESO token namespace/Secret, production Cluster Autoscaler and its GCP key Secret, Argo CD and bootstrap AppProject/root Application |
 | Argo CD | ESO/store, storage, metrics, GPU components, Istio, operators, observability and its telemetry agents, Cloudflare operator/CRDs and `ClusterTunnel` |
 
 Cilium and Argo CD remain OpenTofu-owned after bring-up. Changes to them go through a platform apply. Application changes go through Git and Argo CD.
 
-An environment destroy removes the cluster and empties the platform root's state; it does not uninstall anything from the cluster. The platform root and Argo CD components must therefore not create external resources requiring removal on destroy, such as tailnet devices or unmanaged cloud resources. The cluster or foundation root owns the removal of external infrastructure, as the cluster root does for Karpenter's EC2 instances and launch templates. Existing Cloudflare tunnels may outlive destroys; see [public hostnames](#public-hostnames).
+An environment destroy removes the cluster and empties the platform root's state; it does not uninstall anything from the cluster. The platform root and Argo CD components must therefore not create external resources requiring removal on destroy, such as tailnet devices or unmanaged cloud resources. The cluster or foundation root owns the removal of external infrastructure, as the cluster root does for GCE managed instance groups and their workers. Existing Cloudflare tunnels may outlive destroys; see [public hostnames](#public-hostnames).
 
-The platform root installs Talos CCM before Argo CD so AWS cloud-node initialization does not depend on GitOps. Argo CD creates shared namespaces and installs its own OIDC Secret and public tunnel route through the `argocd-post` Application after the secret-store and Cloudflare CRDs are available. The initial OpenTofu-owned Argo CD chart does not depend on those CRDs. The `argocd-post` chart also owns shared namespace declarations; Kubeflow owns its `ml-s3` training credential ExternalSecret.
+The platform root installs Talos CCM before Argo CD so GCP cloud-node initialization does not depend on GitOps. Argo CD creates shared namespaces and installs its own OIDC Secret and public tunnel route through the `argocd-post` Application after the secret-store and Cloudflare CRDs are available. The initial OpenTofu-owned Argo CD chart does not depend on those CRDs. The `argocd-post` chart also owns shared namespace declarations; Kubeflow owns its `ml-s3` training credential ExternalSecret.
 
 ## Membership, overlays, and ordering
 
@@ -44,7 +44,7 @@ The source of truth is [`apps/argocd/platform/values.yaml`](../../apps/argocd/pl
 | -3 | External Secrets Operator and Doppler ClusterSecretStore | dev, prod |
 | -2 | Istio ambient (base, istiod, CNI, ztunnel, ingress gateway) | dev, prod |
 | -1 | Metrics-server and shared Argo Workflows with the environment's data-workflow lifecycle guard | dev, prod |
-| 0 | local-path (dev) or EBS CSI (prod), auth, Spark operator, cert-manager, CNPG, Strimzi, Redis operator | dev, prod |
+| 0 | local-path (dev) or GCE PD CSI (prod), auth, Spark operator, cert-manager, CNPG, Strimzi, Redis operator | dev, prod |
 | 1 | GPU operator, NVIDIA DRA | dev, prod |
 | 1 | Flink operator, Iceberg catalog, StarRocks and observability | dev, prod |
 | 2 | Kubeflow and ML storage credentials, Cloudflare operator and tunnel | dev, prod |
@@ -77,7 +77,7 @@ flowchart LR
     Secrets --> Pods["Workloads"]
 ```
 
-The token Secret and Karpenter's `karpenter-aws` Secret are the Doppler-derived Kubernetes Secrets owned by OpenTofu. ESO owns the application Secrets, including the Cloudflare credentials Secret. Each store uses a read-only token scoped to its environment. Secret values never belong in Helm values files.
+The token Secret and production Autoscaler's `cluster-autoscaler-gcp` Secret are the Doppler-derived Kubernetes Secrets owned by OpenTofu. ESO owns the application Secrets, including the Cloudflare credentials Secret. Each store uses a read-only token scoped to its environment. Secret values never belong in Helm values files.
 
 Application Secrets refresh hourly. Workloads that read credentials only at startup need an Argo CD Restart after the Secret refreshes. See [secret delivery and rotation](../reference/secrets.md#delivery-and-rotation).
 

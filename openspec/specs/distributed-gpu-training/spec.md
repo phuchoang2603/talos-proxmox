@@ -1,38 +1,38 @@
 # distributed-gpu-training Specification
 
 ## Purpose
-Provide bounded, stateless AWS GPU workers for distributed training while retaining fixed local GPU capacity for interactive notebooks.
+Retain fixed local GPU capacity and the explicit NVIDIA DRA runtime contract while keeping production cloud GPU provisioning disabled.
 
 ## Requirements
 
 ### Requirement: Dedicated cloud GPU capacity
-Prod SHALL expose an optional bounded GPU NodePool under the same Karpenter controller as CPU workers. It SHALL be disabled by default and idle at zero when enabled without jobs. Dev SHALL retain local GPU allocation.
+Prod SHALL NOT provision a GPU group until compatible Talos GPU images, quota and device-level execution have been validated. Cloud GPU workloads SHALL remain pending rather than use CPU workers or dev GPUs. Dev SHALL retain local GPU allocation.
 
 #### Scenario: Default prod deployment
 - **WHEN** no GPU pool has been explicitly enabled
 - **THEN** no GPU instance is launched
 
 #### Scenario: Train from zero cloud workers
-- **WHEN** a single-GPU workload is submitted within configured limits
-- **THEN** one eligible AWS node joins and provides GPU allocation without changing fixed Proxmox inventory
+- **WHEN** a production GPU workload is submitted without a validated GPU group
+- **THEN** it remains pending without launching CPU workers to satisfy GPU capacity
 
 #### Scenario: Capacity or quota failure
 - **WHEN** no allowed zone can supply the required node
 - **THEN** the reason is observable and the workload does not silently use local capacity or another topology
 
 ### Requirement: Verified accelerator readiness
-AWS GPU workers SHALL use a pinned compatible Talos image and GPU stack. Readiness evidence SHALL include allocated-device execution and a framework forward/backward pass; node registration alone SHALL NOT establish training readiness.
+Future GCP GPU workers SHALL use a pinned compatible Talos image and GPU stack. Readiness evidence SHALL include allocated-device execution and a framework forward/backward pass; node registration alone SHALL NOT establish training readiness.
 
 #### Scenario: Worker joined but device unverified
 - **WHEN** a worker has joined the cluster
 - **THEN** readiness is claimed only after an allocated GPU completes a framework forward/backward pass
 
 ### Requirement: Distributed runtime handoff
-The platform SHALL expose a versioned runtime and scheduling contract supporting one GPU rank on one AWS node per job. Acceptance SHALL verify worker identity, allocated-device execution and timeout behavior. Multi-node collectives are not part of the contract.
+The platform SHALL expose a versioned runtime and scheduling contract supporting one GPU rank on one eligible GPU node per job. Acceptance SHALL verify worker identity, allocated-device execution and timeout behavior. Multi-node collectives are not part of the contract.
 
 #### Scenario: Single-node training step
 - **WHEN** the acceptance workload executes
-- **THEN** the allocated AWS GPU completes a framework training step and identity evidence is retained
+- **THEN** the allocated GPU completes a framework training step and identity evidence is retained
 
 #### Scenario: Worker never becomes ready
 - **WHEN** the required worker does not become ready before the configured deadline
@@ -47,10 +47,10 @@ GPU capacity SHALL return to zero after bounded jobs finish. Durable checkpoints
 
 #### Scenario: Finish or cancel distributed work
 - **WHEN** training resources are removed and the idle interval elapses
-- **THEN** GPU nodes terminate while the fixed control plane, CPU baseline and EBS data remain
+- **THEN** GPU nodes terminate while the fixed control plane, CPU baseline and Persistent Disk data remain
 
 ### Requirement: Local notebook GPU allocation
-The dev RTX 5060 Ti SHALL remain usable through exclusive notebook allocation. AWS training SHALL NOT claim it. Occupied local capacity SHALL leave another GPU notebook pending.
+The dev RTX 5060 Ti SHALL remain usable through exclusive notebook allocation. Production training SHALL NOT claim it. Occupied local capacity SHALL leave another GPU notebook pending.
 
 #### Scenario: Local GPU occupied
 - **WHEN** a second notebook requests the exclusive GPU

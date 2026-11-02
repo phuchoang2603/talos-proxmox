@@ -2,3 +2,6 @@ repoURL: https://github.com/phuchoang2603/talos-proxmox.git
 targetRevision: main
 # Set by the platform root to the environment this Argo CD runs in.
 cluster: ""
+cloudProvider: gcp
+cloudRegion: us-central1
+cloudStorage: {}

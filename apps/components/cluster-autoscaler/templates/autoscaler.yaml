@@ -1,0 +1,172 @@
+{{- if .Values.enabled }}
+{{- if not (has .Values.cloudProvider (list "gcp" "aws")) }}
+{{- fail "cloudProvider must be gcp or aws" }}
+{{- end }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cluster-autoscaler
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cluster-autoscaler
+rules:
+  - apiGroups: [""]
+    resources: [events, endpoints]
+    verbs: [create, patch]
+  - apiGroups: [""]
+    resources: [pods/eviction]
+    verbs: [create]
+  - apiGroups: [""]
+    resources: [pods/status]
+    verbs: [update]
+  - apiGroups: [""]
+    resources: [nodes]
+    verbs: [get, list, watch, update, patch]
+  - apiGroups: [""]
+    resources: [namespaces, pods, services, replicationcontrollers, persistentvolumeclaims, persistentvolumes]
+    verbs: [get, list, watch]
+  - apiGroups: [apps]
+    resources: [daemonsets, replicasets, statefulsets, deployments]
+    verbs: [get, list, watch]
+  - apiGroups: [batch]
+    resources: [jobs]
+    verbs: [get, list, watch]
+  - apiGroups: [policy]
+    resources: [poddisruptionbudgets]
+    verbs: [get, list, watch]
+  - apiGroups: [storage.k8s.io]
+    resources: [storageclasses, csinodes, csidrivers, csistoragecapacities, volumeattachments]
+    verbs: [get, list, watch]
+  - apiGroups: [resource.k8s.io]
+    resources: [resourceclaims, resourceclaimtemplates, deviceclasses, resourceslices]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cluster-autoscaler
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-autoscaler
+subjects:
+  - kind: ServiceAccount
+    name: cluster-autoscaler
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: cluster-autoscaler
+rules:
+  - apiGroups: [coordination.k8s.io]
+    resources: [leases]
+    verbs: [get, list, watch, create, update, patch]
+  - apiGroups: [""]
+    resources: [configmaps]
+    verbs: [get, list, watch, create, update, patch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cluster-autoscaler
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: cluster-autoscaler
+subjects:
+  - kind: ServiceAccount
+    name: cluster-autoscaler
+    namespace: {{ .Release.Namespace }}
+{{- if eq .Values.cloudProvider "gcp" }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-autoscaler-cloud
+data:
+  cloud.conf: |
+    [Global]
+    project-id = {{ required "projectId is required" .Values.projectId }}
+    local-zone = {{ required "zone is required" .Values.zone }}
+{{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cluster-autoscaler
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: cluster-autoscaler}
+  template:
+    metadata:
+      labels: {app: cluster-autoscaler}
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
+        credentials-checksum: {{ .Values.credentialsChecksum | quote }}
+    spec:
+      serviceAccountName: cluster-autoscaler
+      priorityClassName: system-cluster-critical
+      nodeSelector:
+        talos.dev/nodepool: controlplane
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          effect: NoSchedule
+      containers:
+        - name: cluster-autoscaler
+          image: {{ required "Supply a verified Cluster Autoscaler image matching Kubernetes 1.37" .Values.image | quote }}
+          command: [/cluster-autoscaler]
+          args:
+            - --cloud-provider={{ ternary "gce" "aws" (eq .Values.cloudProvider "gcp") }}
+            {{- if eq .Values.cloudProvider "gcp" }}
+            - --cloud-config=/etc/gce/cloud.conf
+            {{- end }}
+            - --cluster-name=prod-talos
+            - --leader-elect=true
+            - --expander=least-waste
+            - --scale-down-delay-after-add=10m
+            - --scale-down-unneeded-time=10m
+            - --skip-nodes-with-local-storage=true
+            - --v=2
+            {{- range required "At least one managed instance group is required" .Values.groups }}
+            - {{ printf "--nodes=%s" . | quote }}
+            {{- end }}
+          {{- if eq .Values.cloudProvider "gcp" }}
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /etc/gcp/key.json
+          {{- else }}
+          envFrom:
+            - secretRef: {name: cluster-autoscaler-cloud}
+          env:
+            - name: AWS_REGION
+              value: {{ required "region is required for AWS" .Values.region | quote }}
+            - name: AWS_EC2_METADATA_DISABLED
+              value: "true"
+          {{- end }}
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {memory: 512Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+          {{- if eq .Values.cloudProvider "gcp" }}
+          volumeMounts:
+            - name: credentials
+              mountPath: /etc/gcp
+              readOnly: true
+            - name: cloud-config
+              mountPath: /etc/gce
+              readOnly: true
+          {{- end }}
+      {{- if eq .Values.cloudProvider "gcp" }}
+      volumes:
+        - name: credentials
+          secret: {secretName: cluster-autoscaler-cloud}
+        - name: cloud-config
+          configMap: {name: cluster-autoscaler-cloud}
+      {{- end }}
+{{- end }}

@@ -1,21 +1,17 @@
-storageClass: gp3
-objectStorage:
-  bucket: platform-prod-142737101504-us-east-1
-  endpoint: https://s3.us-east-1.amazonaws.com
-  host: s3.us-east-1.amazonaws.com
-  forcePathStyle: false
+storageClass: cloud-block
 databaseNodeSelector:
-  karpenter.sh/capacity-type: on-demand
+  talos.dev/capacity-type: on-demand
 localModel:
+  enabled: false
   nodeSelector:
     kubernetes.io/hostname: null
-    karpenter.sh/nodepool: aws-gpu-training
+    talos.dev/nodepool: gpu
 gpuTraining:
   numNodes: 2
   nodeSelector:
     nvidia.com/gpu.present: null
-    karpenter.sh/nodepool: aws-gpu-training
-    burst.talos.dev/compute: aws
+    talos.dev/nodepool: gpu
+    talos.dev/cloud: gcp
     burst.talos.dev/workload: gpu-training
   tolerations:
   - key: burst.talos.dev/gpu-training

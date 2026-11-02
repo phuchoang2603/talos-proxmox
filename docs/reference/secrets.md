@@ -8,13 +8,13 @@ The repository's `.doppler.yaml` defaults to dev. Use explicit `--project talos-
 
 ## Operator-entered secrets
 
-The foundation root accepts a sensitive `operator_secrets` map keyed by environment for restoring these values. Keep its `.tfvars.json` file outside Git with mode `0600`, and pass that same file to every foundation plan/apply. Recovered application credentials supplied through this map override generated defaults; omit application overrides in a fresh environment to generate independent credentials.
+The foundation root accepts a sensitive `operator_secrets` map keyed by environment and writes only the keys in this table. Keep its `.tfvars.json` file outside Git with mode `0600`, and pass that same file to every foundation plan/apply. Application credentials are not managed by foundation; enter them in Doppler by hand.
 
 | Doppler key | Consumer | Environments |
 | --- | --- | --- |
 | `HCP_TERRAFORM_TOKEN` | CI state access, exported as `TF_TOKEN_app_terraform_io` | Both |
 | `PROXMOX_ENDPOINT`, `PROXMOX_USERNAME`, `PROXMOX_PASSWORD` | Cluster root's Proxmox provider | Dev |
-| `AWS_MANAGEMENT_CIDRS` | JSON array of stable operator IPv4 CIDRs; CI adds its current egress /32 | Prod |
+| `CLOUD_MANAGEMENT_CIDRS` | JSON array of stable operator IPv4 CIDRs; CI adds its current egress /32 | Prod |
 | `TS_OAUTH_CLIENT_ID`, `TS_OAUTH_SECRET` | GitHub runner's Tailscale connection | Dev |
 | `CLOUDFLARE_API_TOKEN` | Cloudflare operator, through the `cloudflare-credentials` ExternalSecret | Both |
 | `CLOUDFLARE_TUNNEL_TOKEN` | `cloudflared`, through the same ExternalSecret | Both |
@@ -28,14 +28,18 @@ The foundation root accepts a sensitive `operator_secrets` map keyed by environm
 | `ESO_DOPPLER_TOKEN` | Foundation | Platform creates `kube-system/doppler-token` |
 | `KUBECONFIG` | Cluster root | Platform providers and operators |
 | `TALOSCONFIG` | Cluster root | Operators using `talosctl` |
-| `KARPENTER_AWS_ACCESS_KEY_ID`, `KARPENTER_AWS_SECRET_ACCESS_KEY` | Cluster root's AWS module | Platform creates `kube-system/karpenter-aws` |
-| `AWS_WORKER_MACHINE_CONFIG`, `AWS_WORKER_AMI_ID` | Cluster root's AWS module | Platform passes them to the Karpenter `EC2NodeClass` |
-| `GRAFANA_ADMIN_PASSWORD` (both environments) | Foundation | Grafana local admin login |
-| Application/database passwords, OIDC client secrets, signing keys and catalog credentials | Foundation | Generated independently per environment; recovered dev application values can be retained through `operator_secrets` |
-| `OBJECT_<PURPOSE>_ACCESS_KEY_ID`, `OBJECT_<PURPOSE>_SECRET_ACCESS_KEY` (prod) | Foundation | Separate platform S3 identities for training, artifacts and backups; foundation provisions application S3 identities from platform-owned policies and publishes credentials to their Doppler projects; dev MinIO policies are supplied by the platform |
-| `OBJECT_STORAGE_BUCKET` (prod) | Foundation | Generic production object bucket |
+| `AUTOSCALER_CREDENTIALS` | Selected cluster module; JSON map of `key.json` for GCP or AWS access-key environment variables | Platform creates `kube-system/cluster-autoscaler-cloud` |
+| `BLOCK_STORAGE_CREDENTIALS` | Selected cluster module; JSON credential map | ESO creates the selected CSI driver's Secret |
+| `AUTOSCALER_GROUPS`, `CLOUD_PROJECT_ID`, `CLOUD_REGION`, `CLOUD_ZONE` | Cluster root | Platform configures explicit Autoscaler group bounds and GCE API location |
+| `TALOS_IMAGE_ID` | Selected foundation module | Production cloud instances/templates |
+| `CLOUD_PROVIDER` | Foundation | CI and platform select GCP or AWS |
+| `GRAFANA_ADMIN_PASSWORD` (both environments) | Operator | Grafana local admin login |
+| Application/database passwords, OIDC client secrets, signing keys and catalog credentials | Operator | Entered by hand per environment |
+| `OBJECT_<PURPOSE>_ACCESS_KEY_ID`, `OBJECT_<PURPOSE>_SECRET_ACCESS_KEY` (prod) | Foundation | Separate GCS HMAC or S3 IAM identities/buckets for training, artifacts, backups, substrate and gateway; dev MinIO credentials remain externally provisioned |
+| `OBJECT_STORAGE_BUCKET`, `OBJECT_<PURPOSE>_BUCKET` (prod) | Foundation | Training bucket alias and separate purpose buckets |
+| `OBJECT_STORAGE_ENDPOINT`, `OBJECT_STORAGE_REGION` (prod) | Foundation | Selected cloud object-storage endpoint and signing region |
 
-Foundation generates application and production object-storage credentials, so they survive environment destroys. HCP state access and the scoped Cloudflare API token may be shared. Tunnel tokens remain specific to each existing tunnel; cluster, autoscaler, ESO and application credentials remain independent. Do not restore kubeconfigs, Talos bootstrap material, AMI IDs or IAM access keys belonging to deleted resources.
+Foundation generates production object-storage credentials, so they survive environment destroys. HCP state access and the scoped Cloudflare API token may be shared. Tunnel tokens remain specific to each existing tunnel; cluster, autoscaler, ESO and application credentials remain independent. Do not restore kubeconfigs, Talos bootstrap material, image IDs or controller credentials belonging to deleted resources.
 
 Foundation also creates a read/write CI service token per config and publishes it as that GitHub Environment's `DOPPLER_TOKEN` secret. This differs from the read-only ESO token. A local foundation apply uses a workspace-level Doppler login token to manage these service tokens.
 
@@ -45,8 +49,9 @@ Foundation also creates a read/write CI service token per config and publishes i
 | --- | --- |
 | CI Doppler token | Read/write one environment config |
 | ESO Doppler token | Read one environment config; only Doppler credential installed in the cluster |
-| CI AWS session | GitHub OIDC provisioning role |
-| Karpenter AWS key | Launch, tag, and terminate the environment's tagged instances; regional Describe access |
+| CI cloud session | GitHub Workload Identity Federation on GCP or OIDC role assumption on AWS; production only |
+| Autoscaler credentials | Read cloud inventory and resize/remove nodes only through configured MIGs or ASGs |
+| CSI credentials | Provision, resize, attach and detach cloud block volumes; no object access |
 | Cloudflare API token | Read tunnels in the account; edit DNS in the `phuchoang.sbs` zone. Dev and prod hold the same scope; ownership TXT records keep each operator to its own hostnames |
 | HCP operator token | State access across the configured workspaces |
 
@@ -69,4 +74,4 @@ kubectl get externalsecrets -A
 
 Select your cluster first using [cluster access](../operations/cluster-access.md).
 
-For Cloudflare, change the key in Doppler and wait for the ExternalSecret to refresh. The operator reads `CLOUDFLARE_API_TOKEN` on each reconcile. The operator does not watch that Secret, so after changing `CLOUDFLARE_TUNNEL_TOKEN`, use Argo CD's **Restart** action on `cloudflare-operator-controller-manager` (it rewrites the tunnel credentials on startup), then on the `talos-proxmox` `cloudflared` Deployment. Updating a Kubernetes Secret does not restart Deployments automatically. After rotating the Grafana admin password, restart Grafana. Dex reads `dex-config` only at startup, so after rotating `AUTH_OIDC_CLIENT_SECRET`, wait for the refresh and restart Dex and its clients, including Grafana. Restart Dex after the first sync of a config change too. The Karpenter key is not delivered by ESO: rotate it with the [OpenTofu procedure](../operations/aws-burst-workers.md#rotate-the-karpenter-key), where the platform apply restarts the controller.
+For Cloudflare, change the key in Doppler and wait for the ExternalSecret to refresh. The operator reads `CLOUDFLARE_API_TOKEN` on each reconcile. The operator does not watch that Secret, so after changing `CLOUDFLARE_TUNNEL_TOKEN`, use Argo CD's **Restart** action on `cloudflare-operator-controller-manager` (it rewrites the tunnel credentials on startup), then on the `talos-proxmox` `cloudflared` Deployment. Updating a Kubernetes Secret does not restart Deployments automatically. After rotating the Grafana admin password, restart Grafana. Dex reads `dex-config` only at startup, so after rotating `AUTH_OIDC_CLIENT_SECRET`, wait for the refresh and restart Dex and its clients, including Grafana. Restart Dex after the first sync of a config change too. The Autoscaler key is not delivered by ESO: rotate it with the [OpenTofu procedure](../operations/gcp-workers.md#rotate-controller-keys), where the platform apply restarts the controller. CSI credentials refresh through ESO; restart its controller after rotation.

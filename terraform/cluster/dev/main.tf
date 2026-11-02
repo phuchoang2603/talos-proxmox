@@ -2,7 +2,7 @@ module "proxmox" {
   source = "../../proxmox"
 
   env                     = var.env
-  nodes                   = local.nodes
+  nodes                   = jsondecode(file("${path.module}/../env/dev/k8s_nodes.json"))
   vm_node_name            = var.vm_node_name
   vm_datastore_id         = var.vm_datastore_id
   vm_bridge               = var.vm_bridge
@@ -12,23 +12,4 @@ module "proxmox" {
   kubernetes_version      = var.kubernetes_version
   talos_install_disk      = var.talos_install_disk
   talos_network_interface = var.talos_network_interface
-}
-
-module "aws" {
-  source              = "../../aws"
-  env                 = var.env
-  region              = var.aws_region
-  vpc_cidr            = var.aws_vpc_cidr
-  availability_zones  = var.aws_availability_zones
-  ami_id              = var.aws_ami_id
-  gpu_ami_id          = try(local.secrets.AWS_GPU_AMI_ID, "")
-  talos_version       = var.talos_version
-  kubernetes_version  = var.kubernetes_version
-  cluster_name        = module.proxmox.cluster_name
-  create_controlplane = false
-  external_cluster = {
-    endpoint              = module.proxmox.cluster_endpoint
-    machine_secrets       = module.proxmox.machine_secrets
-    worker_config_patches = module.proxmox.aws_worker_config_patches
-  }
 }

@@ -27,3 +27,9 @@ variable "target_revision" {
     error_message = "target_revision must be a full Git commit SHA."
   }
 }
+
+variable "cluster_autoscaler_image" {
+  description = "Cluster Autoscaler image matching Kubernetes 1.37."
+  type        = string
+  default     = null
+}

@@ -4,6 +4,7 @@ terraform {
     talos   = { source = "siderolabs/talos", version = "0.12.0" }
     doppler = { source = "DopplerHQ/doppler", version = "1.22.1" }
     aws     = { source = "hashicorp/aws", version = "~> 6.0" }
+    google  = { source = "hashicorp/google", version = "~> 7.0" }
   }
   cloud {
     hostname     = "app.terraform.io"
@@ -11,9 +12,21 @@ terraform {
     workspaces { name = "talos-cluster-prod" }
   }
 }
+
 provider "doppler" {}
 provider "talos" {}
+provider "google" {
+  access_token = var.cloud_provider == "aws" ? "disabled" : null
+  project      = var.gcp_project_id
+  region       = var.gcp_region
+  zone         = var.gcp_zone
+}
+
 provider "aws" {
-  region                  = var.aws_region
-  skip_metadata_api_check = true
+  region                      = var.aws_region
+  access_key                  = var.cloud_provider == "gcp" ? "disabled" : null
+  secret_key                  = var.cloud_provider == "gcp" ? "disabled" : null
+  skip_metadata_api_check     = true
+  skip_credentials_validation = var.cloud_provider == "gcp"
+  skip_requesting_account_id  = var.cloud_provider == "gcp"
 }

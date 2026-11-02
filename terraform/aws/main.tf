@@ -1,48 +1,29 @@
-
 locals {
-  name       = var.cluster_name
-  node_label = "burst.talos.dev/compute"
   tags = {
     managed-by  = "talos-proxmox"
     environment = var.env
   }
-}
-
-data "talos_machine_configuration" "worker" {
-  cluster_name       = var.cluster_name
-  cluster_endpoint   = local.cluster_endpoint
-  machine_type       = "worker"
-  machine_secrets    = local.machine_secrets
-  talos_version      = var.talos_version
-  kubernetes_version = var.kubernetes_version
-  docs               = false
-  examples           = false
-
-  config_patches = concat(local.worker_config_patches, [
-    yamlencode({
-      apiVersion = "v1alpha1"
-      kind       = "KubeletConfig"
-      extraArgs = {
-        "cloud-provider"       = "external"
-        "node-labels"          = "${local.node_label}=aws"
-        "register-with-taints" = "karpenter.sh/unregistered=true:NoExecute"
-      }
-    }),
-    yamlencode({ apiVersion = "v1alpha1", kind = "KubeSpanConfig", enabled = !var.create_controlplane }),
-  ])
+  pools = merge({
+    cpu = { min = var.worker_min, max = var.worker_max, spot = false }
+  }, var.enable_spot ? { spot = { min = 0, max = var.spot_max, spot = true } } : {})
+  cloud_patches = [
+    yamlencode({ apiVersion = "v1alpha1", kind = "KubeletConfig", extraArgs = { "cloud-provider" = "external" } }),
+    yamlencode({ apiVersion = "v1alpha1", kind = "KubeTalosAPIAccessConfig", allowedRoles = ["os:reader"], allowedKubernetesNamespaces = ["kube-system"] }),
+  ]
 }
 
 resource "aws_security_group" "worker" {
-  name_prefix = "${local.name}-"
-  description = "Talos cluster nodes and restricted management"
+  name_prefix = "${var.cluster_name}-"
+  description = "Talos cluster nodes"
   vpc_id      = aws_vpc.worker.id
-
-  tags = merge(local.tags, {
-    Name                     = local.name
-    "karpenter.sh/discovery" = var.cluster_name
-  })
+  tags        = local.tags
 }
-
+resource "aws_security_group" "controlplane" {
+  name_prefix = "${var.cluster_name}-management-"
+  description = "Restricted Talos and Kubernetes management"
+  vpc_id      = aws_vpc.worker.id
+  tags        = local.tags
+}
 resource "aws_vpc_security_group_ingress_rule" "nodes" {
   security_group_id            = aws_security_group.worker.id
   referenced_security_group_id = aws_security_group.worker.id
@@ -50,29 +31,17 @@ resource "aws_vpc_security_group_ingress_rule" "nodes" {
   tags                         = local.tags
 }
 resource "aws_vpc_security_group_ingress_rule" "management" {
-  for_each          = { for pair in setproduct(var.create_controlplane ? var.management_cidrs : toset([]), ["6443", "50000"]) : "${pair[0]}:${pair[1]}" => pair }
-  security_group_id = aws_security_group.worker.id
+  for_each          = { for pair in setproduct(var.management_cidrs, ["6443", "50000"]) : "${pair[0]}:${pair[1]}" => pair }
+  security_group_id = aws_security_group.controlplane.id
   cidr_ipv4         = each.value[0]
   from_port         = tonumber(each.value[1])
   to_port           = tonumber(each.value[1])
   ip_protocol       = "tcp"
   tags              = local.tags
 }
-
 resource "aws_vpc_security_group_egress_rule" "all" {
   security_group_id = aws_security_group.worker.id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
-  tags              = { managed-by = "talos-proxmox" }
-}
-
-resource "aws_vpc_security_group_ingress_rule" "kubespan" {
-  count             = var.create_controlplane ? 0 : 1
-  security_group_id = aws_security_group.worker.id
-  description       = "Authenticated KubeSpan WireGuard from Proxmox peers"
-  cidr_ipv4         = "0.0.0.0/0"
-  from_port         = 51820
-  to_port           = 51820
-  ip_protocol       = "udp"
   tags              = local.tags
 }

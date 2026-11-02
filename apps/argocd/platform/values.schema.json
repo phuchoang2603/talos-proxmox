@@ -127,7 +127,47 @@
           },
           "pruneLast": {
             "type": "boolean"
+          },
+          "clouds": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "gcp",
+                "aws"
+              ]
+            }
           }
+        }
+      }
+    },
+    "cloudProvider": {
+      "type": "string",
+      "enum": [
+        "proxmox",
+        "gcp",
+        "aws"
+      ]
+    },
+    "cloudRegion": {
+      "type": "string"
+    },
+    "cloudStorage": {
+      "type": "object",
+      "properties": {
+        "bucket": {
+          "type": "string"
+        },
+        "endpoint": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "region": {
+          "type": "string"
         }
       }
     }

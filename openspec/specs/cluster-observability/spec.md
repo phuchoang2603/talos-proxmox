@@ -18,14 +18,14 @@ The platform SHALL run VictoriaMetrics for metrics, VictoriaLogs for logs, and V
 - **THEN** results come from their own environment store
 
 ### Requirement: Telemetry collection in prod
-Each environment SHALL collect container logs from every node, node and kubelet resource metrics, cluster object metrics, and SHALL accept OTLP traces, cumulative metrics, and logs from applications at separate in-cluster HTTP endpoints. Collection MUST include AWS burst workers while they exist. VMAgent and VTAgent SHALL accept application metrics and traces, remote-write them to their respective stores, and buffer pending writes on separate persistent volumes using the environment storage class. Each queue SHALL be bounded to 513 MiB per destination, survive pod restarts, and replay when the store recovers. VLAgent SHALL collect container logs. The platform MUST NOT run OpenTelemetry collectors or gateways.
+Each environment SHALL collect container logs from every node, node and kubelet resource metrics, cluster object metrics, and SHALL accept OTLP traces, cumulative metrics, and logs from applications at separate in-cluster HTTP endpoints. Collection MUST include GCP autoscaled workers while they exist. VMAgent and VTAgent SHALL accept application metrics and traces, remote-write them to their respective stores, and buffer pending writes on separate persistent volumes using the environment storage class. Each queue SHALL be bounded to 513 MiB per destination, survive pod restarts, and replay when the store recovers. VLAgent SHALL collect container logs. The platform MUST NOT run OpenTelemetry collectors or gateways.
 
 #### Scenario: Application sends OTLP
 - **WHEN** a prod workload exports OTLP over HTTP/protobuf to the matching in-cluster signal endpoint
 - **THEN** its traces, metrics, and logs appear in the store
 
 #### Scenario: Pod writes to stdout
-- **WHEN** a container on any fixed Proxmox node or AWS burst worker writes a log line
+- **WHEN** a container on any fixed Proxmox node or GCP autoscaled worker writes a log line
 - **THEN** the line appears in the store with its namespace, pod, and container
 
 #### Scenario: Cluster state

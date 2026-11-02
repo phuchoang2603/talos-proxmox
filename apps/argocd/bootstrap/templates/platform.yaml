@@ -13,10 +13,18 @@ spec:
       parameters:
         - name: cluster
           value: {{ .Values.cluster | quote }}
+        - name: cloudProvider
+          value: {{ .Values.cloudProvider | quote }}
+        - name: cloudRegion
+          value: {{ .Values.cloudRegion | quote }}
         - name: repoURL
           value: {{ .Values.repoURL | quote }}
         - name: targetRevision
           value: {{ .Values.targetRevision | quote }}
+        {{- range $name, $value := .Values.cloudStorage }}
+        - name: cloudStorage.{{ $name }}
+          value: {{ $value | quote }}
+        {{- end }}
   destination:
     server: https://kubernetes.default.svc
     namespace: {{ .Release.Namespace }}

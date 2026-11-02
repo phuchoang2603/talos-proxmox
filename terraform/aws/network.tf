@@ -3,11 +3,11 @@ resource "aws_vpc" "worker" {
   enable_dns_support   = true
   enable_dns_hostnames = true
 
-  tags = merge(local.tags, { Name = "${local.name}-vpc" })
+  tags = merge(local.tags, { Name = "${var.cluster_name}-vpc" })
 }
 
 resource "aws_subnet" "worker" {
-  for_each = { for i, az in var.availability_zones : az => i }
+  for_each = { (var.zone) = 0 }
 
   vpc_id                  = aws_vpc.worker.id
   cidr_block              = cidrsubnet(var.vpc_cidr, 8, each.value)
@@ -15,21 +15,20 @@ resource "aws_subnet" "worker" {
   map_public_ip_on_launch = true
 
   tags = merge(local.tags, {
-    Name                     = "${local.name}-${each.key}"
-    "karpenter.sh/discovery" = var.cluster_name
+    Name = "${var.cluster_name}-${each.key}"
   })
 }
 
 resource "aws_internet_gateway" "worker" {
   vpc_id = aws_vpc.worker.id
 
-  tags = merge(local.tags, { Name = "${local.name}-igw" })
+  tags = merge(local.tags, { Name = "${var.cluster_name}-igw" })
 }
 
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.worker.id
 
-  tags = merge(local.tags, { Name = "${local.name}-public" })
+  tags = merge(local.tags, { Name = "${var.cluster_name}-public" })
 }
 
 resource "aws_route" "internet" {
@@ -51,5 +50,5 @@ resource "aws_vpc_endpoint" "s3" {
   vpc_endpoint_type = "Gateway"
   route_table_ids   = [aws_route_table.public.id]
 
-  tags = merge(local.tags, { Name = "${local.name}-s3" })
+  tags = merge(local.tags, { Name = "${var.cluster_name}-s3" })
 }

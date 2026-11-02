@@ -41,31 +41,26 @@ variable "proxmox_min_tls" {
 variable "vm_node_name" {
   description = "Proxmox node where disk images are downloaded"
   type        = string
-  default     = null
 }
 
 variable "vm_datastore_id" {
   description = "Proxmox datastore ID where ISO/images are stored"
   type        = string
-  default     = null
 }
 
 variable "vm_bridge" {
   description = "Network bridge used for VM network"
   type        = string
-  default     = null
 }
 
 variable "vm_ip_gateway" {
   description = "Gateway for Kubernetes VMs"
   type        = string
-  default     = null
 }
 
 variable "dns_server" {
   description = "DNS server for Kubernetes VMs"
   type        = string
-  default     = null
 }
 
 variable "talos_install_disk" {
@@ -78,18 +73,4 @@ variable "talos_network_interface" {
   description = "Primary NIC name inside Talos"
   type        = string
   default     = "eth0"
-}
-
-variable "aws_region" {
-  type    = string
-  default = "us-east-1"
-}
-variable "aws_vpc_cidr" {
-  type = string
-}
-variable "aws_availability_zones" {
-  type = list(string)
-}
-variable "aws_ami_id" {
-  type = string
 }

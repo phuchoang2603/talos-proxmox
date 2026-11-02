@@ -31,6 +31,7 @@ jobs:
     env:
       DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
       TF_VAR_env: ${{ inputs.environment }}
+      TF_VAR_cloud_provider: ${{ vars.CLOUD_PROVIDER || 'gcp' }}
       TF_IN_AUTOMATION: true
       TF_VAR_target_revision: ${{ inputs.revision || github.sha }}
       PURGE_DATA: ${{ inputs.purge_data && 'true' || 'false' }}
@@ -65,11 +66,20 @@ jobs:
           tofu_version: v1.13.2
           tofu_wrapper: false
 
-      - uses: aws-actions/configure-aws-credentials@v4
+      - uses: google-github-actions/auth@v3
+        if: inputs.environment == 'prod' && vars.CLOUD_PROVIDER == 'gcp'
         with:
-          role-to-assume: arn:aws:iam::142737101504:role/talos-proxmox-ci
-          aws-region: us-east-1
-          role-duration-seconds: 7200
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_CI_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v3
+        if: inputs.environment == 'prod' && vars.CLOUD_PROVIDER == 'gcp'
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        if: inputs.environment == 'prod' && vars.CLOUD_PROVIDER == 'aws'
+        with:
+          role-to-assume: ${{ vars.AWS_CI_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Doppler credentials
         run: |
@@ -89,15 +99,15 @@ jobs:
           oauth-secret: ${{ env.TS_OAUTH_SECRET }}
           tags: tag:ci
 
-      - name: Allow current AWS management egress
+      - name: Allow current cloud management egress
         if: inputs.environment == 'prod'
         run: |
-          address=$(curl --fail --silent --show-error https://checkip.amazonaws.com)
+          address=$(curl --fail --silent --show-error https://api.ipify.org)
           python3 - "$address" <<'PYCODE'
           import ipaddress, json, os, sys
           cidr = str(ipaddress.IPv4Address(sys.argv[1])) + "/32"
           with open(os.environ["GITHUB_ENV"], "a") as output:
-              output.write("TF_VAR_aws_management_cidrs=" + json.dumps([cidr]) + "\n")
+              output.write("TF_VAR_management_cidrs=" + json.dumps([cidr]) + "\n")
           PYCODE
 
       - name: Cluster plan

@@ -1,14 +1,3 @@
-terraform {
-  required_providers {
-    proxmox = {
-      source = "bpg/proxmox"
-    }
-    talos = {
-      source = "siderolabs/talos"
-    }
-  }
-}
-
 variable "env" {
   type = string
 }
@@ -19,7 +8,6 @@ variable "nodes" {
     node         = string
     vm_id        = number
     address      = string
-    ip           = string
     cpu_cores    = number
     cpu_type     = string
     memory_mb    = number

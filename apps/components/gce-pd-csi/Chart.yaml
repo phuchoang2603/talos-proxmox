@@ -1,0 +1,4 @@
+apiVersion: v2
+name: platform-gce-pd-csi
+version: 0.1.0
+type: application

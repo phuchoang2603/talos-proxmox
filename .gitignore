@@ -12,6 +12,7 @@ terraform.tfvars
 *.crt
 kubeconfig
 talosconfig
+gha-creds-*.json
 
 # Misc
 *.log

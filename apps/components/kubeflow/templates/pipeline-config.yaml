@@ -7,7 +7,7 @@ data:
       default:
         endpoint: {{ .Values.objectStorage.endpoint }}
         disableSSL: false
-        region: us-east-1
+        region: {{ .Values.objectStorage.region }}
         forcePathStyle: {{ .Values.objectStorage.forcePathStyle }}
         credentials:
           fromEnv: false

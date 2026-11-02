@@ -1,7 +1,7 @@
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: gp3
+  name: cloud-block
   annotations:
     storageclass.kubernetes.io/is-default-class: "true"
 provisioner: ebs.csi.aws.com
@@ -26,8 +26,6 @@ spec:
     name: doppler
   target:
     name: ebs-csi-aws
-  data:
-    - secretKey: AWS_ACCESS_KEY_ID
-      remoteRef: {key: EBS_CSI_AWS_ACCESS_KEY_ID}
-    - secretKey: AWS_SECRET_ACCESS_KEY
-      remoteRef: {key: EBS_CSI_AWS_SECRET_ACCESS_KEY}
+  dataFrom:
+    - extract:
+        key: BLOCK_STORAGE_CREDENTIALS

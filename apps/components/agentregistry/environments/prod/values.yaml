@@ -1,3 +1,3 @@
-storageClass: gp3
+storageClass: cloud-block
 databaseNodeSelector:
-  karpenter.sh/capacity-type: on-demand
+  talos.dev/capacity-type: on-demand

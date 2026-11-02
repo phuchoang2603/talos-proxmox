@@ -30,7 +30,7 @@ spec:
                 {{- end }}
                 resourceClaims:
                 - name: gpu
-                  resourceClaimTemplateName: aws-gpu-training
+                  resourceClaimTemplateName: gpu-training
                 containers:
                 - image: ghcr.io/kubeflow/trainer/xgboost-runtime:v2.3.0
                   name: node

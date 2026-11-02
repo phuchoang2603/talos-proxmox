@@ -8,11 +8,6 @@ variable "env" {
   type        = string
 }
 
-variable "role" {
-  description = "Node role (servers or worker). Used for Talos machine config, not Proxmox tags."
-  type        = string
-}
-
 variable "node_name" {
   description = "The name of the Proxmox node where the VM will be created."
   type        = string

@@ -1,14 +1,10 @@
-# Talos on Proxmox and AWS
+# Talos on Proxmox and GCP
 
-Two independent Kubernetes environments run Talos: **dev** on the existing Proxmox hosts and **prod** in AWS. OpenTofu provisions infrastructure, each cluster's Argo CD manages applications, and Doppler supplies credentials.
+Two independent Kubernetes environments run Talos: **dev** on the existing Proxmox hosts and **prod** on Google Compute Engine. OpenTofu provisions infrastructure, each cluster's Argo CD manages applications, and Doppler supplies credentials.
 
-Dev keeps the former production VM allocations with one control-plane/workload node and two workers, plus an independent Karpenter Spot pool that scales from zero. Prod uses one On-Demand `m6a.xlarge` control-plane/workload node and two `m6a.xlarge` On-Demand workers with optional Spot burst capacity managed by Karpenter. Both run the same applicable platform, including Knative and Kubeflow. Each has a single control plane and single-instance PostgreSQL; neither is highly available.
+Dev keeps the existing Proxmox VM allocations with one control-plane/workload node and two workers. It has no cloud workers or node autoscaler. Prod uses one fixed `e2-standard-4` control-plane/workload VM and a Cluster Autoscaler-managed baseline of three `e2-standard-4` workers, fixed at three. A separate Spot group scales from zero to twelve workers. All machines have 4 vCPU and 16 GiB RAM. Both environments retain Kubernetes `v1.37.2`; production uses Cluster Autoscaler `v1.37.0` pinned by image digest. Each has a single control plane and single-instance PostgreSQL; neither is highly available.
 
-Dev uses local-path and existing MinIO. Prod uses encrypted gp3 EBS and generic private S3 storage. The payment gateway application owns its PostgreSQL-backed Polaris Iceberg REST catalog. State, application credentials and public domains remain independent.
-
-[![Infrastructure architecture](docs/architecture/diagrams/architecture.png)](docs/architecture/diagrams/architecture.svg?raw=1)
-
-[Interactive HTML](docs/architecture/diagrams/architecture.html) · [Editable Archify source](docs/architecture/diagrams/architecture.json)
+Dev uses local-path and existing MinIO. Prod uses expandable GCE Persistent Disk storage and separate private GCS buckets per object consumer, accessed through the S3-compatible XML API with HMAC credentials. Cloud GPU groups and production local-model caching are disabled. State, application credentials and public domains remain independent.
 
 ## Start here
 
@@ -16,10 +12,10 @@ Dev uses local-path and existing MinIO. Prod uses encrypted gp3 EBS and generic 
 | --- | --- |
 | Contribute, validate, or deploy | [Contributing and setup](CONTRIBUTING.md) |
 | Understand provisioning, state, and CI | [Terraform and CI architecture](docs/architecture/terraform-ci.md) |
-| Understand AWS networking and autoscaling | [Hybrid AWS worker architecture](docs/architecture/hybrid-aws-workers.md) |
+| Understand GCP networking and autoscaling | [GCP worker architecture](docs/architecture/gcp-workers.md) |
 | Understand application ownership and reconciliation | [GitOps and Argo CD architecture](docs/architecture/gitops.md) |
 | Connect to a cluster or check its health | [Cluster access](docs/operations/cluster-access.md) |
-| Schedule burst workloads or rotate their AWS key | [AWS worker operations](docs/operations/aws-burst-workers.md) |
+| Schedule cloud workloads or rotate controller credentials | [GCP worker operations](docs/operations/gcp-workers.md) |
 | Find a credential's source and consumers | [Secrets reference](docs/reference/secrets.md) |
 
 ## Repository map
@@ -29,7 +25,7 @@ Dev uses local-path and existing MinIO. Prod uses encrypted gp3 EBS and generic 
 | [`terraform/foundation/`](terraform/foundation/) | Operator-applied identities, Doppler tokens, GitHub Environments, HCP workspaces |
 | [`terraform/cluster/`](terraform/cluster/) | Separate dev/prod infrastructure entrypoints and environment inventory |
 | [`terraform/platform/`](terraform/platform/) | Per-environment CNI, Gateway API CRDs, ESO authentication, Argo CD bootstrap |
-| [`terraform/proxmox/`](terraform/proxmox/) and [`terraform/aws/`](terraform/aws/) | Modules called by the cluster root |
+| [`terraform/proxmox/`](terraform/proxmox/) and [`terraform/gcp/`](terraform/gcp/) | Modules called by the cluster root |
 | [`apps/argocd/`](apps/argocd/) | Bootstrap and shared platform Application charts |
 | [`apps/components/`](apps/components/) | Component charts, vendored dependencies, environment overrides |
 | [`.github/workflows/`](.github/workflows/) | Validation and provisioning workflows |

@@ -1,5 +1,0 @@
-karpenter:
-  replicas: 1
-  settings:
-    featureGates:
-      spotToSpotConsolidation: true
