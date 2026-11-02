@@ -29,7 +29,7 @@ resource "google_compute_instance_template" "worker" {
   disk {
     source_image = var.image_id
     disk_size_gb = 40
-    disk_type    = each.value.disk_type
+    disk_type    = "pd-balanced"
     auto_delete  = true
     boot         = true
   }

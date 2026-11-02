@@ -8,8 +8,8 @@ terraform {
 locals {
   tags = [var.cluster_name]
   pools = merge({
-    cpu = { min = var.worker_min, max = var.worker_max, spot = false, disk_type = "pd-balanced" }
-  }, var.enable_spot ? { spot = { min = 0, max = var.spot_max, spot = true, disk_type = "pd-standard" } } : {})
+    cpu = { min = var.worker_min, max = var.worker_max, spot = false }
+  }, var.enable_spot ? { spot = { min = 0, max = var.spot_max, spot = true } } : {})
   cloud_patches = [
     yamlencode({ apiVersion = "v1alpha1", kind = "KubeletConfig", extraArgs = { "cloud-provider" = "external" } }),
   ]
