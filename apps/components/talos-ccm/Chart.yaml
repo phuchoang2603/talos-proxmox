@@ -2,7 +2,7 @@ apiVersion: v2
 name: platform-talos-ccm
 description: Talos cloud controller manager
 type: application
-version: 0.1.0
+version: 0.1.1
 dependencies:
   - name: talos-cloud-controller-manager
     version: 0.5.8
