@@ -12,6 +12,18 @@ reclaimPolicy: Retain
 allowVolumeExpansion: true
 volumeBindingMode: WaitForFirstConsumer
 ---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: cloud-standard
+provisioner: pd.csi.storage.gke.io
+parameters:
+  type: pd-standard
+  csi.storage.k8s.io/fstype: ext4
+reclaimPolicy: Retain
+allowVolumeExpansion: true
+volumeBindingMode: WaitForFirstConsumer
+---
 apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
