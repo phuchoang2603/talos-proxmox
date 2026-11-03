@@ -6,7 +6,7 @@ Provide private, versioned cloud object storage and scoped workload access for i
 ## Requirements
 
 ### Requirement: Private regional staging storage
-Prod SHALL use private encrypted versioned GCS buckets (one shared by training and gateway, and separate artifacts and substrate buckets), exposed through the XML/S3 compatibility API with purpose-scoped HMAC credentials. Dev SHALL use existing MinIO without cloud object buckets. Retention SHALL preserve active table data and checkpoints. Talos GCE image assets SHALL be separately owned by foundation. Run objects SHALL remain retained until explicit application cleanup; S3 object-tag lifecycle rules SHALL NOT be assumed available.
+Prod SHALL use one private encrypted versioned GCS object bucket shared by training, gateway, artifacts and Substrate, exposed through the XML/S3 compatibility API with purpose-scoped HMAC credentials. Its top-level prefixes SHALL match dev MinIO: artifacts/, datasets/, lakehouse/, runs/ and substrate/. Artifact object access SHALL be restricted to artifacts/, datasets/ and runs/; Substrate object access SHALL be restricted to substrate/. Bucket listing MAY expose object names outside those prefixes. Dev SHALL use existing MinIO without cloud object buckets. Retention SHALL preserve active table data and checkpoints. Talos GCE image assets SHALL be separately owned by foundation. Run objects SHALL remain retained until explicit application cleanup; S3 object-tag lifecycle rules SHALL NOT be assumed available.
 
 #### Scenario: Run cleanup
 - **WHEN** finished run objects expire

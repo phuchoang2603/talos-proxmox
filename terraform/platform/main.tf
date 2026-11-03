@@ -6,7 +6,7 @@ locals {
   cloud_region   = var.env == "prod" ? nonsensitive(data.doppler_secrets.this.map.CLOUD_REGION) : ""
 
   cloud_storage = var.env == "prod" ? {
-    bucket   = nonsensitive(data.doppler_secrets.this.map.OBJECT_ARTIFACTS_BUCKET)
+    bucket   = nonsensitive(data.doppler_secrets.this.map.OBJECT_STORAGE_BUCKET)
     endpoint = nonsensitive(data.doppler_secrets.this.map.OBJECT_STORAGE_ENDPOINT)
     host     = trimprefix(nonsensitive(data.doppler_secrets.this.map.OBJECT_STORAGE_ENDPOINT), "https://")
     region   = nonsensitive(data.doppler_secrets.this.map.OBJECT_STORAGE_REGION)

@@ -17,5 +17,8 @@ output "controller_keys" {
 }
 
 output "autoscaler_groups" {
-  value = [for name, pool in local.pools : "${pool.min}:${pool.max}:${google_compute_instance_group_manager.worker[name].instance_group}"]
+  value = concat(
+    [for name, pool in local.pools : "${pool.min}:${pool.max}:${google_compute_instance_group_manager.worker[name].instance_group}"],
+    [for group in google_compute_instance_group_manager.gpu : "1:1:${group.instance_group}"],
+  )
 }

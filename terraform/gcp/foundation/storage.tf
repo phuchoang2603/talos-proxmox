@@ -2,8 +2,8 @@ locals {
   object_consumers = {
     training  = "platform"
     gateway   = "platform"
-    artifacts = "artifacts"
-    substrate = "substrate"
+    artifacts = "platform"
+    substrate = "platform"
   }
   object_buckets = toset(values(local.object_consumers))
 }

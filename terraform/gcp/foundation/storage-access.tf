@@ -9,6 +9,17 @@ resource "google_storage_bucket_iam_member" "objects" {
   bucket   = google_storage_bucket.objects[each.value].name
   role     = "roles/storage.objectAdmin"
   member   = "serviceAccount:${google_service_account.objects[each.key].email}"
+  dynamic "condition" {
+    for_each = contains(keys(local.object_prefixes), each.key) ? [local.object_prefixes[each.key]] : []
+    content {
+      title = "${each.key}-objects"
+      expression = join(" || ", concat([
+        "resource.name == \"projects/_/buckets/${google_storage_bucket.objects[each.value].name}\""
+        ], [for prefix in condition.value :
+        "resource.name.startsWith(\"projects/_/buckets/${google_storage_bucket.objects[each.value].name}/objects/${prefix}\")"
+      ]))
+    }
+  }
 }
 
 resource "google_storage_hmac_key" "objects" {
@@ -17,14 +28,18 @@ resource "google_storage_hmac_key" "objects" {
 }
 
 locals {
+  object_prefixes = {
+    artifacts = ["artifacts/", "datasets/", "runs/"]
+    substrate = ["substrate/"]
+  }
   object_secret_values = merge({
     OBJECT_STORAGE_BUCKET   = google_storage_bucket.objects["platform"].name
     OBJECT_STORAGE_ENDPOINT = "https://storage.googleapis.com"
     OBJECT_STORAGE_REGION   = "auto"
-    }, [for consumer, bucket in local.object_consumers : merge({
+    OBJECT_ARTIFACTS_BUCKET = google_storage_bucket.objects["platform"].name
+    OBJECT_SUBSTRATE_BUCKET = google_storage_bucket.objects["platform"].name
+    }, [for consumer in keys(local.object_consumers) : {
       "OBJECT_${upper(consumer)}_ACCESS_KEY_ID"     = google_storage_hmac_key.objects[consumer].access_id
       "OBJECT_${upper(consumer)}_SECRET_ACCESS_KEY" = google_storage_hmac_key.objects[consumer].secret
-      }, bucket == "platform" ? {} : {
-      "OBJECT_${upper(consumer)}_BUCKET" = google_storage_bucket.objects[bucket].name
-  })]...)
+  }]...)
 }

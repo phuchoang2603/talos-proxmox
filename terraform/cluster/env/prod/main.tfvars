@@ -4,6 +4,7 @@ gcp_project_id     = "talos-proxmox"
 gcp_region         = "us-central1"
 gcp_zone           = "us-central1-a"
 gcp_machine_type   = "e2-standard-4"
+gcp_gpu_enabled    = true
 worker_min         = 3
 worker_max         = 3
 spot_max           = 12

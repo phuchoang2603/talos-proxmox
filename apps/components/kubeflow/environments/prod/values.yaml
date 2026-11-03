@@ -7,7 +7,7 @@ localModel:
     kubernetes.io/hostname: null
     talos.dev/nodepool: gpu
 gpuTraining:
-  numNodes: 2
+  numNodes: 1
   nodeSelector:
     nvidia.com/gpu.present: null
     talos.dev/nodepool: gpu

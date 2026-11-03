@@ -1,27 +1,27 @@
 # distributed-gpu-training Specification
 
 ## Purpose
-Retain fixed local GPU capacity and the explicit NVIDIA DRA runtime contract while keeping production cloud GPU provisioning disabled.
+Retain fixed local GPU capacity and the explicit NVIDIA DRA runtime contract, with one fixed on-demand GCP GPU worker.
 
 ## Requirements
 
 ### Requirement: Dedicated cloud GPU capacity
-Prod SHALL NOT provision a GPU group until compatible Talos GPU images, quota and device-level execution have been validated. Cloud GPU workloads SHALL remain pending rather than use CPU workers or dev GPUs. Dev SHALL retain local GPU allocation.
+When gcp_gpu_enabled is true, prod SHALL provision a dedicated managed instance group targeting one on-demand n1-standard-4 worker with one NVIDIA T4. Cluster Autoscaler SHALL register the GPU group with minimum and maximum size one. The worker SHALL use a Talos image with matching NVIDIA kernel and toolkit extensions, dedicated GPU placement labels and a workload taint. Cloud GPU workloads SHALL remain pending rather than use CPU workers or dev GPUs when quota or capacity is unavailable. Dev SHALL retain local GPU allocation.
 
-#### Scenario: Default prod deployment
-- **WHEN** no GPU pool has been explicitly enabled
-- **THEN** no GPU instance is launched
+#### Scenario: Fixed prod GPU enabled
+- **WHEN** the production inventory enables gcp_gpu_enabled and quota is available
+- **THEN** the dedicated GPU group targets one on-demand T4 worker and is registered with Cluster Autoscaler at bounds of one to one
 
-#### Scenario: Train from zero cloud workers
-- **WHEN** a production GPU workload is submitted without a validated GPU group
-- **THEN** it remains pending without launching CPU workers to satisfy GPU capacity
+#### Scenario: GPU disabled
+- **WHEN** gcp_gpu_enabled is false
+- **THEN** no cloud GPU instance is provisioned and GPU claims remain pending without launching CPU workers to satisfy GPU capacity
 
 #### Scenario: Capacity or quota failure
 - **WHEN** no allowed zone can supply the required node
 - **THEN** the reason is observable and the workload does not silently use local capacity or another topology
 
 ### Requirement: Verified accelerator readiness
-Future GCP GPU workers SHALL use a pinned compatible Talos image and GPU stack. Readiness evidence SHALL include allocated-device execution and a framework forward/backward pass; node registration alone SHALL NOT establish training readiness.
+GCP GPU workers SHALL use a pinned compatible Talos image and GPU stack. Readiness evidence SHALL include allocated-device execution and a framework forward/backward pass; node registration alone SHALL NOT establish training readiness.
 
 #### Scenario: Worker joined but device unverified
 - **WHEN** a worker has joined the cluster
@@ -39,15 +39,15 @@ The platform SHALL expose a versioned runtime and scheduling contract supporting
 - **THEN** the workload fails or is canceled with cleanup instead of hanging indefinitely
 
 ### Requirement: Bounded cloud lifecycle
-GPU capacity SHALL return to zero after bounded jobs finish. Durable checkpoints SHALL reside in object storage. GPU interruption recovery SHALL be verified before enabling Spot GPU training.
+The fixed GPU worker SHALL remain provisioned after jobs finish until explicitly disabled in the production inventory. GPU autoscaling and Spot GPU capacity SHALL remain disabled. Durable checkpoints SHALL reside in object storage.
 
 #### Scenario: Training ends
-- **WHEN** the idle interval elapses
-- **THEN** GPU workers terminate while CPU baseline and persistent storage remain available
+- **WHEN** a GPU job finishes
+- **THEN** its device claim can be released while the fixed GPU worker remains available
 
-#### Scenario: Finish or cancel distributed work
-- **WHEN** training resources are removed and the idle interval elapses
-- **THEN** GPU nodes terminate while the fixed control plane, CPU baseline and Persistent Disk data remain
+#### Scenario: Explicit GPU teardown
+- **WHEN** gcp_gpu_enabled is disabled and the cluster configuration is applied
+- **THEN** the GPU VM is removed while the fixed control plane, CPU baseline and Persistent Disk data remain
 
 ### Requirement: Local notebook GPU allocation
 The dev RTX 5060 Ti SHALL remain usable through exclusive notebook allocation. Production training SHALL NOT claim it. Occupied local capacity SHALL leave another GPU notebook pending.

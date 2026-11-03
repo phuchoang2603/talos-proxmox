@@ -19,7 +19,8 @@ output "ci_variables" {
 }
 output "secrets" {
   value = merge(local.object_secret_values, {
-    TALOS_IMAGE_ID = google_compute_image.talos.self_link
+    TALOS_IMAGE_ID     = google_compute_image.talos.self_link
+    TALOS_GPU_IMAGE_ID = google_compute_image.gpu.self_link
   })
   sensitive = true
 }

@@ -48,7 +48,7 @@ resource "google_compute_instance" "controlplane" {
     scopes = ["https://www.googleapis.com/auth/cloud-platform"]
   }
   lifecycle {
-    ignore_changes = [metadata, boot_disk[0].initialize_params[0].image]
+    ignore_changes = [metadata, boot_disk[0].initialize_params[0].image, attached_disk]
   }
   depends_on = [google_compute_firewall.management, google_compute_firewall.internal, terraform_data.storage_cleanup]
 }

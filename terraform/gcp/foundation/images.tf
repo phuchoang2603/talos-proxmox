@@ -49,3 +49,64 @@ resource "google_compute_image" "talos" {
   guest_os_features { type = "VIRTIO_SCSI_MULTIQUEUE" }
   depends_on = [terraform_data.image_upload]
 }
+
+data "talos_image_factory_extensions_versions" "gpu" {
+  talos_version = var.talos_version
+  filters = {
+    names = [
+      "nvidia-open-gpu-kernel-modules-production",
+      "nvidia-container-toolkit-production",
+    ]
+  }
+}
+
+resource "talos_image_factory_schematic" "gpu" {
+  schematic = yamlencode({
+    customization = {
+      systemExtensions = {
+        officialExtensions = data.talos_image_factory_extensions_versions.gpu.extensions_info[*].name
+      }
+    }
+  })
+}
+
+data "talos_image_factory_urls" "gpu" {
+  talos_version = var.talos_version
+  schematic_id  = talos_image_factory_schematic.gpu.id
+  platform      = "gcp"
+  architecture  = "amd64"
+}
+
+locals {
+  gpu_image_name = "talos-gpu-${replace(var.talos_version, ".", "-")}-${substr(talos_image_factory_schematic.gpu.id, 0, 12)}"
+  gpu_image_key  = "${local.gpu_image_name}.tar.gz"
+}
+
+resource "terraform_data" "gpu_image_upload" {
+  triggers_replace = [local.gpu_image_key, google_storage_bucket.images.name]
+  provisioner "local-exec" {
+    interpreter = ["bash", "-c"]
+    environment = {
+      IMAGE_URL  = data.talos_image_factory_urls.gpu.urls.disk_image
+      IMAGE_DEST = "gs://${google_storage_bucket.images.name}/${local.gpu_image_key}"
+    }
+    command = <<-EOT
+      set -euo pipefail
+      if gcloud storage objects describe "$IMAGE_DEST" >/dev/null 2>&1; then
+        exit 0
+      fi
+      image_dir=$(mktemp -d)
+      trap 'rm -rf "$image_dir"' EXIT
+      curl -fsSL --retry 5 --retry-all-errors -o "$image_dir/talos.tar.gz" "$IMAGE_URL"
+      gcloud storage cp "$image_dir/talos.tar.gz" "$IMAGE_DEST"
+    EOT
+  }
+}
+
+resource "google_compute_image" "gpu" {
+  project = var.project_id
+  name    = local.gpu_image_name
+  raw_disk { source = "https://storage.googleapis.com/${google_storage_bucket.images.name}/${local.gpu_image_key}" }
+  guest_os_features { type = "VIRTIO_SCSI_MULTIQUEUE" }
+  depends_on = [terraform_data.gpu_image_upload]
+}

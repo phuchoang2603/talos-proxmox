@@ -1,0 +1,65 @@
+{{- if .Values.components.trainer }}
+apiVersion: trainer.kubeflow.org/v1alpha1
+kind: ClusterTrainingRuntime
+metadata:
+  labels:
+    trainer.kubeflow.org/framework: torch
+  name: gpu-training
+spec:
+  mlPolicy:
+    numNodes: {{ .Values.gpuTraining.numNodes }}
+    torch: {}
+  template:
+    spec:
+      replicatedJobs:
+      - name: node
+        template:
+          metadata:
+            labels:
+              trainer.kubeflow.org/trainjob-ancestor-step: trainer
+          spec:
+            backoffLimit: 0
+            template:
+              spec:
+                restartPolicy: Never
+                nodeSelector:
+                  {{- toYaml .Values.gpuTraining.nodeSelector | nindent 18 }}
+                {{- with .Values.gpuTraining.tolerations }}
+                tolerations:
+                  {{- toYaml . | nindent 18 }}
+                {{- end }}
+                resourceClaims:
+                - name: gpu
+                  resourceClaimTemplateName: gpu-training
+                containers:
+                - image: pytorch/pytorch:2.13.0-cuda13.0-cudnn9-runtime
+                  name: node
+                  resources:
+                    claims:
+                    - name: gpu
+                    requests:
+                      cpu: '1'
+                      memory: 2Gi
+                    limits:
+                      cpu: '3'
+                      memory: 8Gi
+                  securityContext:
+                    allowPrivilegeEscalation: false
+                    capabilities:
+                      drop:
+                      - ALL
+                securityContext:
+                  runAsNonRoot: true
+                  runAsUser: 1000
+                  runAsGroup: 1000
+                  seccompProfile:
+                    type: RuntimeDefault
+                affinity:
+                  podAntiAffinity:
+                    requiredDuringSchedulingIgnoredDuringExecution:
+                    - labelSelector:
+                        matchExpressions:
+                        - key: jobset.sigs.k8s.io/jobset-name
+                          operator: Exists
+                      topologyKey: kubernetes.io/hostname
+{{- end }}

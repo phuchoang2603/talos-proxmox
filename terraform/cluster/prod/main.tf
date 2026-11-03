@@ -11,6 +11,9 @@ module "gcp" {
   management_cidrs          = local.management_cidrs
   controlplane_machine_type = var.gcp_machine_type
   worker_machine_type       = var.gcp_machine_type
+  gpu_enabled               = var.gcp_gpu_enabled
+  gpu_zone                  = var.gcp_gpu_zone
+  gpu_image_id              = try(local.secrets.TALOS_GPU_IMAGE_ID, "")
   worker_min                = var.worker_min
   worker_max                = var.worker_max
   enable_spot               = var.enable_spot

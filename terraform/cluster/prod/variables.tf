@@ -55,6 +55,14 @@ variable "gcp_machine_type" {
   default = "e2-standard-4"
 }
 
+variable "gcp_gpu_enabled" {
+  type    = bool
+  default = false
+}
+variable "gcp_gpu_zone" {
+  type    = string
+  default = null
+}
 
 variable "worker_min" {
   type    = number
