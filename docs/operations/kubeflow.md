@@ -53,7 +53,7 @@ KFP driver/launcher and CPU validation pods should use the autoscaled `spot` gro
 
 ## Ambient waypoints in `ml`
 
-The `ml` namespace enforces `restricted` Pod Security, but istiod generates waypoint pods (`gatewayClassName: istio-waypoint`) without a seccomp profile. With `ambientWaypoint.enabled`, a `MutatingAdmissionPolicy` sets `seccompProfile: RuntimeDefault` on those pods only; every other `restricted` field is already set by the generated pod. It is on in dev and off in prod until it is enabled in `environments/prod/values.yaml`. The platform creates no waypoint, `HTTPRoute` or `istio.io/use-waypoint` label; consumers own those.
+The `ml` namespace enforces `restricted` Pod Security, but istiod generates waypoint pods (`gatewayClassName: istio-waypoint`) without a seccomp profile. With `ambientWaypoint.enabled`, a `MutatingAdmissionPolicy` sets `seccompProfile: RuntimeDefault` on those pods only; every other `restricted` field is already set by the generated pod. It is on in dev and prod. The platform creates no waypoint, `HTTPRoute` or `istio.io/use-waypoint` label; consumers own those.
 
 ## Rebuilt prod validation, November 1, 2026
 
