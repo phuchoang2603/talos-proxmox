@@ -20,7 +20,7 @@ jobs:
 
   dev:
     name: Provision (dev)
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event_name == 'push' || (github.event.pull_request.head.repo.full_name == github.repository && !startsWith(github.head_ref, 'renovate/'))
     needs: lint
     permissions:
       contents: read
@@ -32,7 +32,7 @@ jobs:
 
   prod:
     name: Plan (prod)
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && !startsWith(github.head_ref, 'renovate/')
     needs: lint
     permissions:
       contents: read

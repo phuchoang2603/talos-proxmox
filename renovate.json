@@ -6,12 +6,12 @@
   "postUpdateOptions": [
     "helmUpdateSubChartArchives"
   ],
-  "automerge": false,
-  "packageRules": [
-    {
-      "matchUpdateTypes": ["minor", "patch", "digest"],
-      "automerge": true,
-      "platformAutomerge": true
-    }
-  ]
+  "schedule": [
+    "on the first day of the month"
+  ],
+  "dependencyDashboardApproval": true,
+  "rebaseWhen": "conflicted",
+  "prHourlyLimit": 2,
+  "prConcurrentLimit": 3,
+  "automerge": false
 }
