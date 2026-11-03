@@ -130,6 +130,7 @@ spec:
             - --scale-down-delay-after-add=10m
             - --scale-down-unneeded-time=10m
             - --skip-nodes-with-local-storage=true
+            - --ok-total-unready-count=12
             - --v=2
             {{- range required "At least one managed instance group is required" .Values.groups }}
             - {{ printf "--nodes=%s" . | quote }}

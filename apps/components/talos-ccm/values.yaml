@@ -1,6 +1,8 @@
 talos-cloud-controller-manager:
   daemonSet:
     enabled: true
-  # GCP kubelets use --cloud-provider=external; Proxmox nodes are skipped.
+  # GCP kubelets use --cloud-provider=external; Proxmox nodes are skipped. The lifecycle
+  # controller removes Nodes of preempted GCP Spot VMs (Talos CCM reports them as gone).
   enabledControllers:
     - cloud-node
+    - cloud-node-lifecycle
