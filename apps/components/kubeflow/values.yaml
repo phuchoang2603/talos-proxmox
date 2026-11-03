@@ -41,6 +41,9 @@ gpuTraining:
     nvidia.com/gpu.present: 'true'
   tolerations: []
 
+ambientWaypoint:
+  enabled: true
+
 localModel:
   enabled: true
   storageLimit: 40Gi

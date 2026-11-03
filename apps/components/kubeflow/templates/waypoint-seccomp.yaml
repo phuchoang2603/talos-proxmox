@@ -1,0 +1,46 @@
+{{- if .Values.ambientWaypoint.enabled }}
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: ml-waypoint-seccomp
+spec:
+  failurePolicy: Fail
+  reinvocationPolicy: Never
+  matchConstraints:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: ml
+    objectSelector:
+      matchLabels:
+        gateway.istio.io/managed: istio.io-mesh-controller
+        gateway.networking.k8s.io/gateway-class-name: istio-waypoint
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [CREATE]
+        resources: [pods]
+  matchConditions:
+    - name: seccomp-unset
+      expression: >-
+        !has(object.spec.securityContext) || !has(object.spec.securityContext.seccompProfile)
+  mutations:
+    - patchType: ApplyConfiguration
+      applyConfiguration:
+        expression: >-
+          Object{
+            spec: Object.spec{
+              securityContext: Object.spec.securityContext{
+                seccompProfile: Object.spec.securityContext.seccompProfile{
+                  type: "RuntimeDefault"
+                }
+              }
+            }
+          }
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: ml-waypoint-seccomp
+spec:
+  policyName: ml-waypoint-seccomp
+{{- end }}
