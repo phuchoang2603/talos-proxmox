@@ -9,5 +9,8 @@ spec:
   podMetricsEndpoints:
     - port: metrics
       path: /metrics
+      scheme: https
+      tlsConfig:
+        insecureSkipVerify: true
       honorLabels: true
       interval: 30s
