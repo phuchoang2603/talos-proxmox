@@ -75,6 +75,15 @@ components:
     syncWave: "0"
     releaseName: spark-operator
     clusters: [dev, prod]
+  argo-rollouts:
+    path: apps/components/argo-rollouts
+    namespace: operators
+    syncWave: "1"
+    releaseName: argo-rollouts
+    clusters: [dev, prod]
+    valueFilesByCluster:
+      prod:
+        - environments/prod/values.yaml
   flink-operator:
     path: apps/components/flink-operator
     namespace: operators

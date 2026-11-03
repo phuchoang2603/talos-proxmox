@@ -1,0 +1,4 @@
+argo-rollouts:
+  controller:
+    nodeSelector:
+      talos.dev/capacity-type: on-demand

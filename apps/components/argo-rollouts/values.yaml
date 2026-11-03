@@ -1,0 +1,46 @@
+# Namespaces whose HTTPRoutes the Gateway API plugin may patch.
+gatewayApiNamespaces:
+  - payment-gateway
+argo-rollouts:
+  fullnameOverride: argo-rollouts
+  installCRDs: true
+  keepCRDs: true
+  serviceAccount:
+    create: true
+    name: argo-rollouts
+  providerRBAC:
+    enabled: false
+  dashboard:
+    enabled: false
+  controller:
+    replicas: 1
+    resources:
+      requests: {cpu: 50m, memory: 128Mi}
+      limits: {memory: 256Mi}
+    metrics:
+      enabled: true
+    trafficRouterPlugins:
+      - name: argoproj-labs/gatewayAPI
+        location: file:///plugins/rollouts-plugin-trafficrouter-gatewayapi
+    initContainers:
+      - name: copy-gatewayapi-plugin
+        image: ghcr.io/argoproj-labs/rollouts-plugin-trafficrouter-gatewayapi:v0.17.0@sha256:bc40d5edf13307e455f6c18cbf9cc79715165cbee8b05a674fd88119f119d4a2
+        command: [/bin/sh, -c]
+        args:
+          - cp /bin/rollouts-plugin-trafficrouter-gatewayapi /plugins/
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {drop: [ALL]}
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 65532
+          seccompProfile: {type: RuntimeDefault}
+        volumeMounts:
+          - name: gatewayapi-plugin
+            mountPath: /plugins
+    volumes:
+      - name: gatewayapi-plugin
+        emptyDir: {}
+    volumeMounts:
+      - name: gatewayapi-plugin
+        mountPath: /plugins

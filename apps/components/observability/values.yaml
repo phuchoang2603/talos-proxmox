@@ -94,7 +94,7 @@ victoria-metrics-k8s-stack:
     fullnameOverride: grafana
     sidecar:
       dashboards:
-        searchNamespace: [observability, llm, data]
+        searchNamespace: [observability, llm, data, payment-gateway]
         folderAnnotation: grafana_folder
         provider:
           foldersFromFilesStructure: true

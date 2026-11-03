@@ -1,0 +1,20 @@
+# Envoy gateways and waypoints that Istio manages report istio_requests_total, the request
+# series that progressive-delivery analysis and edge dashboards query.
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: istio-gateways
+spec:
+  namespaceSelector:
+    any: true
+  selector:
+    matchExpressions:
+      - {key: gateway.istio.io/managed, operator: Exists}
+  podMetricsEndpoints:
+    - port: http-envoy-prom
+      path: /stats/prometheus
+      interval: 30s
+      metricRelabelConfigs:
+        - action: keep
+          source_labels: [__name__]
+          regex: istio_(requests_total|request_duration_milliseconds_.+|request_bytes_.+|response_bytes_.+)

@@ -1,0 +1,9 @@
+apiVersion: v2
+name: platform-argo-rollouts
+description: Argo Rollouts controller with the Gateway API traffic router plugin
+type: application
+version: 0.1.0
+dependencies:
+  - name: argo-rollouts
+    version: 2.43.8
+    repository: https://argoproj.github.io/argo-helm

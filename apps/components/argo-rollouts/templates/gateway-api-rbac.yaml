@@ -1,0 +1,29 @@
+{{- range .Values.gatewayApiNamespaces }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: argo-rollouts-gateway-api
+  namespace: {{ . }}
+rules:
+  - apiGroups: [""]
+    resources: [services]
+    verbs: [get]
+  - apiGroups: [gateway.networking.k8s.io]
+    resources: [httproutes]
+    verbs: [get, list, update, patch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: argo-rollouts-gateway-api
+  namespace: {{ . }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: argo-rollouts-gateway-api
+subjects:
+  - kind: ServiceAccount
+    name: argo-rollouts
+    namespace: {{ $.Release.Namespace }}
+{{- end }}
