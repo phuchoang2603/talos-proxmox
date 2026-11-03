@@ -170,4 +170,82 @@ spec:
         - name: cloud-config
           configMap: {name: cluster-autoscaler-cloud}
       {{- end }}
+{{- if eq .Values.cloudProvider "gcp" }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: node-reaper
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: node-reaper
+rules:
+  - apiGroups: [""]
+    resources: [nodes]
+    verbs: [get, list, delete]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: node-reaper
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: node-reaper
+subjects:
+  - kind: ServiceAccount
+    name: node-reaper
+    namespace: {{ .Release.Namespace }}
+---
+# Talos CCM only deletes Nodes carrying the not-ready taint, so a Node whose Spot VM was
+# scaled down (kubelet gone, unreachable taint) stays forever. Cluster Autoscaler marks the
+# Nodes it is removing with ToBeDeletedByClusterAutoscaler; delete those once they stay NotReady.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: node-reaper
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 240
+      template:
+        spec:
+          serviceAccountName: node-reaper
+          restartPolicy: Never
+          priorityClassName: system-cluster-critical
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            seccompProfile: {type: RuntimeDefault}
+          containers:
+            - name: reaper
+              image: docker.io/alpine/k8s:1.37.2@sha256:dcb7185e112a453aa72f426754849a97357727ef8f40168fb208c8cf59952042
+              command: [/bin/sh, -ec]
+              args:
+                - |
+                  now=$(date +%s)
+                  kubectl get nodes -o json | jq -r --argjson now "$now" '
+                    .items[]
+                    | select(any(.spec.taints[]?; .key == "ToBeDeletedByClusterAutoscaler"))
+                    | select(any(.status.conditions[]?; .type == "Ready" and .status != "True"
+                        and (($now - (.lastTransitionTime | fromdateiso8601)) > 600)))
+                    | .metadata.name' | while read -r node; do
+                      echo "deleting stale node $node"
+                      kubectl delete node "$node" --wait=false
+                    done
+              resources:
+                requests: {cpu: 10m, memory: 32Mi}
+                limits: {memory: 128Mi}
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities: {drop: [ALL]}
+                readOnlyRootFilesystem: true
+{{- end }}
 {{- end }}
