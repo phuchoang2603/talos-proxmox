@@ -9,4 +9,5 @@ spec:
   podMetricsEndpoints:
     - port: metrics
       path: /metrics
+      honorLabels: true
       interval: 30s
