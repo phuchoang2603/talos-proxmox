@@ -6,11 +6,11 @@ Retain fixed local GPU capacity and the explicit NVIDIA DRA runtime contract, wi
 ## Requirements
 
 ### Requirement: Dedicated cloud GPU capacity
-When gcp_gpu_enabled is true, prod SHALL provision a dedicated managed instance group targeting one on-demand n1-standard-4 worker with one NVIDIA T4. Cluster Autoscaler SHALL register the GPU group with minimum and maximum size one. The worker SHALL use a Talos image with matching NVIDIA kernel and toolkit extensions, dedicated GPU placement labels and a workload taint. Cloud GPU workloads SHALL remain pending rather than use CPU workers or dev GPUs when quota or capacity is unavailable. Dev SHALL retain local GPU allocation.
+When gcp_gpu_enabled is true, prod SHALL provision a dedicated managed instance group targeting one on-demand g2-standard-4 worker with one NVIDIA L4. Cluster Autoscaler SHALL register the GPU group with minimum and maximum size one. The worker SHALL use a Talos image with matching NVIDIA kernel and toolkit extensions, dedicated GPU placement labels and a workload taint. Cloud GPU workloads SHALL remain pending rather than use CPU workers or dev GPUs when quota or capacity is unavailable. Dev SHALL retain local GPU allocation.
 
 #### Scenario: Fixed prod GPU enabled
 - **WHEN** the production inventory enables gcp_gpu_enabled and quota is available
-- **THEN** the dedicated GPU group targets one on-demand T4 worker and is registered with Cluster Autoscaler at bounds of one to one
+- **THEN** the dedicated GPU group targets one on-demand L4 worker and is registered with Cluster Autoscaler at bounds of one to one
 
 #### Scenario: GPU disabled
 - **WHEN** gcp_gpu_enabled is false

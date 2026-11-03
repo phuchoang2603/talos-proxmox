@@ -6,7 +6,7 @@ Prod is an independent Talos cluster in project `talos-proxmox`, region `us-cent
 
 ## Capacity ownership
 
-OpenTofu owns one fixed `e2-standard-4` control-plane/workload VM, its reserved public API address, the VPC/subnet, and GCE Managed Instance Groups (MIGs). Each CPU VM has 4 vCPU and 16 GiB RAM. The CPU group starts at three On-Demand workers and is bounded at three; an optional Spot group starts at zero and is bounded at twelve. When `gcp_gpu_enabled=true`, a dedicated MIG starts one on-demand `n1-standard-4` worker with an NVIDIA T4 through DRA. Cluster Autoscaler registers this GPU group with bounds of one to one. Both environments keep Kubernetes `v1.37.2`.
+OpenTofu owns one fixed `e2-standard-4` control-plane/workload VM, its reserved public API address, the VPC/subnet, and GCE Managed Instance Groups (MIGs). Each CPU VM has 4 vCPU and 16 GiB RAM. The CPU group starts at three On-Demand workers and is bounded at three; an optional Spot group starts at zero and is bounded at twelve. When `gcp_gpu_enabled=true`, a dedicated MIG starts one on-demand `g2-standard-4` worker with an NVIDIA L4 through DRA. Cluster Autoscaler registers this GPU group with bounds of one to one. Both environments keep Kubernetes `v1.37.2`.
 
 Cluster Autoscaler `v1.37.0`, pinned by digest, runs only on the production control plane. It grows groups for pending pods and drains eligible underused nodes before removing them. OpenTofu ignores MIG `target_size` after creation so later applies do not reset autoscaled capacity. No GCE metrics-based autoscaler is attached to these groups. Minimum/maximum changes are delivered through the platform release's explicit `--nodes` arguments.
 

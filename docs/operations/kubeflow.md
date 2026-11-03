@@ -1,6 +1,6 @@
 # Kubeflow
 
-Both environments own cert-manager, Istio, ESO/Doppler and one shared Argo Workflows controller. Dev uses local-path and its local GPU; prod uses cloud-block storage (GCE PD or AWS EBS); GCP production configures one fixed on-demand T4 worker; production local-model caching remains disabled. Kubeflow uses those shared controllers in each environment.
+Both environments own cert-manager, Istio, ESO/Doppler and one shared Argo Workflows controller. Dev uses local-path and its local GPU; prod uses cloud-block storage (GCE PD or AWS EBS); GCP production configures one fixed on-demand L4 worker; production local-model caching remains disabled. Kubeflow uses those shared controllers in each environment.
 
 ## Ownership and versions
 
@@ -25,7 +25,7 @@ Use `devenv shell` for `helm lint` and `helm template` in both repos. Check plat
 
 A bounded CUDA smoke Job already passed on prod-server1 on October 6, 2026 (Job `default/kubeflow-gpu-smoke-20261006`, CUDA result 42). This verifies GPU scheduling and execution only; it does not prove Kubeflow workload integration.
 
-GPU allocation uses the NVIDIA DRA driver on both local dev nodes; the traditional NVIDIA device plugin is disabled. GCP production configures one fixed on-demand T4 worker with the same DRA allocation contract. GPU training stays pending until quota and zone capacity permit the VM to start and the driver publishes its device.
+GPU allocation uses the NVIDIA DRA driver on both local dev nodes; the traditional NVIDIA device plugin is disabled. GCP production configures one fixed on-demand L4 worker with the same DRA allocation contract. GPU training stays pending until quota and zone capacity permit the VM to start and the driver publishes its device.
 
 GPU workloads must use explicit namespaced `ResourceClaim` or `ResourceClaimTemplate` references, with `deviceClassName: gpu.nvidia.com`, `spec.resourceClaims` on the pod and `resources.claims` on each GPU container. The pinned Notebooks 1.11.0 CRD currently rejects both DRA fields under `spec.template.spec`, so GPU Notebook support is blocked; the UI dropdown is not a substitute. Jobs, training workloads and KServe Standard predictors must carry the equivalent pod/container fields. The Jupyter GPU-count dropdown and `limits: nvidia.com/gpu` use extended-resource requests, which is not a substitute for DRA claims. The DeviceClass retains its Kubernetes compatibility mapping, but use explicit claims for local dev workloads; production selects its fixed GCP GPU worker. Do not patch Node GPU capacity.
 
@@ -43,11 +43,11 @@ Render with `helm template openmetadata apps/components/openmetadata -n data` an
 
 ## GPU training and benchmark placement
 
-`ClusterTrainingRuntime/gpu-training` provides the PyTorch runtime using the shared `gpu-training` DRA claim template and environment-specific GPU placement. Production defaults to one worker on its fixed T4 node.
+`ClusterTrainingRuntime/gpu-training` provides the PyTorch runtime using the shared `gpu-training` DRA claim template and environment-specific GPU placement. Production defaults to one worker on its fixed L4 node.
 
 `ClusterTrainingRuntime/xgboost-gpu-distributed` uses Trainer 2.3.0's `mlPolicy.xgboost`, one node by default, and one `ResourceClaimTemplate/gpu-training` allocation per worker. Its default image is `ghcr.io/kubeflow/trainer/xgboost-runtime:v2.3.0`, whose bundled NCCL 2.20.5 is incompatible with its XGBoost 3.0.2 GPU collective. Consumers must supply a validated image with compatible CUDA/NCCL (at least NCCL 2.23.4) and clean worker shutdown; consumers override `TrainJob.spec.trainer.image`, command and args with their non-root training image. The runtime supplies restricted-compatible security settings and CPU/memory reservations; it does not request the legacy extended GPU resource. The controller injects `DMLC_*`; rank zero must start `RabitTracker`. GPU collectives use TCP over Cilium (`NCCL_SOCKET_IFNAME=eth0`, `NCCL_IB_DISABLE=1`), with no RDMA/NVLink assumption.
 
-The single production T4 allocation is shared by training and model-server benchmarking. Release model-server claims before training; two-rank training and two-GPU benchmarks require additional provisioned GPU capacity. Keep baseline, batching/parallel-slot and speculative-decoding runs separate; record throughput, TTFT/TPOT, failures and GPU memory with the same workload and model. The coursework's llama.cpp n-gram results are methodology, not performance predictions for T4/vLLM. The platform supplies capacity and telemetry; the app owns its model-server configurations and benchmark harness.
+The single production L4 allocation is shared by training and model-server benchmarking. Release model-server claims before training; two-rank training and two-GPU benchmarks require additional provisioned GPU capacity. Keep baseline, batching/parallel-slot and speculative-decoding runs separate; record throughput, TTFT/TPOT, failures and GPU memory with the same workload and model. The coursework's llama.cpp n-gram results are methodology, not performance predictions for L4/vLLM. The platform supplies capacity and telemetry; the app owns its model-server configurations and benchmark harness.
 
 KFP driver/launcher and CPU validation pods should use the autoscaled `spot` group (`talos.dev/nodepool: spot`), with small explicit requests. Keep the serialized Spark dataset-build driver on the On-Demand `cpu` group (`talos.dev/nodepool: cpu`); avoid consuming its remaining reservation with orchestration pods. `ml` can query VictoriaMetrics at `http://vmsingle-vmks.observability.svc.cluster.local:8428/prometheus/api/v1/query`. KServe Serverless callers in `payment-gateway` should use `knative-local-gateway.istio-system.svc.cluster.local` with the InferenceService hostname in `Host`; enforce caller authorization at the gateway or a waypoint, because the predictor sees the gateway/activator identity after the proxy hop. A predictor-only principal rule cannot identify the original payment ServiceAccount.
 

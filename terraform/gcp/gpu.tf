@@ -40,7 +40,7 @@ data "talos_machine_configuration" "gpu" {
 resource "google_compute_instance_template" "gpu" {
   count        = var.gpu_enabled ? 1 : 0
   name_prefix  = "${var.cluster_name}-gpu-"
-  machine_type = "n1-standard-4"
+  machine_type = "g2-standard-4"
   tags         = local.tags
   disk {
     source_image = var.gpu_image_id
@@ -51,7 +51,7 @@ resource "google_compute_instance_template" "gpu" {
     labels       = { platform-cluster = var.cluster_name, purpose = "gpu-worker" }
   }
   guest_accelerator {
-    type  = "nvidia-tesla-t4"
+    type  = "nvidia-l4"
     count = 1
   }
   network_interface {
