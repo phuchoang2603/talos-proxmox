@@ -1,0 +1,4 @@
+apiVersion: v2
+name: platform-gpu-access
+version: 0.1.0
+type: application

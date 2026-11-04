@@ -187,6 +187,17 @@ components:
     syncWave: "0"
     releaseName: redis-operator
     clusters: [dev, prod]
+  gpu-access:
+    path: apps/components/gpu-access
+    namespace: operators
+    syncWave: "1"
+    releaseName: gpu-access
+    clusters: [dev, prod]
+    valueFilesByCluster:
+      dev:
+        - environments/dev/values.yaml
+      prod:
+        - environments/prod/values.yaml
   gpu-operator:
     path: apps/components/gpu-operator
     namespace: operators
