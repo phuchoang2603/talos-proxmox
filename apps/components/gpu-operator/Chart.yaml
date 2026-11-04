@@ -2,7 +2,7 @@ apiVersion: v2
 name: platform-gpu-operator
 description: NVIDIA GPU Operator and DRA driver
 type: application
-version: 0.1.0
+version: 0.1.1
 dependencies:
   - name: gpu-operator
     version: "v26.7.2"

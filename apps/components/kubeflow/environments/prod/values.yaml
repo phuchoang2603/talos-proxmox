@@ -2,7 +2,7 @@ storageClass: cloud-block
 databaseNodeSelector:
   talos.dev/capacity-type: on-demand
 localModel:
-  enabled: false
+  enabled: true
   nodeSelector:
     kubernetes.io/hostname: null
     talos.dev/nodepool: gpu

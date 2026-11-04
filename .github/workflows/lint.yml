@@ -51,6 +51,9 @@ jobs:
             done
           done
 
+      - name: Test Cilium node recovery selection
+        run: python3 -m unittest discover -s tests -p test_cilium_restarts.py
+
       - name: Lint Argo CD charts per environment
         run: |
           for chart in apps/argocd/*/; do

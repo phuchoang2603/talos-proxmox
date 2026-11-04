@@ -192,6 +192,7 @@ components:
     namespace: operators
     syncWave: "1"
     releaseName: gpu-operator
+    skipCrds: true
     clusters: [dev, prod]
     # Its operands need hostPath and privileged pods, so this relaxes Pod Security for all of `operators`.
     managedNamespaceMetadata: *privileged

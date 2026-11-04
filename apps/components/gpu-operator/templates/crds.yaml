@@ -1,0 +1,10 @@
+{{- $operator := index .Subcharts "gpu-operator" }}
+{{- range $path, $_ := $operator.Files.Glob "crds/*.yaml" }}
+---
+{{ $operator.Files.Get $path }}
+{{- end }}
+{{- $nfd := index $operator.Subcharts "node-feature-discovery" }}
+{{- range $path, $_ := $nfd.Files.Glob "crds/*.yaml" }}
+---
+{{ $nfd.Files.Get $path }}
+{{- end }}
