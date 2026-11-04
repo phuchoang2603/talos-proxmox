@@ -1,0 +1,9 @@
+claims:
+  ml:
+    selectors:
+      - cel:
+          expression: "device.attributes['gpu.nvidia.com'].productName == 'NVIDIA GeForce GTX 1650'"
+  llm:
+    selectors:
+      - cel:
+          expression: "device.attributes['gpu.nvidia.com'].productName == 'NVIDIA GeForce RTX 5060 Ti'"
