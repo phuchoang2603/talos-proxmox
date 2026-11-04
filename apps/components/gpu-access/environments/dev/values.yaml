@@ -7,3 +7,4 @@ claims:
     selectors:
       - cel:
           expression: "device.attributes['gpu.nvidia.com'].productName == 'NVIDIA GeForce RTX 5060 Ti'"
+manageClaims: true
