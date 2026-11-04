@@ -84,3 +84,14 @@ nvidia-dra-driver-gpu:
       enabled: true
     computeDomains:
       enabled: false
+
+manageClaims: false
+claims:
+  ml:
+    namespace: ml
+    name: ml-gpu
+    selectors: []
+  llm:
+    namespace: llm
+    name: llm-gpu
+    selectors: []
