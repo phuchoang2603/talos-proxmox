@@ -22,6 +22,9 @@ spec:
 {{- else }}
     helm:
       releaseName: {{ required (printf "releaseName is required for Helm component %s" $name) $app.releaseName }}
+{{- if $app.skipCrds }}
+      skipCrds: true
+{{- end }}
 {{- if eq $name "ebs-csi" }}
       parameters:
         - name: aws-ebs-csi-driver.controller.region

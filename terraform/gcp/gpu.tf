@@ -44,7 +44,7 @@ resource "google_compute_instance_template" "gpu" {
   tags         = local.tags
   disk {
     source_image = var.gpu_image_id
-    disk_size_gb = 40
+    disk_size_gb = 120
     disk_type    = "pd-balanced"
     auto_delete  = true
     boot         = true

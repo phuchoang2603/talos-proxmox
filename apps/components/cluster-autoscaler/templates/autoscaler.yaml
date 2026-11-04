@@ -185,9 +185,6 @@ rules:
   - apiGroups: [""]
     resources: [nodes]
     verbs: [get, list, delete]
-  - apiGroups: [""]
-    resources: [pods]
-    verbs: [get, list, delete]
   - apiGroups: [cilium.io]
     resources: [ciliumnodes]
     verbs: [get, list]
@@ -205,6 +202,28 @@ subjects:
     name: node-reaper
     namespace: {{ .Release.Namespace }}
 ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: node-reaper-cilium
+rules:
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [get, list, delete]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: node-reaper-cilium
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: node-reaper-cilium
+subjects:
+  - kind: ServiceAccount
+    name: node-reaper
+    namespace: {{ .Release.Namespace }}
+---
 # Talos CCM only deletes Nodes carrying the not-ready taint, so a Node whose Spot VM was
 # scaled down (kubelet gone, unreachable taint) stays forever. Cluster Autoscaler marks the
 # Nodes it is removing with ToBeDeletedByClusterAutoscaler; delete those once they stay NotReady.
@@ -213,7 +232,7 @@ kind: CronJob
 metadata:
   name: node-reaper
 spec:
-  schedule: "*/5 * * * *"
+  schedule: "* * * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 3
@@ -236,25 +255,30 @@ spec:
               command: [/bin/sh, -ec]
               args:
                 - |
-                  nodes=$(kubectl get nodes -o json)
-                  kubectl get ciliumnodes -o json | jq -r --argjson nodes "$nodes" '
-                    .items[] as $cilium
-                    | $nodes.items[]
-                    | select(.metadata.name == $cilium.metadata.name)
-                    | [.status.addresses[] | select(.type == "InternalIP") | .address][0] as $ip
-                    | [$cilium.spec.addresses[] | select(.type == "InternalIP") | .ip][0] as $old
-                    | select($ip != null and $old != null and $old != $ip)
-                    | .metadata.name' | while read -r node; do
-                      echo "restarting Cilium after node address changed: $node"
-                      kubectl -n kube-system delete pod -l k8s-app=cilium --field-selector "spec.nodeName=$node" --wait=false
-                    done
+                  kubectl get nodes -o json > /tmp/nodes.json
+                  kubectl -n kube-system get pods -l k8s-app=cilium -o json > /tmp/cilium-pods.json
+                  kubectl get ciliumnodes -o json > /tmp/ciliumnodes.json
+                  candidate=$(jq -c --slurpfile nodes /tmp/nodes.json --slurpfile pods /tmp/cilium-pods.json --argjson now "$(date +%s)" '
+{{ .Files.Get "files/cilium-restarts.jq" | indent 20 }}
+                  ' /tmp/ciliumnodes.json)
+                  if [ -n "$candidate" ]; then
+                    node=$(echo "$candidate" | jq -r .node)
+                    pod=$(echo "$candidate" | jq -r .pod)
+                    expected=$(echo "$candidate" | jq -r .ip)
+                    current=$(kubectl get node "$node" -o json | jq -r '[.status.addresses[] | select(.type == "InternalIP") | .address][0]')
+                    if [ "$expected" = "$current" ]; then
+                      echo "restarting $pod on $node after InternalIP changed to $current"
+                      echo "$candidate" | jq '{apiVersion: "v1", kind: "DeleteOptions", preconditions: {uid: .uid, resourceVersion: .version}}' |
+                        kubectl delete --raw "/api/v1/namespaces/kube-system/pods/$pod" -f -
+                    fi
+                  fi
                   now=$(date +%s)
-                  echo "$nodes" | jq -r --argjson now "$now" '
+                  jq -r --argjson now "$now" '
                     .items[]
                     | select(any(.spec.taints[]?; .key == "ToBeDeletedByClusterAutoscaler"))
                     | select(any(.status.conditions[]?; .type == "Ready" and .status != "True"
                         and (($now - (.lastTransitionTime | fromdateiso8601)) > 600)))
-                    | .metadata.name' | while read -r node; do
+                    | .metadata.name' /tmp/nodes.json | while read -r node; do
                       echo "deleting stale node $node"
                       kubectl delete node "$node" --wait=false
                     done
@@ -265,5 +289,11 @@ spec:
                 allowPrivilegeEscalation: false
                 capabilities: {drop: [ALL]}
                 readOnlyRootFilesystem: true
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: tmp
+              emptyDir: {sizeLimit: 32Mi}
 {{- end }}
 {{- end }}
