@@ -7,6 +7,10 @@ variable "kubernetes_version" { type = string }
 variable "image_id" { type = string }
 variable "controlplane_machine_type" { type = string }
 variable "worker_machine_type" { type = string }
+variable "controlplane_schedulable" {
+  type    = bool
+  default = true
+}
 variable "gpu_enabled" {
   type    = bool
   default = false

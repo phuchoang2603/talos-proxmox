@@ -2,6 +2,10 @@ argo-cd:
   controller:
     nodeSelector:
       talos.dev/nodepool: controlplane
+    tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
   configs:
     cm:
       url: https://argocd.phuchoang.sbs

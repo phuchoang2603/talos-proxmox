@@ -5,6 +5,8 @@ module "talos" {
   controlplane_ips   = [google_compute_address.controlplane.address]
   controlplane_nodes = ["10.81.0.10"]
 
+  controlplane_schedulable = var.controlplane_schedulable
+
 }
 
 data "talos_machine_configuration" "controlplane" {
@@ -24,10 +26,11 @@ data "talos_machine_configuration" "controlplane" {
 }
 
 resource "google_compute_instance" "controlplane" {
-  name         = "${var.cluster_name}-controlplane"
-  zone         = var.zone
-  machine_type = var.controlplane_machine_type
-  tags         = concat(local.tags, ["${var.cluster_name}-controlplane"])
+  name                      = "${var.cluster_name}-controlplane"
+  zone                      = var.zone
+  machine_type              = var.controlplane_machine_type
+  allow_stopping_for_update = true
+  tags                      = concat(local.tags, ["${var.cluster_name}-controlplane"])
   boot_disk {
     auto_delete = false
     initialize_params {

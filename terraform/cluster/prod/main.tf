@@ -9,7 +9,8 @@ module "gcp" {
   kubernetes_version        = var.kubernetes_version
   image_id                  = local.secrets.TALOS_IMAGE_ID
   management_cidrs          = local.management_cidrs
-  controlplane_machine_type = var.gcp_machine_type
+  controlplane_machine_type = coalesce(var.gcp_controlplane_machine_type, var.gcp_machine_type)
+  controlplane_schedulable  = var.gcp_controlplane_schedulable
   worker_machine_type       = var.gcp_machine_type
   gpu_enabled               = var.gcp_gpu_enabled
   gpu_zone                  = var.gcp_gpu_zone

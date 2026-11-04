@@ -24,6 +24,9 @@ spec:
       serviceAccountName: csi-gce-pd-controller-sa
       priorityClassName: csi-gce-pd-controller
       tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
       - key: "pd.csi.storage.gke.io/startup"
         operator: "Exists"
         effect: "NoSchedule"
