@@ -17,14 +17,15 @@ locals {
       kind       = "KubeServiceAccountConfig"
       issuer     = { issuerURL = "https://kubernetes.default.svc.cluster.local" }
     }),
-    yamlencode({
+    yamlencode(merge({
       apiVersion = "v1alpha1"
       kind       = "KubeNodeConfig"
-      taints     = { "node-role.kubernetes.io/control-plane" = { "$patch" = "delete" } }
       labels = {
         "node.kubernetes.io/exclude-from-external-load-balancers" = { "$patch" = "delete" }
       }
-    }),
+      }, var.controlplane_schedulable ? {
+      taints = { "node-role.kubernetes.io/control-plane" = { "$patch" = "delete" } }
+    } : {})),
     yamlencode({ apiVersion = "v1alpha1", kind = "KubeProxyConfig", enabled = false }),
     yamlencode({ apiVersion = "v1alpha1", kind = "KubeFlannelCNIConfig", "$patch" = "delete" }),
   ]

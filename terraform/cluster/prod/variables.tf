@@ -55,6 +55,16 @@ variable "gcp_machine_type" {
   default = "e2-standard-4"
 }
 
+variable "gcp_controlplane_machine_type" {
+  type    = string
+  default = null
+}
+
+variable "gcp_controlplane_schedulable" {
+  type    = bool
+  default = true
+}
+
 variable "gcp_gpu_enabled" {
   type    = bool
   default = false
