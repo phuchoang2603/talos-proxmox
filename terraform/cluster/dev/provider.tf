@@ -4,6 +4,7 @@ terraform {
     talos   = { source = "siderolabs/talos", version = "0.12.0" }
     doppler = { source = "DopplerHQ/doppler", version = "1.22.1" }
     proxmox = { source = "bpg/proxmox", version = "0.118.1" }
+    minio   = { source = "aminueza/minio", version = "3.13.2" }
   }
   cloud {
     hostname     = "app.terraform.io"
