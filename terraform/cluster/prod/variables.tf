@@ -122,3 +122,13 @@ variable "aws_machine_type" {
   type    = string
   default = "m6a.xlarge"
 }
+
+variable "doppler_project" {
+  type    = string
+  default = "talos-proxmox"
+}
+
+variable "doppler_config" {
+  type    = string
+  default = "prod"
+}
