@@ -82,6 +82,8 @@ components:
     releaseName: argo-rollouts
     clusters: [dev, prod]
     valueFilesByCluster:
+      dev:
+        - environments/dev/values.yaml
       prod:
         - environments/prod/values.yaml
   flink-operator:
