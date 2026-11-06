@@ -74,3 +74,13 @@ variable "talos_network_interface" {
   type        = string
   default     = "eth0"
 }
+
+variable "doppler_project" {
+  type    = string
+  default = "talos-proxmox"
+}
+
+variable "doppler_config" {
+  type    = string
+  default = "dev"
+}
