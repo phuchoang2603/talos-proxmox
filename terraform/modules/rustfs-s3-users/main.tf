@@ -54,30 +54,33 @@ resource "minio_iam_user" "substrate" {
 }
 
 resource "minio_iam_user_policy_attachment" "artifacts" {
-  user_name   = minio_iam_user.artifacts.id
-  policy_name = minio_iam_policy.artifacts.id
+  user_name   = minio_iam_user.artifacts.name
+  policy_name = minio_iam_policy.artifacts.name
 }
 
 resource "minio_iam_user_policy_attachment" "gateway" {
-  user_name   = minio_iam_user.gateway.id
-  policy_name = minio_iam_policy.gateway.id
+  user_name   = minio_iam_user.gateway.name
+  policy_name = minio_iam_policy.gateway.name
 }
 
 resource "minio_iam_user_policy_attachment" "substrate" {
-  user_name   = minio_iam_user.substrate.id
-  policy_name = minio_iam_policy.substrate.id
+  user_name   = minio_iam_user.substrate.name
+  policy_name = minio_iam_policy.substrate.name
 }
 
 resource "minio_iam_service_account" "artifacts" {
-  target_user = minio_iam_user.artifacts.id
+  target_user = minio_iam_user.artifacts.name
+  depends_on  = [minio_iam_user_policy_attachment.artifacts]
 }
 
 resource "minio_iam_service_account" "gateway" {
-  target_user = minio_iam_user.gateway.id
+  target_user = minio_iam_user.gateway.name
+  depends_on  = [minio_iam_user_policy_attachment.gateway]
 }
 
 resource "minio_iam_service_account" "substrate" {
-  target_user = minio_iam_user.substrate.id
+  target_user = minio_iam_user.substrate.name
+  depends_on  = [minio_iam_user_policy_attachment.substrate]
 }
 
 resource "doppler_secret" "object_artifacts_access_key_id" {
