@@ -1,3 +1,16 @@
+terraform {
+  required_providers {
+    minio = {
+      source  = "aminueza/minio"
+      version = "3.13.2"
+    }
+    doppler = {
+      source  = "DopplerHQ/doppler"
+      version = "1.22.1"
+    }
+  }
+}
+
 provider "minio" {
   minio_server   = "minio.home.phuchoang.sbs"
   minio_user     = "minio"
