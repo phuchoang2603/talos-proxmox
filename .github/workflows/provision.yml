@@ -31,7 +31,6 @@ jobs:
     env:
       DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
       TF_VAR_env: ${{ inputs.environment }}
-      TF_VAR_cloud_provider: ${{ vars.CLOUD_PROVIDER || 'gcp' }}
       TF_IN_AUTOMATION: true
       TF_VAR_target_revision: ${{ inputs.revision || github.sha }}
       PURGE_DATA: ${{ inputs.purge_data && 'true' || 'false' }}
