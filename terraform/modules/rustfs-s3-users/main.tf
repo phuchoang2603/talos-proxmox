@@ -59,6 +59,7 @@ resource "minio_iam_user" "substrate" {
 resource "minio_iam_user_policy_attachment" "artifacts" {
   user_name   = minio_iam_user.artifacts.name
   policy_name = minio_iam_policy.artifacts.name
+  depends_on  = [minio_iam_user.artifacts, minio_iam_policy.artifacts]
 }
 
 resource "minio_iam_user_policy_attachment" "gateway" {
