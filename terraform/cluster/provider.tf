@@ -6,7 +6,6 @@ terraform {
     proxmox = { source = "bpg/proxmox", version = "0.118.1" }
     aws     = { source = "hashicorp/aws", version = "~> 6.0" }
     google  = { source = "hashicorp/google", version = "~> 7.0" }
-    minio   = { source = "aminueza/minio", version = "3.13.2" }
   }
   # Select talos-cluster-dev or talos-cluster-prod with TF_WORKSPACE.
   cloud {
@@ -43,12 +42,4 @@ provider "aws" {
   skip_metadata_api_check     = true
   skip_credentials_validation = var.cloud_provider != "aws"
   skip_requesting_account_id  = var.cloud_provider != "aws"
-}
-
-provider "minio" {
-  minio_server   = var.rustfs_endpoint
-  minio_user     = var.rustfs_enabled ? local.secrets.RUSTFS_ROOT_USER : "disabled"
-  minio_password = var.rustfs_enabled ? local.secrets.RUSTFS_ROOT_PASSWORD : "disabled"
-  minio_ssl      = true
-  minio_region   = "us-east-1"
 }

@@ -14,13 +14,6 @@ locals {
     CLOUD_ZONE                = { type = "string", value = local.cloud_zone }
     CLOUD_PROJECT_ID          = { type = "string", value = var.cloud_provider == "gcp" ? var.gcp_project_id : "" }
   }
-
-  # The payment-gateway Grafana datasource definition is consumer-owned, but the platform
-  # Grafana pod holds the matching password in its env; the ClickHouse grafana user and that
-  # pod env must agree, so this stays platform-owned and is mirrored into the consumer project.
-  gateway_platform_secrets = {
-    CLICKHOUSE_GRAFANA_PASSWORD = { type = "string", value = local.secrets.CLICKHOUSE_GRAFANA_PASSWORD }
-  }
 }
 
 data "doppler_secrets" "this" {
@@ -32,12 +25,5 @@ module "generated_secrets" {
   source  = "./secret-contract"
   project = "talos-proxmox"
   config  = var.env
-  secrets = merge(local.base_secrets, local.cloud_secrets, local.rustfs_platform_secrets)
-}
-
-module "gateway_object_secrets" {
-  source  = "./secret-contract"
-  project = "payment-gateway-fraud-detection"
-  config  = var.env == "prod" ? "prd" : "dev"
-  secrets = merge(local.rustfs_gateway_secrets, local.gateway_platform_secrets)
+  secrets = merge(local.base_secrets, local.cloud_secrets)
 }

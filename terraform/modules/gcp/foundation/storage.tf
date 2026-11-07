@@ -1,6 +1,5 @@
 locals {
   object_consumers = {
-    training  = "platform"
     gateway   = "platform"
     artifacts = "platform"
     substrate = "platform"

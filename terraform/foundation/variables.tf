@@ -28,8 +28,8 @@ variable "cloud_provider" {
   type    = string
   default = "gcp"
   validation {
-    condition     = contains(["gcp", "aws"], var.cloud_provider)
-    error_message = "cloud_provider must be gcp or aws."
+    condition     = contains(["gcp", "aws", "proxmox"], var.cloud_provider)
+    error_message = "cloud_provider must be gcp, aws, or proxmox."
   }
 }
 variable "aws_region" {
@@ -49,4 +49,9 @@ variable "dev_management_cidrs" {
   description = "Operator/CI CIDRs allowed to reach the dev (Proxmox) cluster; informational, mirrors the prod cloud contract."
   type        = list(string)
   default     = []
+}
+
+variable "rustfs_endpoint" {
+  type    = string
+  default = "minio.home.phuchoang.sbs"
 }

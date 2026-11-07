@@ -12,5 +12,3 @@ dns_server      = "10.69.0.1"
 
 talos_version      = "v1.14.5"
 kubernetes_version = "v1.37.2"
-
-rustfs_enabled = true

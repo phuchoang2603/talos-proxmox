@@ -181,19 +181,6 @@ variable "aws_machine_type" {
   default = "m6a.xlarge"
 }
 
-# --- RustFS / object storage ----------------------------------------------
-
-variable "rustfs_enabled" {
-  description = "Manage RustFS/MinIO buckets, policies, and service accounts for this environment."
-  type        = bool
-  default     = false
-}
-
-variable "rustfs_endpoint" {
-  type    = string
-  default = "minio.home.phuchoang.sbs"
-}
-
 # --- Doppler ---------------------------------------------------------------
 
 variable "doppler_project" {
