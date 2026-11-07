@@ -72,5 +72,6 @@ resource "minio_iam_user_policy_attachment" "consumer" {
 resource "minio_iam_service_account" "consumer" {
   for_each    = local.rustfs_consumers
   target_user = minio_iam_user.consumer[each.key].name
+  policy      = file(each.value)
   depends_on  = [minio_iam_user_policy_attachment.consumer]
 }
