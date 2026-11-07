@@ -44,3 +44,9 @@ variable "enable_aws_gpu_images" {
   type    = bool
   default = false
 }
+
+variable "dev_management_cidrs" {
+  description = "Operator/CI CIDRs allowed to reach the dev (Proxmox) cluster; informational, mirrors the prod cloud contract."
+  type        = list(string)
+  default     = []
+}

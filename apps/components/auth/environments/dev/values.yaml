@@ -5,12 +5,13 @@ oauth2-proxy:
     oidc-issuer-url: https://auth-dev.phuchoang.sbs/dex
     login-url: https://auth-dev.phuchoang.sbs/dex/auth
     redirect-url: /oauth2/callback
-    cookie-domain: kubeflow-dev.phuchoang.sbs,kagent-dev.phuchoang.sbs,agentregistry-dev.phuchoang.sbs,langfuse-dev.phuchoang.sbs
-    whitelist-domain: kubeflow-dev.phuchoang.sbs,kagent-dev.phuchoang.sbs,agentregistry-dev.phuchoang.sbs,langfuse-dev.phuchoang.sbs
+    cookie-domain: kubeflow-dev.phuchoang.sbs,kagent-dev.phuchoang.sbs,agentregistry-dev.phuchoang.sbs
+    whitelist-domain: kubeflow-dev.phuchoang.sbs,kagent-dev.phuchoang.sbs,agentregistry-dev.phuchoang.sbs
 identity:
   sharedUIHosts:
     - kagent-dev.phuchoang.sbs
     - agentregistry-dev.phuchoang.sbs
+  unauthenticatedHosts:
     - langfuse-dev.phuchoang.sbs
   issuer: https://auth-dev.phuchoang.sbs/dex
   redirectURI: https://kubeflow-dev.phuchoang.sbs/oauth2/callback
@@ -18,9 +19,5 @@ identity:
   argocdRedirectURI: https://argocd-dev.phuchoang.sbs/auth/callback
   workflowsRedirectURI: https://workflows-dev.phuchoang.sbs/oauth2/callback
   openmetadataRedirectURI: https://openmetadata-dev.phuchoang.sbs/callback
-  langfuseRedirectURI: https://langfuse-dev.phuchoang.sbs/api/auth/callback/custom
 tunnel:
   hostname: auth-dev.phuchoang.sbs
-  sharedUIBindings:
-    - name: langfuse-ui
-      hostname: langfuse-dev.phuchoang.sbs
