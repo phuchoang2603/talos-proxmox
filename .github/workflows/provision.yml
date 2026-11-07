@@ -111,17 +111,17 @@ jobs:
           PYCODE
 
       - name: Cluster plan
-        working-directory: terraform/cluster/${{ inputs.environment }}
+        working-directory: terraform/cluster
         env:
           TF_WORKSPACE: talos-cluster-${{ inputs.environment }}
         run: |
           tofu init -input=false
           # shellcheck disable=SC2086
-          tofu plan -input=false -lock-timeout=5m -no-color ${PLAN_FLAGS} -var-file="../env/${TF_VAR_env}/main.tfvars" -out=.planfile
+          tofu plan -input=false -lock-timeout=5m -no-color ${PLAN_FLAGS} -var-file="env/${TF_VAR_env}/main.tfvars" -out=.planfile
 
       - name: Cluster apply
         if: inputs.action != 'plan'
-        working-directory: terraform/cluster/${{ inputs.environment }}
+        working-directory: terraform/cluster
         env:
           TF_WORKSPACE: talos-cluster-${{ inputs.environment }}
         run: tofu apply -input=false -lock-timeout=5m -auto-approve .planfile
