@@ -41,25 +41,21 @@ resource "minio_iam_policy" "substrate" {
 resource "minio_iam_user" "artifacts" {
   name          = "platform-${var.env}-artifacts"
   force_destroy = true
-  depends_on    = [minio_iam_policy.artifacts]
 }
 
 resource "minio_iam_user" "gateway" {
   name          = "platform-${var.env}-gateway"
   force_destroy = true
-  depends_on    = [minio_iam_policy.gateway]
 }
 
 resource "minio_iam_user" "substrate" {
   name          = "platform-${var.env}-substrate"
   force_destroy = true
-  depends_on    = [minio_iam_policy.substrate]
 }
 
 resource "minio_iam_user_policy_attachment" "artifacts" {
   user_name   = minio_iam_user.artifacts.name
   policy_name = minio_iam_policy.artifacts.name
-  depends_on  = [minio_iam_user.artifacts, minio_iam_policy.artifacts]
 }
 
 resource "minio_iam_user_policy_attachment" "gateway" {
