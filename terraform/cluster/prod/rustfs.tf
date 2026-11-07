@@ -11,10 +11,15 @@ terraform {
   }
 }
 
+data "doppler_secrets" "minio" {
+  project = var.doppler_project
+  config  = var.doppler_config
+}
+
 provider "minio" {
   minio_server   = "minio.home.phuchoang.sbs"
-  minio_user     = "minio"
-  minio_password = "Phuc@2006"
+  minio_user     = lookup(data.doppler_secrets.minio.map, "RUSTFS_ROOT_USER", lookup(data.doppler_secrets.minio.map, "MINIO_ROOT_USER", "minio"))
+  minio_password = lookup(data.doppler_secrets.minio.map, "RUSTFS_ROOT_PASSWORD", lookup(data.doppler_secrets.minio.map, "MINIO_ROOT_PASSWORD", ""))
   minio_ssl      = true
   minio_region   = "us-east-1"
 }
