@@ -5,6 +5,7 @@ terraform {
     doppler = { source = "DopplerHQ/doppler", version = "1.22.1" }
     aws     = { source = "hashicorp/aws", version = "~> 6.0" }
     google  = { source = "hashicorp/google", version = "~> 7.0" }
+    minio   = { source = "aminueza/minio", version = "3.13.2" }
   }
   cloud {
     hostname     = "app.terraform.io"
