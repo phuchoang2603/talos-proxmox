@@ -15,8 +15,8 @@ module "aws" {
   enable_gpu_images = var.enable_aws_gpu_images
 }
 locals {
-  cloud_secrets      = var.cloud_provider == "gcp" ? module.gcp[0].secrets : module.aws[0].secrets
-  cloud_ci_variables = var.cloud_provider == "gcp" ? module.gcp[0].ci_variables : module.aws[0].ci_variables
+  cloud_secrets      = var.cloud_provider == "gcp" ? module.gcp[0].secrets : (var.cloud_provider == "aws" ? module.aws[0].secrets : {})
+  cloud_ci_variables = var.cloud_provider == "gcp" ? module.gcp[0].ci_variables : (var.cloud_provider == "aws" ? module.aws[0].ci_variables : {})
 }
 resource "github_actions_environment_variable" "cloud" {
   for_each      = merge(local.cloud_ci_variables, { CLOUD_PROVIDER = var.cloud_provider })
