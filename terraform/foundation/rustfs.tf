@@ -16,7 +16,6 @@ locals {
   # App consumer -> scoped MinIO policy document. Each consumer gets its own user +
   # service account; apps read OBJECT_<CONSUMER>_{ACCESS_KEY_ID,SECRET_ACCESS_KEY}.
   rustfs_consumers = local.rustfs_enabled ? {
-    substrate = "${path.module}/env/dev/minio-substrate-policy.json"
     artifacts = "${path.module}/env/dev/minio-artifacts-policy.json"
     gateway   = "${path.module}/env/dev/minio-gateway-policy.json"
   } : {}

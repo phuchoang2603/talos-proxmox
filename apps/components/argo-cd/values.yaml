@@ -31,6 +31,26 @@ argo-cd:
       resource.compareoptions: 'ignoreAggregatedRoles: true
 
         '
+      url: https://argocd.phuchoang.sbs
+      oidc.config: 'name: Dex
+
+        issuer: https://auth.phuchoang.sbs/dex
+
+        clientID: argocd
+
+        clientSecret: $argocd-oidc:client-secret
+
+        requestedScopes: [openid, profile, email]
+
+        enablePKCEAuthentication: true
+
+        '
+    rbac:
+      policy.default: ''
+      scopes: '[email]'
+      policy.csv: 'g, xuanphuc.a1gv@gmail.com, role:admin
+
+        '
     params:
       server.insecure: true
       controller.diff.server.side: true
