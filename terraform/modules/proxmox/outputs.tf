@@ -27,3 +27,12 @@ output "schematic_id" {
 output "gpu_schematic_id" {
   value = one(talos_image_factory_schematic.gpu[*].id)
 }
+
+output "controller_keys" {
+  value     = {}
+  sensitive = true
+}
+
+output "autoscaler_groups" {
+  value = []
+}

@@ -1,13 +1,4 @@
-tunnel:
-  hostname: grafana-dev.phuchoang.sbs
 victoria-metrics-k8s-stack:
-  grafana:
-    grafana.ini:
-      server:
-        domain: grafana-dev.phuchoang.sbs
-        root_url: https://grafana-dev.phuchoang.sbs
-      auth.generic_oauth:
-        auth_url: https://auth-dev.phuchoang.sbs/dex/auth
   vmagent:
     spec:
       externalLabels:

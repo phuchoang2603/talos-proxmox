@@ -6,25 +6,3 @@ argo-cd:
       - key: node-role.kubernetes.io/control-plane
         operator: Exists
         effect: NoSchedule
-  configs:
-    cm:
-      url: https://argocd.phuchoang.sbs
-      oidc.config: 'name: Dex
-
-        issuer: https://auth.phuchoang.sbs/dex
-
-        clientID: argocd
-
-        clientSecret: $argocd-oidc:client-secret
-
-        requestedScopes: [openid, profile, email]
-
-        enablePKCEAuthentication: true
-
-        '
-    rbac:
-      policy.default: ''
-      scopes: '[email]'
-      policy.csv: 'g, xuanphuc.a1gv@gmail.com, role:admin
-
-        '

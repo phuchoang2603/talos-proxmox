@@ -62,7 +62,7 @@ spec:
       to:
         - operation:
             notHosts:
-{{ toYaml .Values.identity.sharedUIHosts | indent 14 }}
+{{ toYaml (concat .Values.identity.sharedUIHosts .Values.identity.unauthenticatedHosts) | indent 14 }}
             notPaths:
               - /oauth2/*
 ---

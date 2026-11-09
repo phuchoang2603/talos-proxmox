@@ -61,19 +61,6 @@ victoria-metrics-k8s-stack:
     victoriatraces:
       datasources: []
     extra:
-      - name: ClickHouse marts
-        uid: clickhouse-marts
-        type: grafana-clickhouse-datasource
-        access: proxy
-        jsonData:
-          host: clickhouse.data.svc.cluster.local
-          port: 9000
-          protocol: native
-          secure: false
-          username: grafana
-          defaultDatabase: marts
-        secureJsonData:
-          password: $CLICKHOUSE_GRAFANA_PASSWORD
       - name: VictoriaTraces
         type: tempo
         access: proxy
@@ -98,6 +85,8 @@ victoria-metrics-k8s-stack:
         folderAnnotation: grafana_folder
         provider:
           foldersFromFilesStructure: true
+      datasources:
+        searchNamespace: [observability, data]
     admin:
       existingSecret: grafana-admin
       userKey: admin-user

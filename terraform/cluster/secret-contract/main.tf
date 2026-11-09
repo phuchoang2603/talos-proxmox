@@ -4,7 +4,11 @@ terraform {
   }
 }
 
-variable "env" { type = string }
+variable "project" {
+  type    = string
+  default = "talos-proxmox"
+}
+variable "config" { type = string }
 variable "secrets" {
   type      = map(object({ type = string, value = string }))
   sensitive = true
@@ -12,8 +16,8 @@ variable "secrets" {
 
 resource "doppler_secret" "generated" {
   for_each   = nonsensitive(toset(keys(var.secrets)))
-  project    = "talos-proxmox"
-  config     = var.env
+  project    = var.project
+  config     = var.config
   name       = each.key
   value      = var.secrets[each.key].value
   value_type = var.secrets[each.key].type

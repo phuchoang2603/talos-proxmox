@@ -24,8 +24,3 @@ output "controlplane_ips" {
   description = "Control plane node IPs"
   value       = local.cluster.controlplane_ips
 }
-
-output "image_id" {
-  description = "Talos cloud image"
-  value       = nonsensitive(local.secrets.TALOS_IMAGE_ID)
-}

@@ -31,7 +31,6 @@ jobs:
     env:
       DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
       TF_VAR_env: ${{ inputs.environment }}
-      TF_VAR_cloud_provider: ${{ vars.CLOUD_PROVIDER || 'gcp' }}
       TF_IN_AUTOMATION: true
       TF_VAR_target_revision: ${{ inputs.revision || github.sha }}
       PURGE_DATA: ${{ inputs.purge_data && 'true' || 'false' }}
@@ -111,17 +110,17 @@ jobs:
           PYCODE
 
       - name: Cluster plan
-        working-directory: terraform/cluster/${{ inputs.environment }}
+        working-directory: terraform/cluster
         env:
           TF_WORKSPACE: talos-cluster-${{ inputs.environment }}
         run: |
           tofu init -input=false
           # shellcheck disable=SC2086
-          tofu plan -input=false -lock-timeout=5m -no-color ${PLAN_FLAGS} -var-file="../env/${TF_VAR_env}/main.tfvars" -out=.planfile
+          tofu plan -input=false -lock-timeout=5m -no-color ${PLAN_FLAGS} -var-file="env/${TF_VAR_env}/main.tfvars" -out=.planfile
 
       - name: Cluster apply
         if: inputs.action != 'plan'
-        working-directory: terraform/cluster/${{ inputs.environment }}
+        working-directory: terraform/cluster
         env:
           TF_WORKSPACE: talos-cluster-${{ inputs.environment }}
         run: tofu apply -input=false -lock-timeout=5m -auto-approve .planfile

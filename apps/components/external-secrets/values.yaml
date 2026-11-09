@@ -1,8 +1,30 @@
-# The read-only token Secret is created by the platform OpenTofu root, not Argo CD.
-dopplerToken:
-  namespace: kube-system
-  name: doppler-token
-  key: dopplerToken
+# Each store's read-only token Secret is created by the platform OpenTofu root, not Argo CD.
+# One store per Doppler project consumed in the cluster: the platform's own, plus one per
+# application consumer scoped to its namespaces.
+stores:
+  - name: doppler
+    dopplerToken:
+      namespace: kube-system
+      name: doppler-token
+      key: dopplerToken
+  - name: marketplace-doppler
+    namespaces:
+      - ecommerce
+    dopplerToken:
+      namespace: kube-system
+      name: marketplace-doppler-token
+      key: dopplerToken
+  - name: gateway-doppler
+    namespaces:
+      - payment-gateway
+      - data
+      - ml
+      - llm
+      - llm-agents
+    dopplerToken:
+      namespace: kube-system
+      name: gateway-doppler-token
+      key: dopplerToken
 
 external-secrets:
   resources:

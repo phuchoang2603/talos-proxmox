@@ -29,16 +29,3 @@ jobs:
     with:
       environment: dev
     secrets: inherit
-
-  prod:
-    name: Plan (prod)
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && !startsWith(github.head_ref, 'renovate/')
-    needs: lint
-    permissions:
-      contents: read
-      id-token: write
-    uses: ./.github/workflows/provision.yml
-    with:
-      environment: prod
-      action: plan
-    secrets: inherit

@@ -34,6 +34,10 @@ terraform {
       source  = "hashicorp/tfe"
       version = "0.82.0"
     }
+    minio = {
+      source  = "aminueza/minio"
+      version = "3.13.2"
+    }
   }
 
   # The organization's default execution mode must be Local before the first init.
@@ -72,4 +76,14 @@ provider "aws" {
   skip_metadata_api_check     = true
   skip_credentials_validation = var.cloud_provider == "gcp"
   skip_requesting_account_id  = var.cloud_provider == "gcp"
+}
+
+# Dev (Proxmox) object storage runs on an external RustFS endpoint reachable with the
+# platform root credentials from Doppler; prod uses GCS and leaves this provider disabled.
+provider "minio" {
+  minio_server   = var.rustfs_endpoint
+  minio_user     = var.cloud_provider == "proxmox" ? data.doppler_secrets.platform_dev[0].map.RUSTFS_ROOT_USER : "disabled"
+  minio_password = var.cloud_provider == "proxmox" ? data.doppler_secrets.platform_dev[0].map.RUSTFS_ROOT_PASSWORD : "disabled"
+  minio_ssl      = true
+  minio_region   = "us-east-1"
 }

@@ -36,3 +36,21 @@ resource "doppler_secret" "eso_token" {
   name    = "ESO_DOPPLER_TOKEN"
   value   = each.value.key
 }
+
+resource "doppler_service_token" "consumer_eso" {
+  for_each = local.consumer_tokens
+
+  project = each.value.project
+  config  = each.value.config
+  name    = "external-secrets"
+  access  = "read"
+}
+
+resource "doppler_secret" "consumer_eso_token" {
+  for_each = local.consumer_tokens
+
+  project = doppler_project.this.name
+  config  = doppler_environment.this[each.value.platform_env].slug
+  name    = "ESO_${upper(each.value.key)}_DOPPLER_TOKEN"
+  value   = doppler_service_token.consumer_eso[each.key].key
+}

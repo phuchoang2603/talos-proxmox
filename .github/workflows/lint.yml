@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        stack: [terraform/foundation, terraform/cluster/dev, terraform/cluster/prod, terraform/gcp, terraform/platform, terraform/aws, terraform/gcp/foundation, terraform/aws/foundation]
+        stack: [terraform/foundation, terraform/cluster, terraform/platform]
     defaults:
       run:
         working-directory: ./${{ matrix.stack }}

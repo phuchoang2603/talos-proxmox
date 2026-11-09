@@ -1,9 +1,7 @@
 locals {
   object_consumers = {
-    training  = "platform"
     gateway   = "platform"
     artifacts = "platform"
-    substrate = "platform"
   }
   object_buckets = toset(values(local.object_consumers))
 }
@@ -14,8 +12,7 @@ resource "google_storage_bucket" "objects" {
   location                    = var.region
   uniform_bucket_level_access = true
   public_access_prevention    = "enforced"
-  force_destroy               = false
+  force_destroy               = true
   versioning { enabled = true }
-  lifecycle { prevent_destroy = true }
   depends_on = [google_project_service.required]
 }

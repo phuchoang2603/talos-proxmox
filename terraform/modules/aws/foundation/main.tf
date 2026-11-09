@@ -21,8 +21,13 @@ variable "enable_gpu_images" {
 
 data "aws_caller_identity" "current" {}
 locals {
-  image_bucket_name = "talos-proxmox-images-${data.aws_caller_identity.current.account_id}-${var.region}"
-  object_consumers  = toset(["training", "artifacts", "backups", "substrate", "gateway"])
+  image_bucket_name  = "talos-proxmox-images-${data.aws_caller_identity.current.account_id}-${var.region}"
+  object_bucket_name = "talos-proxmox-prod-platform-${data.aws_caller_identity.current.account_id}-${var.region}"
+  object_consumers   = toset(["gateway", "artifacts"])
+  object_prefixes = {
+    gateway   = ["datasets/payment-gateway/", "runs/payment-gateway/", "lakehouse/"]
+    artifacts = ["artifacts/", "datasets/", "runs/"]
+  }
 }
 
 output "ci_variables" {
@@ -34,13 +39,13 @@ output "ci_variables" {
 output "secrets" {
   value = merge({
     TALOS_IMAGE_ID          = var.ami_id
-    OBJECT_STORAGE_BUCKET   = aws_s3_bucket.objects["training"].id
+    OBJECT_STORAGE_BUCKET   = aws_s3_bucket.platform.id
     OBJECT_STORAGE_ENDPOINT = "https://s3.${var.region}.amazonaws.com"
     OBJECT_STORAGE_REGION   = var.region
+    OBJECT_ARTIFACTS_BUCKET = aws_s3_bucket.platform.id
     }, [for consumer in local.object_consumers : {
       "OBJECT_${upper(consumer)}_ACCESS_KEY_ID"     = aws_iam_access_key.objects[consumer].id
       "OBJECT_${upper(consumer)}_SECRET_ACCESS_KEY" = aws_iam_access_key.objects[consumer].secret
-      "OBJECT_${upper(consumer)}_BUCKET"            = aws_s3_bucket.objects[consumer].id
   }]...)
   sensitive = true
 }

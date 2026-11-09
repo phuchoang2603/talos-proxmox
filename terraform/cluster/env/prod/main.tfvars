@@ -1,3 +1,4 @@
+cloud_provider                = "gcp"
 talos_version                 = "v1.14.5"
 kubernetes_version            = "v1.37.2"
 gcp_project_id                = "talos-proxmox"
