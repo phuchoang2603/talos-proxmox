@@ -71,11 +71,11 @@ provider "tfe" {
 
 provider "aws" {
   region                      = var.aws_region
-  access_key                  = var.cloud_provider == "gcp" ? "disabled" : null
-  secret_key                  = var.cloud_provider == "gcp" ? "disabled" : null
+  access_key                  = var.cloud_provider == "aws" ? null : "disabled"
+  secret_key                  = var.cloud_provider == "aws" ? null : "disabled"
   skip_metadata_api_check     = true
-  skip_credentials_validation = var.cloud_provider == "gcp"
-  skip_requesting_account_id  = var.cloud_provider == "gcp"
+  skip_credentials_validation = var.cloud_provider != "aws"
+  skip_requesting_account_id  = var.cloud_provider != "aws"
 }
 
 # Dev (Proxmox) object storage runs on an external RustFS endpoint reachable with the

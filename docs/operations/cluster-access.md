@@ -32,7 +32,7 @@ Run both downloads successfully before continuing. The cluster root writes these
 
 | Environment | Kubernetes API endpoint | Example Talos control-plane endpoint | Argo CD UI |
 | --- | --- | --- | --- |
-| dev | `10.69.12.11:6443` | `10.69.12.11` | <https://argocd-dev.phuchoang.sbs> |
+| dev | `10.69.12.11:6443` | `10.69.12.11` | <https://argocd.phuchoang.sbs> |
 | prod | reserved GCP public address in kubeconfig, port 6443 | reserved GCP public address in Talosconfig | Management port-forward or public tunnel |
 
 `kubectl` uses the control-plane endpoint from its kubeconfig. `talosctl` uses the endpoint and node targets from Talosconfig. Dev addresses the control-plane node directly; prod connects through its reserved GCP public address and targets the node's private address. The dev inventory contains the complete list of VM addresses:
@@ -81,7 +81,7 @@ Expected results: the root and child Applications are Synced/Healthy; the Dopple
 
 ## Observability
 
-Both environments run independent telemetry components and Grafana. Dev public hostnames use `<service>-dev.phuchoang.sbs`.
+Both environments run independent telemetry components and Grafana. Public hostnames use `<service>.phuchoang.sbs`.
 
 | Endpoint | Address |
 | --- | --- |

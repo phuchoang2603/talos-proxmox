@@ -85,7 +85,7 @@ Application Secrets refresh hourly. Workloads that read credentials only at star
 
 Each environment has one Cloudflare tunnel, created once outside the cluster and named after it (`dev-talos`, `prod-talos`). The [`cloudflare-tunnel`](../../apps/components/cloudflare-tunnel/) chart installs the [Cloudflare operator](https://github.com/adyanth/cloudflare-operator) and a `ClusterTunnel` named `talos-proxmox` that runs that tunnel (`existingTunnel`) with the operator and a `cloudflared` Deployment in `operators`. The operator manifests and CRDs are vendored together from upstream kustomize output, since upstream ships no Helm chart. Never add public hostnames or other configuration to these tunnels in the Cloudflare dashboard: Cloudflare pushes dashboard configuration to `cloudflared`, replacing the ingress rules the operator writes.
 
-Argo CD uses ClusterIP Services in both environments, published through the environment tunnel at `argocd-dev.phuchoang.sbs` or `argocd.phuchoang.sbs`. Grafana follows the same pattern. No LAN LoadBalancer Services, address pools or L2 announcements are provisioned.
+Argo CD uses ClusterIP Services in both environments, published through the environment tunnel at `argocd.phuchoang.sbs`. Grafana follows the same pattern. No LAN LoadBalancer Services, address pools or L2 announcements are provisioned.
 
 A `TunnelBinding` lives in its origin Service's namespace, and the component that owns the routing also owns its binding. The platform publishes three prod hostnames of its own:
 

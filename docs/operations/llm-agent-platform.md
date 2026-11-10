@@ -25,13 +25,13 @@ Actors egress through Substrate's per-actor policy enforcement and credential in
 
 kagent and Substrate share `ate-system/agent-runtime-postgres`, a single CNPG PostgreSQL instance with a 2 GiB PVC and separate owner/runtime logins, roles and schemas. Agentregistry keeps its separate database. Prod databases select On-Demand capacity. Substrate has no Valkey or RustFS deployment. Its snapshot identity can access only `substrate/` in the environment bucket. Application Harnesses set an `s3://` snapshot location under this prefix.
 
-The UIs use Cloudflare Tunnel and the existing Istio ingress with the shared OAuth2 Proxy in `auth` (7.15.5, chart 10.7.1). Dex login is restricted to the configured platform operator email. The underlying UI Services remain ClusterIP, and in-cluster registry clients continue using the registry Service directly. Browser sessions use the shared Kubeflow OIDC client with a callback on each UI host. Secure cookies are scoped to the matching UI hostname, with separate names for dev and prod. The ingress always checks UI requests through the shared proxy, including requests with an Authorization header; the existing Kubeflow JWT policy continues protecting its routes.
+The UIs use Cloudflare Tunnel and the existing Istio ingress with the shared OAuth2 Proxy in `auth` (7.15.5, chart 10.7.1). Dex login is restricted to the configured platform operator email. The underlying UI Services remain ClusterIP, and in-cluster registry clients continue using the registry Service directly. Browser sessions use the shared Kubeflow OIDC client with a callback on each UI host. Secure cookies are scoped to the matching UI hostname. The ingress always checks UI requests through the shared proxy, including requests with an Authorization header; the existing Kubeflow JWT policy continues protecting its routes.
 
-| UI | Dev | Prod |
-| --- | --- | --- |
-| kagent | `https://kagent-dev.phuchoang.sbs` | `https://kagent.phuchoang.sbs` |
-| Agent Registry | `https://agentregistry-dev.phuchoang.sbs` | `https://agentregistry.phuchoang.sbs` |
-| Langfuse (app-owned) | `https://langfuse-dev.phuchoang.sbs` | `https://langfuse.phuchoang.sbs` |
+| UI | Hostname |
+| --- | --- |
+| kagent | `https://kagent.phuchoang.sbs` |
+| Agent Registry | `https://agentregistry.phuchoang.sbs` |
+| Langfuse (app-owned) | `https://langfuse.phuchoang.sbs` |
 
 The platform supplies Langfuse's tunnel binding and shared authentication hosts. The application owns its VirtualService in `llm`, using `ml/kubeflow-gateway`, and routes `/oauth2/` to the shared proxy.
 

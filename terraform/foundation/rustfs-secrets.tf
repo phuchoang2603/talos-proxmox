@@ -15,8 +15,12 @@ locals {
   }
 
   # Platform keeps the shared connection info; gateway and artifacts go to the consumer project.
+  # Substrate is platform-owned and reads its snapshot creds from the platform project.
   rustfs_platform_secrets = local.rustfs_enabled ? merge(local.rustfs_connection, {
-    OBJECT_ARTIFACTS_BUCKET = minio_s3_bucket.platform[0].bucket
+    OBJECT_ARTIFACTS_BUCKET            = minio_s3_bucket.platform[0].bucket
+    OBJECT_SUBSTRATE_BUCKET            = minio_s3_bucket.platform[0].bucket
+    OBJECT_SUBSTRATE_ACCESS_KEY_ID     = local.rustfs_access_keys.substrate.access_key_id
+    OBJECT_SUBSTRATE_SECRET_ACCESS_KEY = local.rustfs_access_keys.substrate.secret_access_key
   }) : {}
 
   rustfs_gateway_secrets = local.rustfs_enabled ? merge(local.rustfs_connection, {

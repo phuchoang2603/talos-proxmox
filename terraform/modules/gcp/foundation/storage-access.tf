@@ -30,12 +30,14 @@ resource "google_storage_hmac_key" "objects" {
 locals {
   object_prefixes = {
     artifacts = ["artifacts/", "datasets/", "runs/"]
+    substrate = ["substrate/"]
   }
   object_secret_values = merge({
     OBJECT_STORAGE_BUCKET   = google_storage_bucket.objects["platform"].name
     OBJECT_STORAGE_ENDPOINT = "https://storage.googleapis.com"
     OBJECT_STORAGE_REGION   = "auto"
     OBJECT_ARTIFACTS_BUCKET = google_storage_bucket.objects["platform"].name
+    OBJECT_SUBSTRATE_BUCKET = google_storage_bucket.objects["platform"].name
     }, [for consumer in keys(local.object_consumers) : {
       "OBJECT_${upper(consumer)}_ACCESS_KEY_ID"     = google_storage_hmac_key.objects[consumer].access_id
       "OBJECT_${upper(consumer)}_SECRET_ACCESS_KEY" = google_storage_hmac_key.objects[consumer].secret

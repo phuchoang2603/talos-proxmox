@@ -2,6 +2,7 @@ locals {
   object_consumers = {
     gateway   = "platform"
     artifacts = "platform"
+    substrate = "platform"
   }
   object_buckets = toset(values(local.object_consumers))
 }
