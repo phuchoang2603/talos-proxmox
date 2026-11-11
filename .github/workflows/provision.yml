@@ -59,7 +59,7 @@ jobs:
             apply|plan|destroy) ;;
             *) exit 1 ;;
           esac
-      - uses: dopplerhq/cli-action@v3
+      - uses: dopplerhq/cli-action@v4
       - uses: opentofu/setup-opentofu@v1
         with:
           tofu_version: v1.13.2
