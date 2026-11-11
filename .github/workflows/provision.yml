@@ -60,7 +60,7 @@ jobs:
             *) exit 1 ;;
           esac
       - uses: dopplerhq/cli-action@v3
-      - uses: opentofu/setup-opentofu@v1
+      - uses: opentofu/setup-opentofu@v2
         with:
           tofu_version: v1.13.2
           tofu_wrapper: false
