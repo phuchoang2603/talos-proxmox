@@ -74,7 +74,7 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v3
         if: inputs.environment == 'prod' && vars.CLOUD_PROVIDER == 'gcp'
 
-      - uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v6
         if: inputs.environment == 'prod' && vars.CLOUD_PROVIDER == 'aws'
         with:
           role-to-assume: ${{ vars.AWS_CI_ROLE_ARN }}
