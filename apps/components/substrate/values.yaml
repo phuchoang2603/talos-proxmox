@@ -2,6 +2,8 @@ storageClass: local-path
 substrate:
   image:
     tag: v1.0.0-rc1
+  preview:
+  - PerTemplateSnapshotLocation
   rustfs:
     enabled: false
   ateApi:
