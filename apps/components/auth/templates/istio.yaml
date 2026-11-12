@@ -33,6 +33,8 @@ spec:
   rules:
     - to:
         - operation:
+            notHosts:
+{{ toYaml .Values.identity.unauthenticatedHosts | indent 14 }}
             notPaths:
               - /oauth2/*
       when:
