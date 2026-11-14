@@ -68,7 +68,7 @@ The checked-in configuration targets GitHub owner and HCP organization `phuchoan
 
 ## 2. Prepare Doppler and HCP Terraform
 
-The foundation root creates the Doppler project and dev/prod configs from empty state. Supply operator-issued credentials through a private `operator_secrets` variable file outside Git; enter application credentials in Doppler by hand.
+The foundation root creates the Doppler project and dev/prod configs from empty state. Enter operator-issued and application credentials in Doppler by hand once the configs exist.
 
 1. Create the HCP Terraform organization and set its default execution mode to **Local** before initializing foundation. Plans will run on your machine or the CI runner; HCP stores and locks state.
 2. Create an HCP user token for an operator with access to the organization. Store it as `HCP_TERRAFORM_TOKEN` in both Doppler configs. This deployment uses an operator user token shared across the workspaces.

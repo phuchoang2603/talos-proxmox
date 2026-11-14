@@ -16,22 +16,22 @@ locals {
 
   # Platform keeps the shared connection info and the artifacts key Kubeflow reads; gateway and artifacts also go to the consumer project.
   # Substrate is platform-owned and reads its snapshot creds from the platform project.
-  rustfs_platform_secrets = local.rustfs_enabled ? merge(local.rustfs_connection, {
-    OBJECT_ARTIFACTS_BUCKET            = minio_s3_bucket.platform[0].bucket
-    OBJECT_SUBSTRATE_BUCKET            = minio_s3_bucket.platform[0].bucket
+  rustfs_platform_secrets = merge(local.rustfs_connection, {
+    OBJECT_ARTIFACTS_BUCKET            = minio_s3_bucket.platform.bucket
+    OBJECT_SUBSTRATE_BUCKET            = minio_s3_bucket.platform.bucket
     OBJECT_SUBSTRATE_ACCESS_KEY_ID     = local.rustfs_access_keys.substrate.access_key_id
     OBJECT_SUBSTRATE_SECRET_ACCESS_KEY = local.rustfs_access_keys.substrate.secret_access_key
     OBJECT_ARTIFACTS_ACCESS_KEY_ID     = local.rustfs_access_keys.artifacts.access_key_id
     OBJECT_ARTIFACTS_SECRET_ACCESS_KEY = local.rustfs_access_keys.artifacts.secret_access_key
-  }) : {}
+  })
 
-  rustfs_gateway_secrets = local.rustfs_enabled ? merge(local.rustfs_connection, {
+  rustfs_gateway_secrets = merge(local.rustfs_connection, {
     OBJECT_GATEWAY_ACCESS_KEY_ID       = local.rustfs_access_keys.gateway.access_key_id
     OBJECT_GATEWAY_SECRET_ACCESS_KEY   = local.rustfs_access_keys.gateway.secret_access_key
     OBJECT_ARTIFACTS_ACCESS_KEY_ID     = local.rustfs_access_keys.artifacts.access_key_id
     OBJECT_ARTIFACTS_SECRET_ACCESS_KEY = local.rustfs_access_keys.artifacts.secret_access_key
-    CLICKHOUSE_GRAFANA_PASSWORD        = data.doppler_secrets.platform_dev[0].map.CLICKHOUSE_GRAFANA_PASSWORD
-  }) : {}
+    CLICKHOUSE_GRAFANA_PASSWORD        = data.doppler_secrets.platform_dev.map.CLICKHOUSE_GRAFANA_PASSWORD
+  })
 
   # Prod object creds come from the cloud foundation module (GCS HMAC keys or AWS
   # IAM access keys) via local.cloud_secrets; mirror the gateway-owned subset into
