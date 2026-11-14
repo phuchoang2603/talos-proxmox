@@ -1393,8 +1393,9 @@ spec:
             path: /apis/v2beta1/healthz
             port: 3000
           initialDelaySeconds: 3
-          periodSeconds: 5
-          timeoutSeconds: 2
+          periodSeconds: 10
+          timeoutSeconds: 10
+          failureThreshold: 6
         name: ml-pipeline-ui
         ports:
         - containerPort: 3000
@@ -1403,8 +1404,8 @@ spec:
             path: /apis/v2beta1/healthz
             port: 3000
           initialDelaySeconds: 3
-          periodSeconds: 5
-          timeoutSeconds: 2
+          periodSeconds: 10
+          timeoutSeconds: 10
         resources:
           requests:
             cpu: 10m
