@@ -4,7 +4,7 @@ Two independent Kubernetes environments run Talos: **dev** on the existing Proxm
 
 Dev keeps the existing Proxmox VM allocations with one control-plane/workload node and two workers. It has no cloud workers or node autoscaler. Prod uses one fixed `e2-standard-4` control-plane/workload VM and a Cluster Autoscaler-managed baseline of three `e2-standard-4` workers, fixed at three. A separate Spot group scales from zero to twelve workers. Production CPU VMs each have 4 vCPU and 16 GiB RAM. Both environments retain Kubernetes `v1.37.2`; production uses Cluster Autoscaler `v1.37.0` pinned by image digest. Each has a single control plane and single-instance PostgreSQL; neither is highly available.
 
-Dev uses local-path and existing MinIO. Prod uses expandable GCE Persistent Disk storage and one private GCS object bucket with purpose prefixes, accessed through the S3-compatible XML API with HMAC credentials. GCP production enables one fixed on-demand L4 worker through `gcp_gpu_enabled`; production local-model caching remains disabled. State, application credentials and public domains remain independent.
+Dev uses local-path and existing MinIO. Prod uses expandable GCE Persistent Disk storage and one private GCS object bucket with purpose prefixes, accessed through the S3-compatible XML API with HMAC credentials. GCP production can enable one fixed on-demand L4 worker through `gcp_gpu_enabled` (currently off); production local-model caching remains disabled. State, application credentials and public domains remain independent.
 
 [![Infrastructure architecture](docs/architecture/diagrams/architecture.png)](docs/architecture/diagrams/architecture.svg?raw=1)
 
