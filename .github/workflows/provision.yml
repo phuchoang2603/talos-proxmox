@@ -136,7 +136,7 @@ jobs:
           tofu init -input=false
           tofu state list > .resources
           if [ -s .resources ]; then
-            xargs tofu state rm < .resources
+            xargs -d '\n' tofu state rm < .resources
           fi
 
       - name: Platform
