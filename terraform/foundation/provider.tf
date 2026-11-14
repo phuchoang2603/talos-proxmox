@@ -79,11 +79,11 @@ provider "aws" {
 }
 
 # Dev (Proxmox) object storage runs on an external RustFS endpoint reachable with the
-# platform root credentials from Doppler; prod uses GCS and leaves this provider disabled.
+# platform root credentials from Doppler, whichever cloud prod uses.
 provider "minio" {
   minio_server   = var.rustfs_endpoint
-  minio_user     = var.cloud_provider == "proxmox" ? data.doppler_secrets.platform_dev[0].map.RUSTFS_ROOT_USER : "disabled"
-  minio_password = var.cloud_provider == "proxmox" ? data.doppler_secrets.platform_dev[0].map.RUSTFS_ROOT_PASSWORD : "disabled"
+  minio_user     = data.doppler_secrets.platform_dev.map.RUSTFS_ROOT_USER
+  minio_password = data.doppler_secrets.platform_dev.map.RUSTFS_ROOT_PASSWORD
   minio_ssl      = true
   minio_region   = "us-east-1"
 }

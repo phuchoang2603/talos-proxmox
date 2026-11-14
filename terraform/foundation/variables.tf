@@ -14,11 +14,6 @@ variable "gcp_billing_account" {
   default     = null
 }
 
-variable "operator_secrets" {
-  type      = map(map(string))
-  sensitive = true
-}
-
 variable "talos_version" {
   type    = string
   default = "v1.14.5"

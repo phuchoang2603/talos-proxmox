@@ -8,7 +8,7 @@ The repository's `.doppler.yaml` defaults to dev. Use explicit `--project talos-
 
 ## Operator-entered secrets
 
-The foundation root accepts a sensitive `operator_secrets` map keyed by environment and writes only the keys in this table. Keep its `.tfvars.json` file outside Git with mode `0600`, and pass that same file to every foundation plan/apply. Application credentials are not managed by foundation; enter them in Doppler by hand.
+Enter the keys in this table in Doppler by hand, in the listed configs, after foundation creates the project. Foundation does not manage them, so no secret variable file is needed for its plan/apply. Application credentials are entered the same way.
 
 | Doppler key | Consumer | Environments |
 | --- | --- | --- |

@@ -1,5 +1,4 @@
 data "doppler_secrets" "platform_dev" {
-  count   = var.cloud_provider == "proxmox" ? 1 : 0
   project = local.doppler_project
   config  = doppler_environment.this["dev"].slug
 }
@@ -11,27 +10,23 @@ data "doppler_secrets" "platform_prod" {
 }
 
 locals {
-  rustfs_enabled = var.cloud_provider == "proxmox"
-
   # App consumer -> scoped MinIO policy document. Each consumer gets its own user +
   # service account; apps read OBJECT_<CONSUMER>_{ACCESS_KEY_ID,SECRET_ACCESS_KEY}.
-  rustfs_consumers = local.rustfs_enabled ? {
+  rustfs_consumers = {
     substrate = "${path.module}/env/dev/minio-substrate-policy.json"
     artifacts = "${path.module}/env/dev/minio-artifacts-policy.json"
     gateway   = "${path.module}/env/dev/minio-gateway-policy.json"
-  } : {}
+  }
 }
 
 resource "minio_s3_bucket" "platform" {
-  count         = local.rustfs_enabled ? 1 : 0
   bucket        = "platform-dev"
   acl           = "private"
   force_destroy = false
 }
 
 resource "minio_s3_bucket_versioning" "platform" {
-  count  = local.rustfs_enabled ? 1 : 0
-  bucket = minio_s3_bucket.platform[0].bucket
+  bucket = minio_s3_bucket.platform.bucket
   versioning_configuration {
     status = "Enabled"
   }
