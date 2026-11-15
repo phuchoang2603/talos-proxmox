@@ -62,7 +62,7 @@ spec:
         - key: request.auth.claims[iss]
           values: [urn:platform:kagent:gateway]
         - key: request.auth.claims[sub]
-          values: [agentgateway]
+          values: {{ .Values.auth.gatewaySubjects | toJson }}
     - from:
         - source:
             principals: [cluster.local/ns/ate-system/sa/atenet-egress]

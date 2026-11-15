@@ -57,6 +57,7 @@ tunnel:
   hostname: kagent.phuchoang.sbs
 auth:
   dexIssuer: https://auth.phuchoang.sbs/dex
+  gatewaySubjects: [agentgateway]
   gatewayJWKS: '{"keys": [{"kty": "EC", "crv": "P-256", "x": "NavrGdA_xoEL7-lPXnCShh8nbZ5PxnFeT-q7gsEEZy4",
     "y": "91MePK63xtPJixjHab9snqFcTJdqrliiIXBUFV9ImS0", "use": "sig", "alg": "ES256"}]}'
   actorJWKS: '{"keys": [{"kty": "EC", "crv": "P-256", "x": "vMQ_PxEJK-7OgY0oMBTyCEd22y7JTaRKPIpPxuxgWZE",
