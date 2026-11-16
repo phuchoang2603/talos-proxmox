@@ -104,11 +104,11 @@ Both environments SHALL reconcile the same applicable platform services with env
 - **THEN** that environment's Argo CD has no Application for it
 
 ### Requirement: Layered roots in CI
-PR validation SHALL lint roots and charts without state or secrets; separate trusted repository PR jobs SHALL deploy dev and plan the prod cluster root without applying production changes. The prod platform root SHALL be planned during deployment after the cluster apply, when live Kubernetes access and generated credentials are available. Main SHALL deploy dev after lint succeeds; production SHALL apply only through manual dispatch on main. Fork PRs SHALL validate without deployment secrets. Foundation SHALL be applied by the operator. Root and child Argo applications SHALL share the selected revision.
+PR validation SHALL lint roots and charts without state or secrets; separate trusted repository PR jobs SHALL publish `deploy/dev` and apply infrastructure changes to dev. Main SHALL reset `deploy/dev` and apply infrastructure changes to dev after lint succeeds; production SHALL apply only through manual dispatch on main. Fork PRs SHALL validate without deployment secrets. Foundation SHALL be applied by the operator. Root and child Argo applications SHALL share one tracked branch: `deploy/dev` in dev and `main` in prod.
 
 #### Scenario: Independent production deployment
 - **WHEN** production is manually deployed from main
-- **THEN** prod receives the selected pinned commit independently of the dev deployment result
+- **THEN** the cluster and platform roots are applied independently of the dev deployment result, and prod's Argo CD tracks `main`
 
 #### Scenario: Pull request
 - **WHEN** a pull request targets `main`
@@ -116,7 +116,7 @@ PR validation SHALL lint roots and charts without state or secrets; separate tru
 
 #### Scenario: Push to main
 - **WHEN** a validated change reaches main
-- **THEN** dev receives the selected revision after lint succeeds and production remains unchanged until manual deployment
+- **THEN** `deploy/dev` is reset to main after lint succeeds and prod, which tracks `main`, follows it
 
 #### Scenario: Dev on demand
 - **WHEN** dev has been intentionally destroyed

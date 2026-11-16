@@ -1,64 +1,73 @@
-name: Provision Environment
+name: Provision
 
 on:
-  workflow_call:
+  pull_request:
+    branches: [main]
+    paths:
+      - terraform/cluster/**
+      - terraform/platform/**
+      - terraform/modules/**
+      - '!terraform/modules/*/foundation/**'
+      - apps/argocd/bootstrap/**
+      - apps/components/argo-cd/**
+      - apps/components/cilium/**
+      - apps/components/cluster-autoscaler/**
+      - apps/components/gateway-api/**
+      - apps/components/talos-ccm/**
+      - .github/workflows/provision.yml
+  push:
+    branches: [main]
+    paths:
+      - terraform/cluster/**
+      - terraform/platform/**
+      - terraform/modules/**
+      - '!terraform/modules/*/foundation/**'
+      - apps/argocd/bootstrap/**
+      - apps/components/argo-cd/**
+      - apps/components/cilium/**
+      - apps/components/cluster-autoscaler/**
+      - apps/components/gateway-api/**
+      - apps/components/talos-ccm/**
+      - .github/workflows/provision.yml
+  workflow_dispatch:
     inputs:
       environment:
-        required: true
-        type: string
+        type: choice
+        options: [dev, prod]
+        default: dev
       action:
-        type: string
+        type: choice
+        options: [apply, destroy]
         default: apply
-      revision:
-        type: string
-        default: ""
       purge_data:
+        description: Delete environment-owned persistent cloud data during destroy
         type: boolean
         default: false
 
 jobs:
   provision:
-    if: (github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')) || ((inputs.environment == 'dev' && inputs.action == 'apply' || inputs.environment == 'prod' && inputs.action == 'plan') && github.event_name == 'pull_request' && github.base_ref == 'main' && github.event.pull_request.head.repo.full_name == github.repository)
+    name: Provision (${{ inputs.environment || 'dev' }})
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && !startsWith(github.head_ref, 'renovate/'))
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    environment: ${{ inputs.environment }}
+    environment: ${{ inputs.environment || 'dev' }}
     concurrency:
-      group: provision-${{ inputs.environment }}
+      group: provision-${{ inputs.environment || 'dev' }}
       cancel-in-progress: false
     permissions:
       contents: read
       id-token: write
     env:
       DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
-      TF_VAR_env: ${{ inputs.environment }}
+      TF_VAR_env: ${{ inputs.environment || 'dev' }}
       TF_IN_AUTOMATION: true
-      REVISION: ${{ inputs.revision || github.sha }}
       PURGE_DATA: ${{ inputs.purge_data && 'true' || 'false' }}
       PLAN_FLAGS: ${{ inputs.action == 'destroy' && '-destroy' || '' }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.revision || github.sha }}
-          fetch-depth: 0
-      - name: Verify selected revision
-        env:
-          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: |
-          set -euo pipefail
-          [[ "$REVISION" =~ ^[0-9a-f]{40}$ ]]
-          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
-            git merge-base --is-ancestor "$PR_BASE_SHA" "$REVISION"
-          else
-            git merge-base --is-ancestor "$REVISION" origin/main
-          fi
-      - name: Validate action
-        env:
-          ACTION: ${{ inputs.action }}
-        run: |
-          case "$ACTION" in
-            apply|plan|destroy) ;;
-            *) exit 1 ;;
-          esac
       - uses: dopplerhq/cli-action@v3
       - uses: opentofu/setup-opentofu@v1
         with:
@@ -66,16 +75,16 @@ jobs:
           tofu_wrapper: false
 
       - uses: google-github-actions/auth@v3
-        if: inputs.environment == 'prod' && vars.CLOUD_PROVIDER == 'gcp'
+        if: env.TF_VAR_env == 'prod' && vars.CLOUD_PROVIDER == 'gcp'
         with:
           workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.GCP_CI_SERVICE_ACCOUNT }}
 
       - uses: google-github-actions/setup-gcloud@v3
-        if: inputs.environment == 'prod' && vars.CLOUD_PROVIDER == 'gcp'
+        if: env.TF_VAR_env == 'prod' && vars.CLOUD_PROVIDER == 'gcp'
 
       - uses: aws-actions/configure-aws-credentials@v4
-        if: inputs.environment == 'prod' && vars.CLOUD_PROVIDER == 'aws'
+        if: env.TF_VAR_env == 'prod' && vars.CLOUD_PROVIDER == 'aws'
         with:
           role-to-assume: ${{ vars.AWS_CI_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
@@ -92,14 +101,14 @@ jobs:
             echo "${pair#*:}=${v}" >> "$GITHUB_ENV"
           done
       - uses: tailscale/github-action@v4
-        if: inputs.environment == 'dev'
+        if: env.TF_VAR_env == 'dev'
         with:
           oauth-client-id: ${{ env.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ env.TS_OAUTH_SECRET }}
           tags: tag:ci
 
       - name: Allow current cloud management egress
-        if: inputs.environment == 'prod'
+        if: env.TF_VAR_env == 'prod'
         run: |
           address=$(curl --fail --silent --show-error https://api.ipify.org)
           python3 - "$address" <<'PYCODE'
@@ -112,17 +121,16 @@ jobs:
       - name: Cluster plan
         working-directory: terraform/cluster
         env:
-          TF_WORKSPACE: talos-cluster-${{ inputs.environment }}
+          TF_WORKSPACE: talos-cluster-${{ env.TF_VAR_env }}
         run: |
           tofu init -input=false
           # shellcheck disable=SC2086
           tofu plan -input=false -lock-timeout=5m -no-color ${PLAN_FLAGS} -var-file="env/${TF_VAR_env}/main.tfvars" -out=.planfile
 
       - name: Cluster apply
-        if: inputs.action != 'plan'
         working-directory: terraform/cluster
         env:
-          TF_WORKSPACE: talos-cluster-${{ inputs.environment }}
+          TF_WORKSPACE: talos-cluster-${{ env.TF_VAR_env }}
         run: tofu apply -input=false -lock-timeout=5m -auto-approve .planfile
 
       # Everything the platform root manages lives in the cluster just destroyed, so its state is
@@ -131,7 +139,7 @@ jobs:
         if: inputs.action == 'destroy'
         working-directory: terraform/platform
         env:
-          TF_WORKSPACE: talos-platform-${{ inputs.environment }}
+          TF_WORKSPACE: talos-platform-${{ env.TF_VAR_env }}
         run: |
           tofu init -input=false
           tofu state list > .resources
@@ -140,10 +148,10 @@ jobs:
           fi
 
       - name: Platform
-        if: inputs.action == 'apply'
+        if: inputs.action != 'destroy'
         working-directory: terraform/platform
         env:
-          TF_WORKSPACE: talos-platform-${{ inputs.environment }}
+          TF_WORKSPACE: talos-platform-${{ env.TF_VAR_env }}
         run: |
           tofu init -input=false
           tofu plan -input=false -lock-timeout=5m -no-color -out=.planfile

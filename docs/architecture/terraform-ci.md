@@ -35,27 +35,27 @@ The separate platform root makes Kubernetes and Helm provider credentials availa
 
 ```mermaid
 flowchart TD
-    PR["PR targeting main"] --> Lint["Validate all roots and charts"]
+    PR["PR targeting main"] --> Lint["Deploy: validate all roots and charts"]
     Push["Push to main"] --> Lint
-    Dispatch["Manual dispatch on main"] --> Lint
-    Lint --> Trigger{"Event and repository trust"}
-    Trigger -->|"Fork PR"| Done["No provisioning"]
-    Trigger -->|"Trusted PR"| DevCluster
-    Trigger -->|"Push"| DevCluster["dev cluster apply"]
-    Trigger -->|"Dispatch"| Selected["selected environment: apply or destroy"]
+    Lint --> Publish{"Trusted, non-draft PR or push"}
+    Publish -->|"PR head"| Branch["deploy/dev"]
+    Publish -->|"after merge"| Reset["deploy/dev reset to main"]
+    Branch --> DevArgo["dev Argo CD converges asynchronously"]
+    Reset --> DevArgo
+    PR --> Paths{"Provision: OpenTofu or bootstrap chart changed?"}
+    Push --> Paths
+    Paths -->|"Trusted PR or push"| DevCluster["dev cluster apply"]
     DevCluster --> DevPlatform["dev platform apply"]
-    DevPlatform --> DevArgo["dev Argo CD converges asynchronously"]
-    Trigger -->|"Trusted PR"| ProdPlan["prod cluster plan"]
+    Dispatch["Provision dispatch on main"] --> Selected["selected environment: apply or destroy"]
 ```
 
-Trusted repository PRs deploy dev and independently plan the prod cluster root after lint; fork PRs validate only. Prod PR jobs do not apply, reset state, or plan the platform root, which requires live Kubernetes access and credentials from a completed cluster apply. Main updates dev after lint succeeds; prod apply and destroy require a manual dispatch. Manual applies can select a full main commit SHA; all Argo Applications are pinned to the selected SHA. Lint still renders dev's overlays on every PR, so a later dispatch does not start from broken charts.
+Lint runs on every PR and push, fork PRs included, so a later dispatch does not start from broken charts. Trusted repository PRs and `main` apply dev when OpenTofu or a chart it installs changes; fork PRs get no deployment. Prod is provisioned only by dispatch on `main`; there is no prod plan on PRs. Argo CD tracks a branch, not a commit: dev follows `deploy/dev` and prod follows `main`, so platform changes under `apps/` reach dev without a Provision run.
 
 | Workflow | Responsibility |
 | --- | --- |
-| [`terraform.yml`](../../.github/workflows/terraform.yml) | Runs only when `terraform/`, `apps/`, or `.github/workflows/` change: PR checks, and trusted PRs deploy dev and plan the prod cluster; main deploys dev only |
+| [`deploy.yml`](../../.github/workflows/deploy.yml) | Lint every PR and push; publish `deploy/dev` from trusted, non-draft, non-Renovate PRs and reset it to `main` after a merge |
 | [`lint.yml`](../../.github/workflows/lint.yml) | Backend-disabled init, format and validate all roots; lint charts and environment overlays |
-| [`provision.yml`](../../.github/workflows/provision.yml) | Reusable per-environment apply, cluster plan, or destroy; trusted PRs may apply dev or plan prod, while prod apply/destroy remain restricted to `main` |
-| [`manual.yml`](../../.github/workflows/manual.yml) | Validate, then apply or destroy one selected environment on `main` |
+| [`provision.yml`](../../.github/workflows/provision.yml) | Apply the cluster and platform roots. Runs on trusted PRs and `main` when `terraform/cluster`, `terraform/platform`, `terraform/modules` or the charts the platform root installs change, and by manual dispatch on `main` to apply or destroy dev or prod |
 
 Provisioning runs are serialized per environment and do not cancel an active run. The job timeout is 90 minutes. Destroy runs only the cluster root, which also removes GCE managed instance groups and their workers, and then empties the platform root's state instead of destroying it, so it does not need the Kubernetes API. Foundation is only validated by CI and must be applied locally.
 
@@ -72,7 +72,7 @@ Each job gets its environment's `DOPPLER_TOKEN` from GitHub. Prod uses GitHub Wo
 | Platform Kubernetes access | Generated `KUBECONFIG` read from Doppler |
 | Private API routing | Tailscale runner identity `tag:ci` |
 
-GitHub Environment policies allow main and PR merge refs for both environments; workflow guards restrict prod PRs to planning, and exclude fork PRs. GCP federation requires the immutable owner/repository IDs and the prod environment, with main or trusted PR workflow guards. Static PR validation does not use deployment secrets or remote state. Saved plans remain on the runner. See the [secrets reference](../reference/secrets.md) for ownership and consumers.
+GitHub Environment policies allow main and PR merge refs for dev and only main for prod; workflow guards exclude fork PRs. GCP federation requires the immutable owner/repository IDs, the prod environment and `refs/heads/main`. Static PR validation does not use deployment secrets or remote state. Saved plans remain on the runner. See the [secrets reference](../reference/secrets.md) for ownership and consumers.
 
 ## State and environment isolation
 

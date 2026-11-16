@@ -9,12 +9,12 @@ on:
 
 jobs:
   lint:
-    if: github.event_name == 'push' || (github.event.pull_request.head.repo.full_name == github.repository && !github.event.pull_request.draft && !startsWith(github.head_ref, 'renovate/'))
     uses: ./.github/workflows/lint.yml
 
   dev:
     name: Publish deploy/dev
     needs: lint
+    if: github.event_name == 'push' || (github.event.pull_request.head.repo.full_name == github.repository && !github.event.pull_request.draft && !startsWith(github.head_ref, 'renovate/'))
     runs-on: ubuntu-latest
     concurrency:
       group: deploy-dev

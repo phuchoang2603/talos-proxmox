@@ -76,7 +76,7 @@ CI SHALL use production-only GitHub Workload Identity Federation. Autoscaler and
 - **THEN** GCP deletes its managed worker groups and instances before networking is removed, and platform state resets only after successful cleanup
 
 ### Requirement: Validation and production deployment
-Static CI SHALL validate roots and charts without remote state or deployment secrets. Trusted repository PRs SHALL deploy dev and independently plan prod; fork PRs SHALL validate only. Main SHALL deploy dev only, with production apply/destroy available through manual dispatch on main. Argo applications SHALL retain the selected revision.
+Static CI SHALL validate roots and charts without remote state or deployment secrets. Trusted repository PRs SHALL publish `deploy/dev` and apply infrastructure changes to dev; fork PRs SHALL validate only. Main SHALL reset `deploy/dev` and apply infrastructure changes to dev, with production apply/destroy available through manual dispatch on main. Argo applications SHALL track a branch: `deploy/dev` in dev and `main` in prod.
 
 #### Scenario: Trusted pull request
 - **WHEN** a trusted repository PR passes lint
