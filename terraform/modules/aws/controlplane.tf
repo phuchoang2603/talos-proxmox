@@ -10,7 +10,6 @@ resource "aws_eip" "controlplane" {
 module "talos" {
   source             = "../talos"
   cluster_name       = var.cluster_name
-  cluster_endpoint   = local.cluster_endpoint
   controlplane_ips   = [aws_eip.controlplane.public_ip]
   controlplane_nodes = [aws_instance.controlplane.private_ip]
 }

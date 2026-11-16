@@ -20,14 +20,6 @@ output "controlplane_ips" {
   value = local.controlplane_ips
 }
 
-output "schematic_id" {
-  value = talos_image_factory_schematic.default.id
-}
-
-output "gpu_schematic_id" {
-  value = one(talos_image_factory_schematic.gpu[*].id)
-}
-
 output "controller_keys" {
   value     = {}
   sensitive = true

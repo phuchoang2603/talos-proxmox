@@ -1,7 +1,6 @@
 module "talos" {
   source             = "../talos"
   cluster_name       = var.cluster_name
-  cluster_endpoint   = "https://${google_compute_address.controlplane.address}:6443"
   controlplane_ips   = [google_compute_address.controlplane.address]
   controlplane_nodes = ["10.81.0.10"]
 
