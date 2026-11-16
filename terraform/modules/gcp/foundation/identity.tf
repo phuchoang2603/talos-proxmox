@@ -21,7 +21,7 @@ resource "google_iam_workload_identity_pool_provider" "github" {
     "google.subject"       = "assertion.sub"
     "attribute.repository" = "assertion.repository"
   }
-  attribute_condition = "assertion.repository_owner_id == '91061595' && assertion.repository_id == '1351657631' && assertion.repository == 'phuchoang2603/talos-proxmox' && assertion.environment == 'prod' && (assertion.ref == 'refs/heads/main' || assertion.event_name == 'pull_request')"
+  attribute_condition = "assertion.repository_owner_id == '91061595' && assertion.repository_id == '1351657631' && assertion.repository == 'phuchoang2603/talos-proxmox' && assertion.environment == 'prod' && assertion.ref == 'refs/heads/main'"
   oidc { issuer_uri = "https://token.actions.githubusercontent.com" }
 }
 
