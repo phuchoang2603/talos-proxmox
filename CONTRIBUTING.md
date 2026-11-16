@@ -107,7 +107,7 @@ Review the plan before approving the apply. Pass the same private operator varia
 
 ## 5. Deploy through GitHub Actions
 
-Push the reviewed configuration to `main`. **Provision** validates trusted repository PRs, deploys them to dev and independently plans prod. Main deploys dev only. Apply prod through **Manual Provision** using a selected main commit; root and child Argo Applications stay pinned to that SHA.
+Push the reviewed configuration to `main`. **Provision** validates trusted repository PRs, deploys them to dev and independently plans prod. Main deploys dev only. Apply prod through **Manual Provision** using a selected main commit. Argo CD tracks a branch rather than that commit: dev follows `deploy/dev`, which **Deploy** points at a PR's head after lint and back at `main` after a merge, and prod follows `main`. See [tracked revisions](docs/architecture/gitops.md#tracked-revisions).
 
 To build dev or update it manually, use **Actions → Manual Provision → Run workflow**, select `main`, `dev`, and **apply**. Select **destroy** when you are done. The same workflow can also apply or destroy prod. A dispatch from another branch cannot provision.
 
@@ -119,7 +119,6 @@ Use this for inspection or an operator-driven change. Start at the repository ro
 
 ```bash
 export TF_VAR_env=dev
-export TF_VAR_target_revision="$(git rev-parse HEAD)"
 export DOPPLER_TOKEN="$(doppler configure get token --plain)"
 export TF_WORKSPACE="talos-cluster-${TF_VAR_env}"
 

@@ -25,6 +25,5 @@ resource "helm_release" "argocd_bootstrap" {
     { name = "cloudProvider", value = local.cloud_provider },
     { name = "cloudRegion", value = local.cloud_region },
     { name = "repoURL", value = var.repo_url },
-    { name = "targetRevision", value = var.target_revision },
   ]
 }

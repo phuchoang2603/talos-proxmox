@@ -19,15 +19,6 @@ variable "repo_url" {
   default     = "https://github.com/phuchoang2603/talos-proxmox.git"
 }
 
-variable "target_revision" {
-  description = "Git revision Argo CD reconciles the platform from"
-  type        = string
-  validation {
-    condition     = can(regex("^[0-9a-f]{40}$", var.target_revision))
-    error_message = "target_revision must be a full Git commit SHA."
-  }
-}
-
 variable "cluster_autoscaler_image" {
   description = "Cluster Autoscaler image matching Kubernetes 1.37."
   type        = string
