@@ -1,0 +1,45 @@
+name: Deploy
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    if: github.event_name == 'push' || (github.event.pull_request.head.repo.full_name == github.repository && !github.event.pull_request.draft && !startsWith(github.head_ref, 'renovate/'))
+    uses: ./.github/workflows/lint.yml
+
+  dev:
+    name: Publish deploy/dev
+    needs: lint
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-dev
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      pull-requests: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      REVISION: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.REVISION }}
+      - name: Publish
+        run: |
+          set -euo pipefail
+          if [ -n "$PR_NUMBER" ]; then
+            current=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq 'select(.state == "open") | .head.sha')
+          else
+            current=$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)
+          fi
+          if [ "$current" != "$REVISION" ]; then
+            echo "::notice::${REVISION} is no longer the head of its source; leaving deploy/dev unchanged"
+            exit 0
+          fi
+          git push --force origin "HEAD:refs/heads/deploy/dev"

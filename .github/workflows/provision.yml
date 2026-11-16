@@ -32,7 +32,7 @@ jobs:
       DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
       TF_VAR_env: ${{ inputs.environment }}
       TF_IN_AUTOMATION: true
-      TF_VAR_target_revision: ${{ inputs.revision || github.sha }}
+      REVISION: ${{ inputs.revision || github.sha }}
       PURGE_DATA: ${{ inputs.purge_data && 'true' || 'false' }}
       PLAN_FLAGS: ${{ inputs.action == 'destroy' && '-destroy' || '' }}
     steps:
@@ -45,11 +45,11 @@ jobs:
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           set -euo pipefail
-          [[ "$TF_VAR_target_revision" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$REVISION" =~ ^[0-9a-f]{40}$ ]]
           if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
-            git merge-base --is-ancestor "$PR_BASE_SHA" "$TF_VAR_target_revision"
+            git merge-base --is-ancestor "$PR_BASE_SHA" "$REVISION"
           else
-            git merge-base --is-ancestor "$TF_VAR_target_revision" origin/main
+            git merge-base --is-ancestor "$REVISION" origin/main
           fi
       - name: Validate action
         env:

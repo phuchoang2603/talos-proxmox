@@ -21,6 +21,15 @@ flowchart TD
 
 The [bootstrap chart](../../apps/argocd/bootstrap/) creates the `talos-proxmox` AppProject and the `platform` root Application. The [platform chart](../../apps/argocd/platform/) creates child Applications from its component table. Every destination is `https://kubernetes.default.svc`; there are no remote-cluster registrations or cross-environment kubeconfigs.
 
+## Tracked revisions
+
+| Environment | `targetRevision` | Moves when |
+| --- | --- | --- |
+| dev | `deploy/dev` | [`Deploy`](../../.github/workflows/deploy.yml) force-pushes it to the head of a trusted, non-draft repository PR after lint passes, and resets it to `main` after a merge |
+| prod | `main` | A change merges to `main` |
+
+The bootstrap chart's `targetRevision` is the only place the branch is named: `main` in [`values.yaml`](../../apps/argocd/bootstrap/values.yaml), `deploy/dev` in its [dev overlay](../../apps/argocd/bootstrap/environments/dev/values.yaml). The `platform` Application and every child it renders track the same ref, so a platform change reaches dev through Git alone, independent of **Provision**. With several PRs open, `deploy/dev` holds whichever was published last. Renovate branches do not publish.
+
 ## One owner per resource
 
 | Owner | Components |
