@@ -63,7 +63,7 @@ Provider selection is for fresh deployments; changing it on an existing stack re
 
 Authenticate locally using `gcloud auth login` and `gcloud auth application-default login`; select project `talos-proxmox`. The GCP project must already exist with billing enabled. Apply foundation locally with the private operator variable file to enable APIs, create images/storage/identities and publish GitHub federation variables. Set production Doppler `CLOUD_MANAGEMENT_CIDRS` to a JSON array of stable operator CIDRs. CI adds its own egress /32.
 
-Use **Manual Provision** on main, selecting `prod` and `apply`. Pushes deploy dev only; trusted PRs plan prod. Verify node registration, a pending-pod scale-out, Spot scale-from-zero, idle scale-down and a PVC write/remount before treating the deployment as operational. Configuration validation is not evidence of those live checks.
+Run **Provision** on main, selecting `prod` and `apply`. Pushes and trusted PRs apply dev only. Verify node registration, a pending-pod scale-out, Spot scale-from-zero, idle scale-down and a PVC write/remount before treating the deployment as operational. Configuration validation is not evidence of those live checks.
 
 Use the same workflow with `destroy` for teardown. Normal destroy retains persistent disks and snapshots. Select `purge_data` only to delete environment-owned labeled disks/snapshots; foundation object buckets remain. Platform state resets only after successful cluster teardown. For local destruction, set `PURGE_DATA=true` only when purging is intended. Never empty platform state after failed cloud cleanup.
 

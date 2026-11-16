@@ -50,6 +50,6 @@ Talos uses the Kubernetes service DNS issuer for service-account tokens. Kuberne
 
 ## Rollout
 
-PR provisioning applies dev. Prod remains manual through **Manual Provision** on main after explicit rollout confirmation. Restricting prod's shared training GPU pool to `g6.xlarge` also restricts Kubeflow training. Installing these controllers does not create an application Gateway or launch a GPU node.
+PR provisioning applies dev. Prod remains manual through **Provision** on main after explicit rollout confirmation. Restricting prod's shared training GPU pool to `g6.xlarge` also restricts Kubeflow training. Installing these controllers does not create an application Gateway or launch a GPU node.
 
 The pre-1.0 agent database, CRDs, workers and snapshots are not migrated. Stop old actors and controllers, remove their runtime state and old CRDs, then install the new CRDs, certificate controller, shared database, Substrate and kagent together. Upgrade Talos nodes sequentially before Kubernetes, or rebuild a disposable cluster directly at the pinned versions, then validate certificates, actor egress and metrics. This does not delete application datasets from MinIO/S3.

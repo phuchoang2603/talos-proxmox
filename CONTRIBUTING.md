@@ -9,8 +9,8 @@ Use this guide to make changes, validate them, and deploy dev and prod. Commands
 1. Create a branch and enter `devenv shell`.
 2. Update the relevant Terraform root or component chart. Use the [repository map](README.md#repository-map) and [ownership guide](docs/architecture/gitops.md#one-owner-per-resource) to choose the right location.
 3. Run the relevant checks below and update documentation or OpenSpec requirements when behavior changes.
-4. Open a pull request targeting `main`, describing the change and validation performed. Validation runs without state or deployment credentials. Trusted repository PRs then deploy dev; fork PRs validate only.
-5. After review, repository PRs and `main` deploy dev after validation; trusted PRs also plan prod. Deploy prod manually from `main`. Foundation changes still require a local operator apply.
+4. Open a pull request targeting `main`, describing the change and validation performed. Validation runs without state or deployment credentials. Trusted repository PRs then publish `deploy/dev`; fork PRs validate only.
+5. After review, a merge resets `deploy/dev` to `main`; prod follows `main` and is provisioned by manual dispatch. Foundation changes still require a local operator apply.
 
 Editing documentation and running static checks do not require deployment credentials. The account setup below is for provisioning and authenticated plans.
 
@@ -107,9 +107,9 @@ Review the plan before approving the apply. Pass the same private operator varia
 
 ## 5. Deploy through GitHub Actions
 
-Push the reviewed configuration to `main`. **Provision** validates trusted repository PRs, deploys them to dev and independently plans prod. Main deploys dev only. Apply prod through **Manual Provision** using a selected main commit. Argo CD tracks a branch rather than that commit: dev follows `deploy/dev`, which **Deploy** points at a PR's head after lint and back at `main` after a merge, and prod follows `main`. See [tracked revisions](docs/architecture/gitops.md#tracked-revisions).
+Push the reviewed configuration to `main`. **Deploy** lints every PR and push. For trusted PRs it points `deploy/dev` at the PR head, and after a merge back at `main`; Argo CD applies platform changes from that branch (dev follows `deploy/dev`, prod follows `main`; see [tracked revisions](docs/architecture/gitops.md#tracked-revisions)). **Provision** applies the cluster and platform roots to dev from trusted PRs and `main`, only when OpenTofu or a chart it installs (bootstrap, Cilium, Argo CD, Gateway API, Talos CCM, Cluster Autoscaler) changes. Apply prod through **Provision**'s manual dispatch on `main`.
 
-To build dev or update it manually, use **Actions → Manual Provision → Run workflow**, select `main`, `dev`, and **apply**. Select **destroy** when you are done. The same workflow can also apply or destroy prod. A dispatch from another branch cannot provision.
+To build dev or update it manually, use **Actions → Provision → Run workflow**, select `main`, `dev`, and **apply**. Select **destroy** when you are done. The same workflow can also apply or destroy prod. A dispatch from another branch cannot provision.
 
 A green workflow means the OpenTofu applies completed. Check Argo CD convergence separately using [cluster access](docs/operations/cluster-access.md#check-convergence): the root Application and its children should become Synced and Healthy, including storage, Knative and Kubeflow.
 
@@ -138,4 +138,4 @@ Both roots reject a workspace belonging to the other environment. The platform r
 
 ## Destroy an environment
 
-Use **Manual Provision** on `main`, select the environment, then **destroy**. The workflow destroys the cluster root, including the GCE managed worker groups and controller credentials, and then empties the platform root's state. See [Deploy or destroy](docs/operations/gcp-workers.md#deploy-or-destroy). Foundation is separate and remains in place. This removes the environment's infrastructure; preserve any data you need beforehand.
+Run **Provision** on `main`, select the environment, then **destroy**. The workflow destroys the cluster root, including the GCE managed worker groups and controller credentials, and then empties the platform root's state. See [Deploy or destroy](docs/operations/gcp-workers.md#deploy-or-destroy). Foundation is separate and remains in place. This removes the environment's infrastructure; preserve any data you need beforehand.
