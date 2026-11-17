@@ -13,5 +13,5 @@ jobs:
         with:
           tofu_version: v1.13.2
           tofu_wrapper: false
-      - uses: azure/setup-helm@v4
+      - uses: azure/setup-helm@v5
       - run: scripts/lint.sh
