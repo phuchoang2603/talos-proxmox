@@ -1,11 +1,9 @@
-# Terraform
 *.tfstate
 *.tfstate.backup
 *.tfplan
 .terraform/
 terraform.tfvars
 
-# Secrets / generated
 .env
 *.pem
 *.key
@@ -14,14 +12,12 @@ kubeconfig
 talosconfig
 gha-creds-*.json
 
-# Misc
 *.log
 *.bak
 *.swp
 *.swo
 .DS_Store
 
-# direnv / devenv
 .pre-commit-config.yaml
 .direnv/
 .devenv*
@@ -30,5 +26,4 @@ devenv.local.yaml
 result
 result-*
 
-# Track direnv even if ignored globally
 !.envrc

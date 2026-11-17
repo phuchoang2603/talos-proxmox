@@ -6,10 +6,6 @@ locals {
     prod = "Production"
   }
 
-  # Application-consumer Doppler projects. The platform issues each a read-only
-  # ESO token and surfaces it in its own config as ESO_<KEY>_DOPPLER_TOKEN, so
-  # the platform root can mount it as that consumer's ClusterSecretStore token.
-  # config maps the platform env (dev/prod) to the consumer's own config slug.
   consumer_projects = {
     marketplace = {
       project = "refurbished-marketplace"

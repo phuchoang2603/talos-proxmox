@@ -13,7 +13,6 @@ locals {
     yamlencode({ machine = { certSANs = local.cert_sans } }),
   ]
 
-  # Native KubeletConfig cannot expose writable extra mounts needed by local-path subPaths.
   local_storage_kubelet_patches = [
     yamlencode({ apiVersion = "v1alpha1", kind = "KubeletConfig", "$patch" = "delete" }),
     yamlencode({

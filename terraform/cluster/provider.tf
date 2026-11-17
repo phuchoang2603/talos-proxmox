@@ -7,7 +7,6 @@ terraform {
     aws     = { source = "hashicorp/aws", version = "~> 6.0" }
     google  = { source = "hashicorp/google", version = "~> 7.0" }
   }
-  # Select talos-cluster-dev or talos-cluster-prod with TF_WORKSPACE.
   cloud {
     hostname     = "app.terraform.io"
     organization = "phuchoang2603"

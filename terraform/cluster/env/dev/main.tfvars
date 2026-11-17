@@ -1,7 +1,3 @@
-# Environment name is set via GitHub Actions: TF_VAR_env
-# Proxmox credentials are read from Doppler (`PROXMOX_*`) through the Doppler provider.
-# Node sizing lives in env/dev/k8s_nodes.json.
-
 cloud_provider = "proxmox"
 
 vm_node_name    = "pve"

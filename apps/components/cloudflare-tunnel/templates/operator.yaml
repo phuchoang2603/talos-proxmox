@@ -1,9 +1,3 @@
-{{- /*
-Upstream ships no Helm chart, so its kustomize output is vendored. Substitute the release
-namespace and prefix certificate secrets to avoid collisions with other operators.
-Regenerate after changing the tag:
-kubectl kustomize 'https://github.com/adyanth/cloudflare-operator.git/config/default?ref=v0.13.1' > files/cloudflare-operator.yaml
-*/}}
 {{- $manifests := .Files.Get "files/cloudflare-operator.yaml"
   | replace "cloudflare-operator-system" .Release.Namespace
   | replace "webhook-server-cert" "cloudflare-operator-webhook-server-cert"

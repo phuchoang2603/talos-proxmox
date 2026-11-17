@@ -1,6 +1,3 @@
-# ESO needs these tokens before it can reconcile the ClusterSecretStores, so Terraform owns them.
-# The platform store uses `doppler`; each application consumer gets its own read-only
-# token surfaced by foundation as ESO_<CONSUMER>_DOPPLER_TOKEN.
 locals {
   doppler_tokens = {
     "doppler-token"             = local.secrets.ESO_DOPPLER_TOKEN

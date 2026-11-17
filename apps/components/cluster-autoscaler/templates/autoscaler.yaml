@@ -224,9 +224,6 @@ subjects:
     name: node-reaper
     namespace: {{ .Release.Namespace }}
 ---
-# Talos CCM only deletes Nodes carrying the not-ready taint, so a Node whose Spot VM was
-# scaled down (kubelet gone, unreachable taint) stays forever. Cluster Autoscaler marks the
-# Nodes it is removing with ToBeDeletedByClusterAutoscaler; delete those once they stay NotReady.
 apiVersion: batch/v1
 kind: CronJob
 metadata:

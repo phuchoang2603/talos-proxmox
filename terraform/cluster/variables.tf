@@ -58,8 +58,6 @@ variable "spot_max" {
   default = 4
 }
 
-# --- Proxmox ---------------------------------------------------------------
-
 variable "proxmox_insecure" {
   type        = bool
   description = "Skip TLS verification"
@@ -114,8 +112,6 @@ variable "talos_network_interface" {
   default     = "eth0"
 }
 
-# --- GCP -------------------------------------------------------------------
-
 variable "gcp_project_id" {
   type    = string
   default = "talos-proxmox"
@@ -160,8 +156,6 @@ variable "gcp_gpu_zone" {
   default = null
 }
 
-# --- AWS -------------------------------------------------------------------
-
 variable "aws_region" {
   type    = string
   default = "us-east-1"
@@ -180,8 +174,6 @@ variable "aws_machine_type" {
   type    = string
   default = "m6a.xlarge"
 }
-
-# --- Doppler ---------------------------------------------------------------
 
 variable "doppler_project" {
   type    = string

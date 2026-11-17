@@ -1,5 +1,4 @@
 cloudnative-pg:
-  # Ambient lets the operator reach instance status endpoints in namespaces with STRICT mTLS.
   podLabels:
     istio.io/dataplane-mode: ambient
   resources:

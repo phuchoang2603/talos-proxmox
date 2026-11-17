@@ -1,13 +1,10 @@
 repoURL: https://github.com/phuchoang2603/talos-proxmox.git
 targetRevision: main
-# Set by the root Application to the environment this Argo CD runs in.
 cluster: ""
 cloudProvider: gcp
 cloudRegion: us-central1
 cloudStorage: {}
 
-# Waves only order Application submission; retries absorb CRDs and
-# dependencies that another Application has not finished installing yet.
 syncRetry:
   limit: -1
   backoff:
@@ -21,7 +18,6 @@ privilegedNamespace: &privileged
     pod-security.kubernetes.io/audit: privileged
     pod-security.kubernetes.io/warn: privileged
 
-# Components use Helm by default; set sourceType: kustomize for a Git-owned Kustomization path.
 components:
   argocd-post:
     path: apps/components/argocd-post
@@ -201,7 +197,6 @@ components:
         - environments/dev/values.yaml
       prod:
         - environments/prod/values.yaml
-    # Its operands need hostPath and privileged pods, so this relaxes Pod Security for all of `operators`.
     managedNamespaceMetadata: *privileged
   observability:
     path: apps/components/observability

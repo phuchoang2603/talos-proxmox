@@ -1,4 +1,3 @@
-# Watch Redis (standalone/replication/cluster) resources across all namespaces.
 redis-operator:
   resources:
     requests:

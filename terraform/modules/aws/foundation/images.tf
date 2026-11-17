@@ -68,8 +68,6 @@ resource "aws_iam_role_policy" "vmimport" {
   policy = data.aws_iam_policy_document.vmimport[0].json
 }
 
-# Talos publishes no AMI for a custom schematic and EC2 imports only uncompressed images from S3.
-
 resource "terraform_data" "gpu_image_upload" {
   count            = var.enable_gpu_images ? 1 : 0
   triggers_replace = [local.gpu_image_key]

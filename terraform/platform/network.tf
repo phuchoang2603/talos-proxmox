@@ -1,4 +1,3 @@
-# With upgrade_install and no version, the provider plans the installed version and misses local chart bumps.
 resource "helm_release" "gateway_api" {
   version         = local.chart_versions["gateway-api"]
   name            = "gateway-api"

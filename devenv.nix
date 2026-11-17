@@ -1,4 +1,5 @@
 {
+  config,
   pkgs,
   inputs,
   ...
@@ -52,4 +53,6 @@
     enable = true;
   };
   git-hooks.hooks.treefmt.enable = true;
+
+  tasks."repo:lint".exec = ''bash "${config.git.root}/scripts/lint.sh"'';
 }

@@ -1,4 +1,3 @@
-# The gateway's first port is the 15021 status port, so the target is explicit.
 apiVersion: networking.cfargotunnel.com/v1alpha1
 kind: TunnelBinding
 metadata:

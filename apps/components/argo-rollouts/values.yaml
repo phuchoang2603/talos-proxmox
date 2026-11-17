@@ -1,4 +1,3 @@
-# Namespaces whose HTTPRoutes the Gateway API plugin may patch.
 gatewayApiNamespaces:
   - payment-gateway
 argo-rollouts:

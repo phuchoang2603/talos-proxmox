@@ -18,7 +18,6 @@ terraform {
       version = "3.4.0"
     }
   }
-  # Select talos-platform-dev or talos-platform-prod with TF_WORKSPACE.
   cloud {
     hostname     = "app.terraform.io"
     organization = "phuchoang2603"
@@ -28,7 +27,6 @@ terraform {
   }
 }
 
-# Authenticates with the environment's config-scoped DOPPLER_TOKEN.
 provider "doppler" {}
 
 provider "kubernetes" {

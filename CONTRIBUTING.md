@@ -16,31 +16,11 @@ Editing documentation and running static checks do not require deployment creden
 
 ## Validate locally
 
-For a changed Terraform root, replace `cluster/dev` with `cluster/prod`, `foundation` or `platform` as appropriate:
+Run the same checks as CI: format and validate every OpenTofu root, and lint every chart with its base values, each environment overlay and both Argo CD clusters.
 
 ```bash
-tofu -chdir=terraform/cluster/dev fmt -check -recursive
-tofu -chdir=terraform/cluster/dev init -backend=false
-tofu -chdir=terraform/cluster/dev validate
+devenv tasks run repo:lint
 ```
-
-For a component chart, lint its base values and any changed environment overlay. For example:
-
-```bash
-helm lint apps/components/kubeflow --kube-version 1.37.2
-helm lint apps/components/kubeflow --kube-version 1.37.2 \
-  --values apps/components/kubeflow/environments/prod/values.yaml
-```
-
-For changes to platform membership, check both environments:
-
-```bash
-for cluster in dev prod; do
-  helm lint apps/argocd/platform --kube-version 1.37.2 --set cluster="$cluster"
-done
-```
-
-[The lint workflow](.github/workflows/lint.yml) defines the full CI checks for all roots, charts, and environment overlays.
 
 The Terraform roots target fresh deployments and contain no legacy state migration blocks. Static checks do not require cloud credentials.
 

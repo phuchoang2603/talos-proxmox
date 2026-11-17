@@ -11,10 +11,6 @@ spec:
       labels:
         app: gcp-compute-persistent-disk-csi-driver
     spec:
-      # Host network must be used for interaction with Workload Identity in GKE
-      # since it replaces GCE Metadata Server with GKE Metadata Server. Remove
-      # this requirement when issue is resolved and before any exposure of
-      # metrics ports.
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       priorityClassName: csi-gce-pd-node
@@ -109,8 +105,5 @@ spec:
           hostPath:
             path: /lib/modules
             type: Directory
-      # https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
-      # See "special case". This will tolerate everything. Node component should
-      # be scheduled on all nodes.
       tolerations:
       - operator: Exists

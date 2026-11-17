@@ -45,9 +45,6 @@ resource "doppler_secret" "dev_object_bucket" {
   value   = "platform-dev"
 }
 
-# Dev runs on Proxmox, which has no cloud foundation module; write the same
-# cloud contract keys prod gets so the unified cluster root reads both configs
-# identically.
 resource "doppler_secret" "dev_cloud_provider" {
   project = doppler_project.this.name
   config  = doppler_environment.this["dev"].slug

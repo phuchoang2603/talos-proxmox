@@ -26,8 +26,6 @@ spec:
         - CREATE DATABASE metadb OWNER kfp
   managed:
     roles:
-      # The KFP API server runs CREATE DATABASE on every start, and PostgreSQL
-      # checks CREATEDB before noticing that mlpipeline already exists.
       - name: kfp
         login: true
         createdb: true

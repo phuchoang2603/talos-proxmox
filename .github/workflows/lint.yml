@@ -4,60 +4,14 @@ on:
   workflow_call:
 
 jobs:
-  terraform-lint:
-    name: Terraform Lint
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        stack: [terraform/foundation, terraform/cluster, terraform/platform]
-    defaults:
-      run:
-        working-directory: ./${{ matrix.stack }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup OpenTofu
-        uses: opentofu/setup-opentofu@v1
-        with:
-          tofu_version: v1.13.2
-
-      - name: OpenTofu Init
-        run: tofu init -backend=false
-
-      - name: OpenTofu Format Check
-        run: tofu fmt -check -recursive
-
-      - name: OpenTofu Validate
-        run: tofu validate
-
-  chart-lint:
-    name: Platform charts
-    runs-on: ubuntu-latest
-    env:
-      KUBE_VERSION: 1.37.2
     steps:
       - uses: actions/checkout@v4
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: v1.13.2
+          tofu_wrapper: false
       - uses: azure/setup-helm@v4
-
-      - name: Lint component charts and overlays
-        run: |
-          for chart in apps/components/*/; do
-            [ -f "${chart}Chart.yaml" ] || continue
-            helm lint "${chart}" --kube-version "${KUBE_VERSION}"
-            for overlay in "${chart}"environments/*/values.yaml; do
-              [ -f "${overlay}" ] || continue
-              helm lint "${chart}" --kube-version "${KUBE_VERSION}" --values "${overlay}"
-            done
-          done
-
-      - name: Test Cilium node recovery selection
-        run: python3 -m unittest discover -s tests -p test_cilium_restarts.py
-
-      - name: Lint Argo CD charts per environment
-        run: |
-          for chart in apps/argocd/*/; do
-            for cluster in dev prod; do
-              helm lint "${chart}" --kube-version "${KUBE_VERSION}" --set cluster="${cluster}"
-            done
-          done
+      - run: scripts/lint.sh

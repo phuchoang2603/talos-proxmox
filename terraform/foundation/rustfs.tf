@@ -10,8 +10,6 @@ data "doppler_secrets" "platform_prod" {
 }
 
 locals {
-  # App consumer -> scoped MinIO policy document. Each consumer gets its own user +
-  # service account; apps read OBJECT_<CONSUMER>_{ACCESS_KEY_ID,SECRET_ACCESS_KEY}.
   rustfs_consumers = {
     substrate = "${path.module}/env/dev/minio-substrate-policy.json"
     artifacts = "${path.module}/env/dev/minio-artifacts-policy.json"

@@ -1,6 +1,5 @@
 argo-workflows:
   controller:
-    # Production workflow pods use the autoscaled Spot group.
     workflowDefaults:
       spec:
         nodeSelector:

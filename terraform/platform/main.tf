@@ -30,7 +30,6 @@ locals {
     "argocd-bootstrap"   = "${local.apps}/argocd/bootstrap"
   }
 
-  # Base values plus the environment overlay, when the chart has one.
   chart_values = {
     for name, dir in local.chart_directories : name => [
       for f in ["${dir}/values.yaml", "${dir}/environments/${var.env}/values.yaml"] : file(f) if fileexists(f)

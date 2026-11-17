@@ -40,7 +40,6 @@ terraform {
     }
   }
 
-  # The organization's default execution mode must be Local before the first init.
   cloud {
     hostname     = "app.terraform.io"
     organization = "phuchoang2603"
@@ -56,15 +55,12 @@ provider "google" {
   region       = var.gcp_region
 }
 
-# Authenticates with a workspace-level token from DOPPLER_TOKEN (e.g. `doppler configure get token --plain`).
 provider "doppler" {}
 
-# Authenticates with GITHUB_TOKEN (e.g. `gh auth token`).
 provider "github" {
   owner = "phuchoang2603"
 }
 
-# Authenticates with the `tofu login app.terraform.io` credentials, or TFE_TOKEN.
 provider "tfe" {
   organization = local.hcp_organization
 }
@@ -78,8 +74,6 @@ provider "aws" {
   skip_requesting_account_id  = var.cloud_provider != "aws"
 }
 
-# Dev (Proxmox) object storage runs on an external RustFS endpoint reachable with the
-# platform root credentials from Doppler, whichever cloud prod uses.
 provider "minio" {
   minio_server   = var.rustfs_endpoint
   minio_user     = data.doppler_secrets.platform_dev.map.RUSTFS_ROOT_USER

@@ -3,7 +3,7 @@ name: Provision
 on:
   pull_request:
     branches: [main]
-    paths:
+    paths: &provision-paths
       - terraform/cluster/**
       - terraform/platform/**
       - terraform/modules/**
@@ -17,18 +17,7 @@ on:
       - .github/workflows/provision.yml
   push:
     branches: [main]
-    paths:
-      - terraform/cluster/**
-      - terraform/platform/**
-      - terraform/modules/**
-      - '!terraform/modules/*/foundation/**'
-      - apps/argocd/bootstrap/**
-      - apps/components/argo-cd/**
-      - apps/components/cilium/**
-      - apps/components/cluster-autoscaler/**
-      - apps/components/gateway-api/**
-      - apps/components/talos-ccm/**
-      - .github/workflows/provision.yml
+    paths: *provision-paths
   workflow_dispatch:
     inputs:
       environment:
@@ -111,12 +100,7 @@ jobs:
         if: env.TF_VAR_env == 'prod'
         run: |
           address=$(curl --fail --silent --show-error https://api.ipify.org)
-          python3 - "$address" <<'PYCODE'
-          import ipaddress, json, os, sys
-          cidr = str(ipaddress.IPv4Address(sys.argv[1])) + "/32"
-          with open(os.environ["GITHUB_ENV"], "a") as output:
-              output.write("TF_VAR_management_cidrs=" + json.dumps([cidr]) + "\n")
-          PYCODE
+          echo "TF_VAR_management_cidrs=$(jq -cn --arg cidr "${address}/32" '[$cidr]')" >> "$GITHUB_ENV"
 
       - name: Cluster plan
         working-directory: terraform/cluster
@@ -133,8 +117,6 @@ jobs:
           TF_WORKSPACE: talos-cluster-${{ env.TF_VAR_env }}
         run: tofu apply -input=false -lock-timeout=5m -auto-approve .planfile
 
-      # Everything the platform root manages lives in the cluster just destroyed, so its state is
-      # emptied instead of destroyed. This runs only after the cluster destroy succeeds.
       - name: Reset platform state
         if: inputs.action == 'destroy'
         working-directory: terraform/platform
