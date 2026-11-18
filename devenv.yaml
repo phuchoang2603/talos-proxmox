@@ -4,6 +4,9 @@ inputs:
     url: github:cachix/devenv-nixpkgs/rolling
   opentofu-nixpkgs:
     url: github:NixOS/nixpkgs/nixpkgs-unstable
+  devenv-modules:
+    url: github:phuchoang2603/devenv-modules
+    flake: false
   treefmt-nix:
     url: github:numtide/treefmt-nix
     inputs:

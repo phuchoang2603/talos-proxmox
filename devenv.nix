@@ -1,11 +1,16 @@
 {
-  config,
   pkgs,
   inputs,
   ...
 }:
 
 {
+  imports = map (m: "${inputs.devenv-modules}/${m}.nix") [
+    "base"
+    "kubernetes"
+    "opentofu"
+  ];
+
   env.DOPPLER_PROJECT = "talos-proxmox";
 
   enterShell = ''
@@ -21,38 +26,11 @@
     google-cloud-sdk
     azure-cli
 
-    jq
     openspec
 
     talosctl
-    kubectl
   ];
 
-  languages = {
-    opentofu = {
-      enable = true;
-      package = inputs.opentofu-nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system}.opentofu;
-      lsp = {
-        enable = true;
-      };
-    };
-    helm = {
-      enable = true;
-      lsp.enable = true;
-    };
-  };
-
-  treefmt = {
-    config = {
-      programs = {
-        actionlint = {
-          enable = true;
-        };
-      };
-    };
-    enable = true;
-  };
-  git-hooks.hooks.treefmt.enable = true;
-
-  tasks."repo:lint".exec = ''bash "${config.git.root}/scripts/lint.sh"'';
+  languages.opentofu.package =
+    inputs.opentofu-nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system}.opentofu;
 }
