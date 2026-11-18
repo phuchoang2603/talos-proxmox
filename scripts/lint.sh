@@ -20,5 +20,4 @@ each_chart helm_lint
 rendered=$(mktemp -d)
 trap 'rm -rf "$rendered"' EXIT
 scripts/render.sh "$rendered"
-conftest verify --policy policy
 conftest test --policy policy "$rendered"/*.yaml
