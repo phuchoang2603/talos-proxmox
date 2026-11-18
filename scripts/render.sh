@@ -10,7 +10,7 @@ mkdir -p "$out"
 render() {
   local chart=$1 name=$2
   shift 2
-  helm template "$name" "$chart" --namespace render --kube-version "$kube_version" "$@" >"$out/$name.yaml"
+  helm template "$name" "$chart" --skip-tests --namespace render --kube-version "$kube_version" "$@" >"$out/$name.yaml"
 }
 
 each_chart render
