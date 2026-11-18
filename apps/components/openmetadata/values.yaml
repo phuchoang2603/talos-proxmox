@@ -109,6 +109,7 @@ opensearch:
     limits: {cpu: "2", memory: 3Gi}
   persistence:
     enabled: true
+    imageTag: "1.37.0"
     storageClass: local-path
     size: 20Gi
   sysctlInit:

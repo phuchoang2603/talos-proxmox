@@ -2802,7 +2802,7 @@ spec:
         - /bin/sh
         - -c
         - tar zxf /demo-perf-data/dev-validated-perf-data.tar.gz -C /shared
-        image: busybox
+        image: busybox:1.37.0
         name: perf-data-init
         securityContext:
           allowPrivilegeEscalation: false
