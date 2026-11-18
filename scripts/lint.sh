@@ -2,12 +2,7 @@
 set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
-
-kube_version=1.37.2
-
-helm_lint() {
-  helm lint --quiet --kube-version "$kube_version" "$@"
-}
+source scripts/charts.sh
 
 tofu fmt -check -recursive terraform
 for root in terraform/foundation terraform/cluster terraform/platform; do
@@ -15,17 +10,15 @@ for root in terraform/foundation terraform/cluster terraform/platform; do
   tofu -chdir="$root" validate
 done
 
-for chart in apps/components/*/; do
-  [ -f "${chart}Chart.yaml" ] || continue
-  helm_lint "$chart"
-  for overlay in "${chart}"environments/*/values.yaml; do
-    [ -f "$overlay" ] || continue
-    helm_lint "$chart" --values "$overlay"
-  done
-done
+helm_lint() {
+  local chart=$1
+  shift 2
+  helm lint --quiet --kube-version "$kube_version" "$chart" "$@"
+}
+each_chart helm_lint
 
-for chart in apps/argocd/*/; do
-  for cluster in dev prod; do
-    helm_lint "$chart" --set cluster="$cluster"
-  done
-done
+rendered=$(mktemp -d)
+trap 'rm -rf "$rendered"' EXIT
+scripts/render.sh "$rendered"
+conftest verify --policy policy
+conftest test --policy policy "$rendered"/*.yaml
