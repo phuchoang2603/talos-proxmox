@@ -16,7 +16,7 @@ Editing documentation and running static checks do not require deployment creden
 
 ## Validate locally
 
-Run the same checks as CI: format and validate every OpenTofu root, and lint every chart with its base values, each environment overlay and both Argo CD clusters.
+Run the same checks as CI: format and validate every OpenTofu root, and lint every chart with each environment overlay and both Argo CD clusters, and check the rendered output against the policies in [`policy/`](policy/). `scripts/render-diff.sh` shows how a change alters the rendered charts.
 
 ```bash
 devenv tasks run repo:lint
