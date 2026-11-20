@@ -1,0 +1,5 @@
+openmetadata:
+  replicaCount: 0
+opensearch:
+  singleNode: false
+  replicas: 0
