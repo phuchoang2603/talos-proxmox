@@ -27,7 +27,7 @@ jobs:
       PR_NUMBER: ${{ github.event.pull_request.number }}
       REVISION: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ env.REVISION }}
       - name: Publish
