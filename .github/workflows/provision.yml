@@ -72,7 +72,7 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v3
         if: env.TF_VAR_env == 'prod' && vars.CLOUD_PROVIDER == 'gcp'
 
-      - uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v6
         if: env.TF_VAR_env == 'prod' && vars.CLOUD_PROVIDER == 'aws'
         with:
           role-to-assume: ${{ vars.AWS_CI_ROLE_ARN }}
