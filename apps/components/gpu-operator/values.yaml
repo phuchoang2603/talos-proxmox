@@ -1,8 +1,8 @@
 gpu-operator:
   operator:
     resources:
-      requests: {cpu: 50m, memory: 256Mi}
-      limits: {cpu: 500m, memory: 512Mi}
+      requests: {cpu: 10m, memory: 384Mi}
+      limits: {memory: 384Mi}
   driver:
     enabled: false
   toolkit:
@@ -30,8 +30,8 @@ gpu-operator:
       - name: DCGM_EXPORTER_INTERVAL
         value: "60000"
     resources:
-      requests: {cpu: 25m, memory: 128Mi}
-      limits: {memory: 512Mi}
+      requests: {cpu: 50m, memory: 192Mi}
+      limits: {memory: 192Mi}
     serviceMonitor:
       enabled: true
       interval: 60s
@@ -44,8 +44,8 @@ gpu-operator:
   node-feature-discovery:
     master:
       resources:
-        requests: {cpu: 10m, memory: 32Mi}
-        limits: {memory: 128Mi}
+        requests: {cpu: 10m, memory: 64Mi}
+        limits: {memory: 64Mi}
     worker:
       tolerations:
         - {key: node-role.kubernetes.io/control-plane, operator: Equal, value: "", effect: NoSchedule}
@@ -59,12 +59,12 @@ gpu-operator:
                   - key: extensions.talos.dev/nvidia-open-gpu-kernel-modules-production
                     operator: Exists
       resources:
-        requests: {cpu: 5m, memory: 24Mi}
+        requests: {cpu: 10m, memory: 64Mi}
         limits: {memory: 64Mi}
     gc:
       resources:
-        requests: {cpu: 5m, memory: 24Mi}
-        limits: {memory: 64Mi}
+        requests: {cpu: 5m, memory: 32Mi}
+        limits: {memory: 32Mi}
 
 nvidia-dra-driver-gpu:
   nvidiaDriverRoot: /usr/local

@@ -80,8 +80,8 @@ openmetadata:
   readinessProbe:
     timeoutSeconds: 5
   resources:
-    requests: {cpu: 150m, memory: 1280Mi}
-    limits: {cpu: "2", memory: 3Gi}
+    requests: {cpu: 100m, memory: 2Gi}
+    limits: {memory: 2Gi}
   extraEnvs:
     - name: JAVA_TOOL_OPTIONS
       value: -Xms512m -Xmx1536m
@@ -105,8 +105,8 @@ opensearch:
   replicas: 1
   opensearchJavaOpts: -Xms1g -Xmx1g
   resources:
-    requests: {cpu: 50m, memory: 1792Mi}
-    limits: {cpu: "2", memory: 3Gi}
+    requests: {cpu: 50m, memory: 2Gi}
+    limits: {memory: 2Gi}
   persistence:
     enabled: true
     imageTag: "1.37.0"

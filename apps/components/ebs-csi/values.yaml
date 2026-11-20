@@ -12,10 +12,10 @@ aws-ebs-csi-driver:
       managed-by: talos-proxmox
       platform-cluster: prod-talos
     resources:
-      requests: {cpu: 20m, memory: 64Mi}
+      requests: {cpu: 20m, memory: 256Mi}
       limits: {memory: 256Mi}
   node:
     enableWindows: false
     resources:
-      requests: {cpu: 10m, memory: 40Mi}
+      requests: {cpu: 10m, memory: 128Mi}
       limits: {memory: 128Mi}

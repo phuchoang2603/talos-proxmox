@@ -1,13 +1,19 @@
 cilium:
   operator:
     replicas: 1
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        memory: 128Mi
   ipam:
     mode: kubernetes
   kubeProxyReplacement: true
   resources:
     requests:
-      cpu: 100m
-      memory: 320Mi
+      cpu: 150m
+      memory: 768Mi
     limits:
       memory: 768Mi
   k8sServiceHost: localhost

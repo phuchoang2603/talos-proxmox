@@ -4,10 +4,22 @@ dex:
   configSecret:
     create: false
     name: dex-config
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 64Mi
 
 oauth2-proxy:
   enabled: true
   fullnameOverride: oauth2-proxy
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 64Mi
   extraArgs:
     provider: oidc
     oidc-issuer-url: https://auth.phuchoang.sbs/dex

@@ -1,5 +1,11 @@
 local-path-provisioner:
   fullnameOverride: local-path-provisioner
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 64Mi
   storageClass:
     name: local-path
     provisionerName: rancher.io/local-path

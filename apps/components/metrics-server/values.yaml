@@ -1,4 +1,10 @@
 metrics-server:
+  resources:
+    requests:
+      cpu: 25m
+      memory: 128Mi
+    limits:
+      memory: 128Mi
   args:
     - --kubelet-insecure-tls
     - --kubelet-preferred-address-types=InternalIP

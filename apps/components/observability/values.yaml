@@ -35,9 +35,9 @@ victoria-metrics-k8s-stack:
     resources:
       requests:
         cpu: 50m
-        memory: 128Mi
+        memory: 192Mi
       limits:
-        memory: 256Mi
+        memory: 192Mi
   syncJob:
     enabled: true
   defaultDashboards:
@@ -105,9 +105,16 @@ victoria-metrics-k8s-stack:
     resources:
       requests:
         cpu: 50m
-        memory: 768Mi
+        memory: 1280Mi
       limits:
-        memory: 1Gi
+        memory: 1280Mi
+    sidecar:
+      resources:
+        requests:
+          cpu: 25m
+          memory: 128Mi
+        limits:
+          memory: 128Mi
     plugins:
       - grafana-clickhouse-datasource@4.23.3
       - victoriametrics-metrics-datasource
@@ -149,10 +156,10 @@ victoria-metrics-k8s-stack:
             storage: 20Gi
       resources:
         requests:
-          cpu: 100m
-          memory: 768Mi
+          cpu: 250m
+          memory: 1280Mi
         limits:
-          memory: 1536Mi
+          memory: 1280Mi
   vmcluster:
     enabled: false
   vlsingle:
@@ -169,10 +176,10 @@ victoria-metrics-k8s-stack:
             storage: 20Gi
       resources:
         requests:
-          cpu: 50m
-          memory: 512Mi
+          cpu: 150m
+          memory: 1Gi
         limits:
-          memory: 2Gi
+          memory: 1Gi
   vlcluster:
     enabled: false
   vtsingle:
@@ -189,10 +196,10 @@ victoria-metrics-k8s-stack:
             storage: 10Gi
       resources:
         requests:
-          cpu: 50m
+          cpu: 25m
           memory: 256Mi
         limits:
-          memory: 1Gi
+          memory: 256Mi
   vtcluster:
     enabled: false
   vmagent:
@@ -222,8 +229,8 @@ victoria-metrics-k8s-stack:
         environment: prod
       resources:
         requests:
-          cpu: 50m
-          memory: 256Mi
+          cpu: 75m
+          memory: 512Mi
         limits:
           memory: 512Mi
   vlagent:
@@ -236,14 +243,51 @@ victoria-metrics-k8s-stack:
         - operator: Exists
       resources:
         requests:
-          cpu: 50m
-          memory: 128Mi
+          cpu: 75m
+          memory: 256Mi
         limits:
           memory: 256Mi
   alertmanager:
     enabled: true
+    spec:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 64Mi
+        limits:
+          memory: 64Mi
   vmalert:
     enabled: true
+    spec:
+      resources:
+        requests:
+          cpu: 25m
+          memory: 128Mi
+        limits:
+          memory: 128Mi
+  internal:
+    vmauth:
+      spec:
+        resources:
+          requests:
+            cpu: 25m
+            memory: 64Mi
+          limits:
+            memory: 64Mi
+  kube-state-metrics:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 96Mi
+      limits:
+        memory: 96Mi
+  prometheus-node-exporter:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 48Mi
+      limits:
+        memory: 48Mi
   kubelet:
     vmScrapes:
       probes:
@@ -311,7 +355,7 @@ vtagent:
               storage: 1Gi
     resources:
       requests:
-        cpu: 50m
-        memory: 128Mi
+        cpu: 10m
+        memory: 64Mi
       limits:
-        memory: 256Mi
+        memory: 64Mi

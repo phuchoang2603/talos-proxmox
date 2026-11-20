@@ -1,1 +1,7 @@
-{}
+kagent:
+  controller:
+    resources:
+      limits: {cpu: null}
+  ui:
+    resources:
+      limits: {cpu: null}

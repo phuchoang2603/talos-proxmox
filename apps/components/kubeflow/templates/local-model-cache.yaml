@@ -129,8 +129,11 @@ spec:
               drop: [ALL]
               add: [CHOWN]
           resources:
-            requests: {cpu: 10m, memory: 16Mi}
-            limits: {memory: 32Mi}
+            limits:
+              memory: 32Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
           volumeMounts:
             - name: models
               mountPath: /cache
@@ -154,8 +157,11 @@ spec:
             capabilities:
               drop: [ALL]
           resources:
-            requests: {cpu: 50m, memory: 100Mi}
-            limits: {cpu: 200m, memory: 300Mi}
+            limits:
+              memory: 96Mi
+            requests:
+              cpu: 10m
+              memory: 96Mi
           volumeMounts:
             - name: models
               mountPath: /mnt/models
@@ -195,7 +201,7 @@ spec:
            JSONPatch{op: "add", path: "/spec/template/spec/automountServiceAccountToken", value: false},
            JSONPatch{op: "add", path: "/spec/template/spec/securityContext", value: {"runAsNonRoot": dyn(true), "runAsUser": dyn(1000), "runAsGroup": dyn(1000), "fsGroup": dyn(1000), "seccompProfile": dyn({"type": "RuntimeDefault"})}},
            JSONPatch{op: "add", path: "/spec/template/spec/containers/0/securityContext", value: {"allowPrivilegeEscalation": dyn(false), "capabilities": dyn({"drop": ["ALL"]})}},
-           JSONPatch{op: "add", path: "/spec/template/spec/containers/0/resources", value: {"requests": {"cpu": "100m", "memory": "1Gi"}, "limits": {"cpu": "1", "memory": "4Gi"}}},
+           JSONPatch{op: "add", path: "/spec/template/spec/containers/0/resources", value: {"requests": {"cpu": "100m", "memory": "4Gi"}, "limits": {"memory": "4Gi"}}},
            JSONPatch{op: "add", path: "/spec/template/spec/tolerations", value: [
              {"key": "burst.talos.dev/gpu-training", "operator": "Equal", "value": "true", "effect": "NoSchedule"},
              {"key": "node-role.kubernetes.io/control-plane", "operator": "Exists", "effect": "NoSchedule"}]}]

@@ -1,0 +1,3 @@
+agentregistry:
+  resources:
+    limits: {cpu: null}

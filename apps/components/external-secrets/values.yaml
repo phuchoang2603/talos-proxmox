@@ -26,24 +26,21 @@ stores:
 external-secrets:
   resources:
     requests:
-      cpu: 25m
+      cpu: 10m
       memory: 128Mi
     limits:
-      cpu: 200m
-      memory: 192Mi
+      memory: 128Mi
   webhook:
     resources:
       requests:
-        cpu: 25m
-        memory: 64Mi
+        cpu: 10m
+        memory: 96Mi
       limits:
-        cpu: 200m
-        memory: 128Mi
+        memory: 96Mi
   certController:
     resources:
       requests:
-        cpu: 25m
-        memory: 64Mi
+        cpu: 10m
+        memory: 128Mi
       limits:
-        cpu: 200m
         memory: 128Mi

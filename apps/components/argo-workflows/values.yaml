@@ -8,10 +8,10 @@ argo-workflows:
       - data
     resources:
       requests:
-        cpu: 100m
-        memory: 256Mi
+        cpu: 25m
+        memory: 192Mi
       limits:
-        memory: 1Gi
+        memory: 192Mi
   executor:
     securityContext:
       allowPrivilegeEscalation: false
@@ -23,18 +23,18 @@ argo-workflows:
       seccompProfile:
         type: RuntimeDefault
     resources:
-      requests: {cpu: 10m, memory: 64Mi}
-      limits: {memory: 256Mi}
+      requests: {cpu: 10m, memory: 128Mi}
+      limits: {memory: 128Mi}
   server:
     enabled: true
     replicas: 1
     authModes: [sso]
     resources:
       requests:
-        cpu: 25m
+        cpu: 10m
         memory: 128Mi
       limits:
-        memory: 512Mi
+        memory: 128Mi
     sso:
       enabled: true
       issuer: http://dex.auth.svc.cluster.local:5556/dex

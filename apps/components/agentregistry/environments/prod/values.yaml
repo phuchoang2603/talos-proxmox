@@ -1,3 +1,6 @@
 storageClass: cloud-block
 databaseNodeSelector:
   talos.dev/capacity-type: on-demand
+agentregistry:
+  resources:
+    limits: {cpu: null}

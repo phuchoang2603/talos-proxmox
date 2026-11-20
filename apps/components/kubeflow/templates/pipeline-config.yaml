@@ -299,9 +299,11 @@ spec:
           periodSeconds: 5
           timeoutSeconds: 2
         resources:
+          limits:
+            memory: 192Mi
           requests:
-            cpu: 250m
-            memory: 500Mi
+            cpu: 25m
+            memory: 192Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -364,11 +366,10 @@ spec:
         name: wait-for-database
         resources:
           limits:
-            cpu: 100m
             memory: 64Mi
           requests:
             cpu: 10m
-            memory: 16Mi
+            memory: 64Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

@@ -7280,11 +7280,10 @@ spec:
           timeoutSeconds: 5
         resources:
           limits:
-            cpu: 500m
-            memory: 300Mi
+            memory: 128Mi
           requests:
-            cpu: 100m
-            memory: 200Mi
+            cpu: 10m
+            memory: 128Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -7308,6 +7307,12 @@ spec:
         - containerPort: 8443
           name: https
           protocol: TCP
+        resources:
+          limits:
+            memory: 48Mi
+          requests:
+            cpu: 10m
+            memory: 48Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -7385,11 +7390,10 @@ spec:
           timeoutSeconds: 5
         resources:
           limits:
-            cpu: 100m
-            memory: 300Mi
+            memory: 64Mi
           requests:
-            cpu: 100m
-            memory: 200Mi
+            cpu: 10m
+            memory: 64Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -7479,11 +7483,10 @@ spec:
           timeoutSeconds: 5
         resources:
           limits:
-            cpu: 100m
-            memory: 300Mi
+            memory: 96Mi
           requests:
-            cpu: 50m
-            memory: 128Mi
+            cpu: 10m
+            memory: 96Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -7570,11 +7573,10 @@ spec:
           periodSeconds: 5
         resources:
           limits:
-            cpu: 100m
-            memory: 356Mi
+            memory: 384Mi
           requests:
             cpu: 10m
-            memory: 128Mi
+            memory: 384Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

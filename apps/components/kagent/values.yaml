@@ -25,11 +25,10 @@ kagent:
       enabled: true
     resources:
       requests:
-        cpu: 100m
-        memory: 256Mi
+        cpu: 50m
+        memory: 192Mi
       limits:
-        cpu: '2'
-        memory: 1Gi
+        memory: 192Mi
     metrics:
       enabled: true
       serviceMonitor:
@@ -47,8 +46,7 @@ kagent:
         cpu: 10m
         memory: 64Mi
       limits:
-        cpu: '1'
-        memory: 1Gi
+        memory: 64Mi
   kagent-tools:
     enabled: false
   oauth2-proxy:

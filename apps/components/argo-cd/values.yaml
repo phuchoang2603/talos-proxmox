@@ -11,16 +11,31 @@ argo-cd:
         value: 3GiB
     resources:
       requests:
-        memory: 2Gi
+        cpu: 750m
+        memory: 4Gi
       limits:
         memory: 4Gi
   repoServer:
     resources:
       requests:
-        cpu: 250m
-        memory: 256Mi
+        cpu: 100m
+        memory: 512Mi
       limits:
-        memory: 1Gi
+        memory: 512Mi
+  server:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 128Mi
+      limits:
+        memory: 128Mi
+  redis:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        memory: 64Mi
     livenessProbe:
       timeoutSeconds: 5
       failureThreshold: 5

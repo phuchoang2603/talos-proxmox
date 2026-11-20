@@ -9,11 +9,20 @@ substrate:
   ateApi:
     snapshotLocation: gs://platform-dev/substrate/
     resources:
-      requests: {cpu: 100m, memory: 128Mi}
+      requests: {cpu: 50m, memory: 128Mi}
+      limits: {memory: 128Mi}
     authorization:
       bootstrapOwners:
       - spiffe://cluster.local/ns/kagent/sa/kagent-controller
+  atelet:
+    resources:
+      requests: {cpu: 25m, memory: 192Mi}
+      limits: {memory: 192Mi}
   objectStorePlugin:
+    node:
+      resources:
+        requests: {cpu: 10m, memory: 128Mi}
+        limits: {memory: 128Mi}
     extraEnv:
     - name: AWS_REGION
       value: us-east-1
@@ -31,13 +40,30 @@ substrate:
         secretKeyRef:
           name: substrate-snapshots
           key: secret-key
+  ateController:
+    resources:
+      requests: {cpu: 10m, memory: 64Mi}
+      limits: {memory: 64Mi}
+  ateIdpServer:
+    resources:
+      requests: {cpu: 10m, memory: 32Mi}
+      limits: {memory: 32Mi}
+  atenetEgress:
+    agentgateway:
+      resources:
+        requests: {cpu: 10m, memory: 96Mi}
+        limits: {memory: 96Mi}
   atenetRouter:
     agentgateway:
       resources:
-        requests: {cpu: 50m, memory: 64Mi}
+        requests: {cpu: 10m, memory: 96Mi}
+        limits: {memory: 96Mi}
     ingressAllowedSPIFFEIDs:
     - spiffe://cluster.local/ns/kagent/sa/kagent-controller
   credentialProvider:
+    resources:
+      requests: {cpu: 10m, memory: 32Mi}
+      limits: {memory: 32Mi}
     namespacePolicies:
     - atespace: llm-agents
       allowedNamespaces:

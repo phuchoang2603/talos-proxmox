@@ -1,5 +1,11 @@
 agentgateway:
   gatewayClassName: agentgateway
+  resources:
+    requests:
+      cpu: 10m
+      memory: 192Mi
+    limits:
+      memory: 192Mi
   inferenceExtension:
     enabled: true
   podSecurityContext:
