@@ -39,7 +39,6 @@ spec:
                     - name: gpu
                     requests:
                       cpu: '1'
-                      memory: 8Gi
                     limits:
                       memory: 8Gi
                   securityContext:

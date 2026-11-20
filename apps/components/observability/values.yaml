@@ -35,7 +35,6 @@ victoria-metrics-k8s-stack:
     resources:
       requests:
         cpu: 50m
-        memory: 192Mi
       limits:
         memory: 192Mi
   syncJob:
@@ -105,14 +104,12 @@ victoria-metrics-k8s-stack:
     resources:
       requests:
         cpu: 50m
-        memory: 1280Mi
       limits:
         memory: 1280Mi
     sidecar:
       resources:
         requests:
           cpu: 25m
-          memory: 128Mi
         limits:
           memory: 128Mi
     plugins:
@@ -157,7 +154,6 @@ victoria-metrics-k8s-stack:
       resources:
         requests:
           cpu: 250m
-          memory: 1280Mi
         limits:
           memory: 1280Mi
   vmcluster:
@@ -177,7 +173,6 @@ victoria-metrics-k8s-stack:
       resources:
         requests:
           cpu: 150m
-          memory: 1Gi
         limits:
           memory: 1Gi
   vlcluster:
@@ -197,7 +192,6 @@ victoria-metrics-k8s-stack:
       resources:
         requests:
           cpu: 25m
-          memory: 256Mi
         limits:
           memory: 256Mi
   vtcluster:
@@ -230,7 +224,6 @@ victoria-metrics-k8s-stack:
       resources:
         requests:
           cpu: 75m
-          memory: 512Mi
         limits:
           memory: 512Mi
   vlagent:
@@ -244,7 +237,6 @@ victoria-metrics-k8s-stack:
       resources:
         requests:
           cpu: 75m
-          memory: 256Mi
         limits:
           memory: 256Mi
   alertmanager:
@@ -253,7 +245,6 @@ victoria-metrics-k8s-stack:
       resources:
         requests:
           cpu: 10m
-          memory: 64Mi
         limits:
           memory: 64Mi
   vmalert:
@@ -262,7 +253,6 @@ victoria-metrics-k8s-stack:
       resources:
         requests:
           cpu: 25m
-          memory: 128Mi
         limits:
           memory: 128Mi
   internal:
@@ -271,21 +261,18 @@ victoria-metrics-k8s-stack:
         resources:
           requests:
             cpu: 25m
-            memory: 64Mi
           limits:
             memory: 64Mi
   kube-state-metrics:
     resources:
       requests:
         cpu: 25m
-        memory: 96Mi
       limits:
         memory: 96Mi
   prometheus-node-exporter:
     resources:
       requests:
         cpu: 10m
-        memory: 48Mi
       limits:
         memory: 48Mi
   kubelet:
@@ -356,6 +343,5 @@ vtagent:
     resources:
       requests:
         cpu: 10m
-        memory: 64Mi
       limits:
         memory: 64Mi

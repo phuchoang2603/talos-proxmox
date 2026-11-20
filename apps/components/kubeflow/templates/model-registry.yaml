@@ -12,7 +12,7 @@ spec:
       - name: ALLOWED_ARTIFACT_URI_PREFIXES
         value: {{ printf "s3://%s/" .Values.objectStorage.bucket | quote }}
     resources:
-      requests: {cpu: 100m, memory: 1Gi}
+      requests: {cpu: 100m}
       limits: {memory: 1Gi}
     securityContext:
       runAsNonRoot: true

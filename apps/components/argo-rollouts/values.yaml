@@ -14,7 +14,7 @@ argo-rollouts:
   controller:
     replicas: 1
     resources:
-      requests: {cpu: 25m, memory: 192Mi}
+      requests: {cpu: 25m}
       limits: {memory: 192Mi}
     metrics:
       enabled: true

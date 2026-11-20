@@ -5,9 +5,9 @@ altinity-clickhouse-operator:
     create: false
   operator:
     resources:
-      requests: {cpu: 10m, memory: 64Mi}
+      requests: {cpu: 10m}
       limits: {memory: 64Mi}
   metrics:
     resources:
-      requests: {cpu: 10m, memory: 64Mi}
+      requests: {cpu: 10m}
       limits: {memory: 64Mi}

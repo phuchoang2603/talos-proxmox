@@ -1,5 +1,5 @@
 substrate-podcert:
   image: {tag: v1.0.0-rc1}
   resources:
-    requests: {cpu: 10m, memory: 64Mi}
+    requests: {cpu: 10m}
     limits: {memory: 64Mi}
