@@ -5623,11 +5623,11 @@ spec:
           name: http
           protocol: TCP
         resources:
-          limits:
-            memory: 192Mi
           requests:
-            cpu: 25m
-            memory: 192Mi
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            memory: 512Mi
         readinessProbe:
           httpGet:
             path: /healthz
@@ -5686,12 +5686,6 @@ spec:
         ports:
         - containerPort: 4443
           name: https-webhook
-        resources:
-          limits:
-            memory: 32Mi
-          requests:
-            cpu: 10m
-            memory: 32Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -5777,12 +5771,6 @@ spec:
           initialDelaySeconds: 15
           periodSeconds: 30
           timeoutSeconds: 5
-        resources:
-          limits:
-            memory: 48Mi
-          requests:
-            cpu: 10m
-            memory: 48Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

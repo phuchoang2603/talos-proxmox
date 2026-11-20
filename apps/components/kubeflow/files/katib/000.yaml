@@ -745,12 +745,6 @@ spec:
           httpGet:
             path: /readyz
             port: healthz
-        resources:
-          limits:
-            memory: 96Mi
-          requests:
-            cpu: 10m
-            memory: 96Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -831,12 +825,6 @@ spec:
         ports:
         - containerPort: 6789
           name: api
-        resources:
-          limits:
-            memory: 32Mi
-          requests:
-            cpu: 10m
-            memory: 32Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -882,12 +870,6 @@ spec:
         ports:
         - containerPort: 8080
           name: ui
-        resources:
-          limits:
-            memory: 48Mi
-          requests:
-            cpu: 10m
-            memory: 48Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

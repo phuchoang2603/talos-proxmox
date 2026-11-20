@@ -5532,11 +5532,11 @@ spec:
         ports:
         - containerPort: 5000
         resources:
-          limits:
-            memory: 384Mi
           requests:
-            cpu: 10m
-            memory: 384Mi
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -5634,12 +5634,6 @@ spec:
             port: 8081
           initialDelaySeconds: 5
           periodSeconds: 10
-        resources:
-          limits:
-            memory: 64Mi
-          requests:
-            cpu: 10m
-            memory: 64Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -5725,10 +5719,11 @@ spec:
           periodSeconds: 10
         resources:
           limits:
-            memory: 48Mi
+            cpu: 500m
+            memory: 128Mi
           requests:
             cpu: 10m
-            memory: 48Mi
+            memory: 64Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -5751,10 +5746,11 @@ spec:
           protocol: TCP
         resources:
           limits:
-            memory: 32Mi
+            cpu: 500m
+            memory: 128Mi
           requests:
-            cpu: 10m
-            memory: 32Mi
+            cpu: 5m
+            memory: 64Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -5822,7 +5818,8 @@ spec:
           periodSeconds: 10
         resources:
           limits:
-            memory: 64Mi
+            cpu: 500m
+            memory: 128Mi
           requests:
             cpu: 10m
             memory: 64Mi
@@ -5844,10 +5841,11 @@ spec:
           protocol: TCP
         resources:
           limits:
-            memory: 32Mi
+            cpu: 500m
+            memory: 128Mi
           requests:
-            cpu: 10m
-            memory: 32Mi
+            cpu: 5m
+            memory: 64Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -5898,11 +5896,11 @@ spec:
         ports:
         - containerPort: 5000
         resources:
-          limits:
-            memory: 384Mi
           requests:
-            cpu: 10m
-            memory: 384Mi
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -5954,11 +5952,11 @@ spec:
         ports:
         - containerPort: 5000
         resources:
-          limits:
-            memory: 384Mi
           requests:
-            cpu: 10m
-            memory: 384Mi
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

@@ -21,15 +21,15 @@ patches:
     \  value:\n  - name: db-ca\n    mountPath: /etc/db-ca\n    readOnly: true\n- op:\
     \ add\n  path: /spec/template/spec/volumes\n  value:\n  - name: db-ca\n    secret:\n\
     \      secretName: kubeflow-registry-db-ca\n- op: add\n  path: /spec/template/spec/containers/0/resources\n\
-    \  value:\n    requests:\n      cpu: 10m\n      memory: 64Mi\n    limits:\n\
-    \      memory: 64Mi\n- op: replace\n  path: /spec/template/spec/containers/0/startupProbe/failureThreshold\n\
+    \  value:\n    requests:\n      cpu: 100m\n      memory: 128Mi\n    limits:\n\
+    \      memory: 512Mi\n- op: replace\n  path: /spec/template/spec/containers/0/startupProbe/failureThreshold\n\
     \  value: 60\n"
 - target:
     kind: Deployment
     name: model-registry-ui
   patch: "- op: replace\n  path: /spec/template/spec/containers/0/resources\n  value:\n\
-    \    requests:\n      cpu: 10m\n      memory: 64Mi\n    limits:\n      memory:\
-    \ 64Mi\n"
+    \    requests:\n      cpu: 100m\n      memory: 256Mi\n    limits:\n      memory:\
+    \ 1Gi\n"
 - target:
     kind: VirtualService
     name: model-registry-ui
