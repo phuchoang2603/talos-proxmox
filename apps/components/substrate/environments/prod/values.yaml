@@ -1,26 +1,7 @@
 cloudObjectStorage: true
 storageClass: cloud-block
 substrate:
-  atelet:
-    resources:
-      limits: {cpu: null}
-  ateController:
-    resources:
-      limits: {cpu: null}
-  atenetEgress:
-    agentgateway:
-      resources:
-        limits: {cpu: null}
-  atenetRouter:
-    agentgateway:
-      resources:
-        limits: {cpu: null}
-  credentialProvider:
-    resources:
-      limits: {cpu: null}
   ateApi:
-    resources:
-      limits: {cpu: null}
     snapshotLocation: gs://talos-proxmox-prod-platform/substrate/
   objectStorePlugin:
     extraEnv:

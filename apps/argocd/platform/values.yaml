@@ -19,6 +19,12 @@ privilegedNamespace: &privileged
     pod-security.kubernetes.io/warn: privileged
 
 components:
+  resource-policy:
+    path: apps/components/resource-policy
+    namespace: argo-cd
+    syncWave: "-5"
+    releaseName: resource-policy
+    clusters: [dev, prod]
   argocd-post:
     path: apps/components/argocd-post
     namespace: argo-cd

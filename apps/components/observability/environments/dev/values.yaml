@@ -1,18 +1,4 @@
 victoria-metrics-k8s-stack:
-  grafana:
-    resources:
-      requests: {cpu: 50m, memory: 1Gi}
-      limits: {memory: 1Gi}
-  vmsingle:
-    spec:
-      resources:
-        requests: {cpu: 250m, memory: 1Gi}
-        limits: {memory: 1Gi}
-  vlsingle:
-    spec:
-      resources:
-        requests: {cpu: 150m, memory: 768Mi}
-        limits: {memory: 768Mi}
   vmagent:
     spec:
       externalLabels:

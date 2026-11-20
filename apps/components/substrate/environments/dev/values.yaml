@@ -3,24 +3,3 @@ routerRequestParking:
   max: 1024
   retryInterval: 100ms
   retryFactor: 1.1
-substrate:
-  ateApi:
-    resources:
-      limits: {cpu: null}
-  atelet:
-    resources:
-      limits: {cpu: null}
-  ateController:
-    resources:
-      limits: {cpu: null}
-  atenetEgress:
-    agentgateway:
-      resources:
-        limits: {cpu: null}
-  atenetRouter:
-    agentgateway:
-      resources:
-        limits: {cpu: null}
-  credentialProvider:
-    resources:
-      limits: {cpu: null}

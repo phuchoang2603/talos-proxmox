@@ -4,10 +4,3 @@ auth:
   actorJWKS: '{"keys": [{"kty": "EC", "crv": "P-256", "x": "UA33eYqwnRL18vQXdLjvYRloWXZ75jCv2eZa-Kw6f8w",
     "y": "DhHXaJfU68Elbbz8zal5LrTXqQBedXdpJbsferwIw8I", "kid": "gINq9oxaiwfqVvPADAbnI9fSMO2bhK4YMAOBeiYh_VE",
     "alg": "ES256", "use": "sig"}]}'
-kagent:
-  controller:
-    resources:
-      limits: {cpu: null}
-  ui:
-    resources:
-      limits: {cpu: null}

@@ -1,5 +1,1 @@
 manageClaims: true
-gpu-operator:
-  operator:
-    resources:
-      limits: {cpu: null}
