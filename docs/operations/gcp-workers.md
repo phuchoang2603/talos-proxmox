@@ -6,7 +6,7 @@ Dev uses fixed Proxmox nodes only. Prod uses a fixed Talos control plane and Clu
 
 ## Schedule and observe workers
 
-Declare CPU/memory requests. Ordinary workloads may run on any eligible node. Stateful applications select `talos.dev/capacity-type: on-demand`. To require interruptible CPU capacity, use:
+Declare a memory limit and a CPU request; the `pod-resources` admission policy sets the memory request equal to the limit and removes CPU limits. Ordinary workloads may run on any eligible node. Stateful applications select `talos.dev/capacity-type: on-demand`. To require interruptible CPU capacity, use:
 
 ```yaml
 nodeSelector:
