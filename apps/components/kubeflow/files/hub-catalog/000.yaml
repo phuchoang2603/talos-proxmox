@@ -2777,6 +2777,11 @@ spec:
           tcpSocket:
             port: http-api
           timeoutSeconds: 2
+        resources:
+          limits:
+            memory: 64Mi
+          requests:
+            cpu: 10m
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -2804,6 +2809,11 @@ spec:
         - tar zxf /demo-perf-data/dev-validated-perf-data.tar.gz -C /shared
         image: busybox:1.37.0
         name: perf-data-init
+        resources:
+          limits:
+            memory: 64Mi
+          requests:
+            cpu: 10m
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

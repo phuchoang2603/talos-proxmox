@@ -978,7 +978,6 @@ data:
               resources:
                 requests:
                   cpu: 10m
-                  memory: 64Mi
                 limits:
                   memory: 128Mi
               securityContext:
@@ -1087,9 +1086,10 @@ spec:
         imagePullPolicy: IfNotPresent
         name: ml-pipeline-persistenceagent
         resources:
-          requests:
-            cpu: 25m
+          limits:
             memory: 64Mi
+          requests:
+            cpu: 10m
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -1132,11 +1132,9 @@ spec:
         name: wait-for-ml-pipeline
         resources:
           limits:
-            cpu: 100m
             memory: 64Mi
           requests:
             cpu: 10m
-            memory: 16Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -1208,6 +1206,11 @@ spec:
         ports:
         - containerPort: 9090
           name: http
+        resources:
+          limits:
+            memory: 64Mi
+          requests:
+            cpu: 10m
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -1250,11 +1253,9 @@ spec:
         name: wait-for-ml-pipeline
         resources:
           limits:
-            cpu: 100m
             memory: 64Mi
           requests:
             cpu: 10m
-            memory: 16Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -1407,9 +1408,10 @@ spec:
           periodSeconds: 10
           timeoutSeconds: 10
         resources:
+          limits:
+            memory: 128Mi
           requests:
             cpu: 10m
-            memory: 70Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -1466,6 +1468,11 @@ spec:
         image: ghcr.io/kubeflow/kfp-viewer-crd-controller:run-37518086931-1
         imagePullPolicy: Always
         name: ml-pipeline-viewer-crd
+        resources:
+          limits:
+            memory: 32Mi
+          requests:
+            cpu: 10m
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -1525,7 +1532,6 @@ spec:
             memory: 128Mi
           requests:
             cpu: 10m
-            memory: 64Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

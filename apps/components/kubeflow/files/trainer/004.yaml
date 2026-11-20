@@ -830,10 +830,9 @@ spec:
           periodSeconds: 10
         resources:
           limits:
-            memory: 4Gi
+            memory: 96Mi
           requests:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 10m
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -919,6 +918,11 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 15
           timeoutSeconds: 3
+        resources:
+          limits:
+            memory: 64Mi
+          requests:
+            cpu: 10m
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
