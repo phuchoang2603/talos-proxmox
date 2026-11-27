@@ -9,7 +9,7 @@ spec:
   matchConstraints:
     namespaceSelector:
       matchLabels:
-        kubernetes.io/metadata.name: ml
+        kubernetes.io/metadata.name: kubeflow
     objectSelector:
       matchLabels:
         gateway.istio.io/managed: istio.io-mesh-controller

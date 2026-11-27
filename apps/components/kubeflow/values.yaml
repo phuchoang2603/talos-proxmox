@@ -32,9 +32,6 @@ kserve-runtime-configs:
     servingruntime:
       enabled: false
 
-profile:
-  ownerEmail: xuanphuc.a1gv@gmail.com
-
 gpuTraining:
   numNodes: 1
   nodeSelector:
@@ -44,11 +41,6 @@ gpuTraining:
 ambientWaypoint:
   enabled: true
 
-localModel:
-  enabled: true
-  storageLimit: 40Gi
-  nodeSelector:
-    kubernetes.io/hostname: dev-server1
 databaseStorage:
   pipelines: 35Gi
   katib: 10Gi

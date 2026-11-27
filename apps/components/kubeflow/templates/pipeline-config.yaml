@@ -20,7 +20,7 @@ metadata:
   labels:
     application-crd-id: kubeflow-pipelines
   name: kfp-launcher
-  namespace: ml
+  namespace: kubeflow
 ---
 apiVersion: v1
 data:
@@ -70,7 +70,7 @@ metadata:
   labels:
     application-crd-id: kubeflow-pipelines
   name: pipeline-install-config
-  namespace: ml
+  namespace: kubeflow
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -79,7 +79,7 @@ metadata:
     app: ml-pipeline
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline
-  namespace: ml
+  namespace: kubeflow
 spec:
   selector:
     matchLabels:
@@ -212,8 +212,6 @@ spec:
               name: mlpipeline-minio-artifact
         - name: COMPILED_PIPELINE_SPEC_PATCH
           value: '{}'
-        - name: ALLOWEDSERVICEACCOUNTS
-          value: fraud-training
         - name: DEFAULT_SECURITY_CONTEXT_RUN_AS_USER
           valueFrom:
             configMapKeyRef:

@@ -4,7 +4,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
   name: kubeflow-pipelines-db
-  namespace: ml
+  namespace: kubeflow
 spec:
   instances: 1
   {{- with .Values.databaseNodeSelector }}
@@ -39,7 +39,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
   name: kubeflow-katib-db
-  namespace: ml
+  namespace: kubeflow
 spec:
   instances: 1
   {{- with .Values.databaseNodeSelector }}
@@ -67,7 +67,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
   name: kubeflow-registry-db
-  namespace: ml
+  namespace: kubeflow
 spec:
   instances: 1
   {{- with .Values.databaseNodeSelector }}
@@ -95,7 +95,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
   name: kubeflow-catalog-db
-  namespace: ml
+  namespace: kubeflow
 spec:
   instances: 1
   {{- with .Values.databaseNodeSelector }}

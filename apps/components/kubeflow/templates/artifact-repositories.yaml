@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: artifact-repositories
-  namespace: ml
+  namespace: kubeflow
   annotations:
     workflows.argoproj.io/default-artifact-repository: default-v1
 data:

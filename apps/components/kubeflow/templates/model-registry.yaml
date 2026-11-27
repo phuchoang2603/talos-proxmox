@@ -8,7 +8,7 @@ spec:
     image: ghcr.io/kubeflow/hub/storage-initializer:v0.3.17
     env:
       - name: MODEL_REGISTRY_BASE_URL
-        value: model-registry-service.ml.svc.cluster.local:8080
+        value: model-registry-service.kubeflow.svc.cluster.local:8080
       - name: ALLOWED_ARTIFACT_URI_PREFIXES
         value: {{ printf "s3://%s/" .Values.objectStorage.bucket | quote }}
     resources:
@@ -29,7 +29,7 @@ apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
 metadata:
   name: model-registry-service
-  namespace: ml
+  namespace: kubeflow
 spec:
   selector:
     matchLabels:
@@ -38,7 +38,7 @@ spec:
   rules:
     - from:
         - source:
-            namespaces: [ml]
+            namespaces: [kubeflow]
       to:
         - operation:
             ports: ["8080"]
