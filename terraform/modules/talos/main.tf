@@ -10,7 +10,10 @@ locals {
     yamlencode({
       apiVersion = "v1alpha1"
       kind       = "KubeAPIServerConfig"
-      extraArgs  = { "runtime-config" = "certificates.k8s.io/v1beta1=true" }
+      extraArgs = {
+        "runtime-config"           = "certificates.k8s.io/v1beta1=true"
+        "service-account-jwks-uri" = "${var.service_account_issuer}/openid/v1/jwks"
+      }
     }),
     yamlencode({
       apiVersion = "v1alpha1"
