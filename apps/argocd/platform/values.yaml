@@ -106,7 +106,7 @@ components:
   kubeflow:
     pruneLast: true
     path: apps/components/kubeflow
-    namespace: ml
+    namespace: kubeflow
     syncWave: "2"
     releaseName: kubeflow
     clusters: [dev, prod]

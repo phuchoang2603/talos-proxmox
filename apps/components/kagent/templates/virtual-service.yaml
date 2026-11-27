@@ -3,7 +3,7 @@ kind: VirtualService
 metadata:
   name: kagent-ui
 spec:
-  gateways: [ml/kubeflow-gateway]
+  gateways: [kubeflow/kubeflow-gateway]
   hosts:
     - {{ .Values.tunnel.hostname }}
   http:

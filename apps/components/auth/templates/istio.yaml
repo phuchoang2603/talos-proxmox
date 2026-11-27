@@ -5,7 +5,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   gateways:
-    - ml/kubeflow-gateway
+    - kubeflow/kubeflow-gateway
   hosts:
     - "*"
   http:

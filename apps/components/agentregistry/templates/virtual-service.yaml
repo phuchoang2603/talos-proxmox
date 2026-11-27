@@ -3,7 +3,7 @@ kind: VirtualService
 metadata:
   name: agentregistry-ui
 spec:
-  gateways: [ml/kubeflow-gateway]
+  gateways: [kubeflow/kubeflow-gateway]
   hosts:
     - {{ .Values.tunnel.hostname }}
   http:
