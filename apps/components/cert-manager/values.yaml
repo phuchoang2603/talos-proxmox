@@ -21,3 +21,17 @@ cert-manager:
         cpu: 10m
       limits:
         memory: 512Mi
+
+trust-manager:
+  app:
+    trust:
+      namespace: operators
+  secretTargets:
+    enabled: true
+    authorizedSecrets:
+      - kubernetes-origin-ca
+  resources:
+    requests:
+      cpu: 10m
+    limits:
+      memory: 64Mi

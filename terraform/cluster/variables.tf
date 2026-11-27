@@ -184,3 +184,8 @@ variable "doppler_config" {
   type    = string
   default = null
 }
+
+variable "service_account_issuer" {
+  type        = string
+  description = "Stable public HTTPS issuer for Kubernetes service-account tokens"
+}

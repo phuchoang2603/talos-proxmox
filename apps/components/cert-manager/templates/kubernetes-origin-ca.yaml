@@ -1,0 +1,17 @@
+apiVersion: trust.cert-manager.io/v1alpha1
+kind: Bundle
+metadata:
+  name: kubernetes-origin-ca
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  sources:
+    - configMap:
+        name: kube-root-ca.crt
+        key: ca.crt
+  target:
+    secret:
+      key: tls.crt
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: operators

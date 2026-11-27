@@ -1,3 +1,4 @@
+serviceAccountIssuer: https://oidc.phuchoang.sbs
 cloudObjectStorage: true
 storageClass: cloud-block
 substrate:

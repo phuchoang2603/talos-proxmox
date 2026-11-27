@@ -1,2 +1,5 @@
 tunnel:
   name: dev-talos
+
+oidcDiscovery:
+  hostname: oidc-dev.phuchoang.sbs

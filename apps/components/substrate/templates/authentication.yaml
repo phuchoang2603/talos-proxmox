@@ -8,7 +8,5 @@ data:
   authentication.yaml: |
     jwtProviders:
       - name: kubernetes
-        issuer: https://kubernetes.default.svc.cluster.local
+        issuer: {{ required "serviceAccountIssuer is required" .Values.serviceAccountIssuer }}
         audiences: [api.ate-system.svc]
-        certificateAuthorityFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-        discoveryTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token

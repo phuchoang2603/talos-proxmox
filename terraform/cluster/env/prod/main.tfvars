@@ -1,5 +1,6 @@
 cloud_provider                = "gcp"
 talos_version                 = "v1.14.5"
+service_account_issuer        = "https://oidc.phuchoang.sbs"
 kubernetes_version            = "v1.37.2"
 gcp_project_id                = "talos-proxmox"
 gcp_region                    = "us-central1"

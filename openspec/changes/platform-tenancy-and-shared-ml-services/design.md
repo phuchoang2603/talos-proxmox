@@ -48,7 +48,11 @@ Platform workloads declare their own `objectAccess` in their component values: K
 *Alternative:* a list in Terraform and a separate list in Helm. Rejected because the two drift.
 
 ### D2. Workload object identity
-- **Issuer:** each environment's Talos API server is configured with `service-account-issuer=https://oidc.<env>.phuchoang.sbs` and a matching `service-account-jwks-uri`. A `ClusterRoleBinding` grants `system:service-account-issuer-discovery` to `system:unauthenticated`. The existing Cloudflare tunnel publishes only `/.well-known/openid-configuration` and `/openid/v1/jwks` from the API server under that hostname. The issuer stays stable across rebuilds, and RustFS fetches the JWKS over public TLS without trusting the cluster CA.
+- **Issuer:** the shared `talos` module sets `KubeServiceAccountConfig.issuer` to `https://oidc-dev.phuchoang.sbs` in dev and `https://oidc.phuchoang.sbs` in prod. `KubeAuthenticationConfig` permits anonymous requests only on `/.well-known/openid-configuration` and `/openid/v1/jwks` (plus the health paths).
+- **Discovery access:** the `cloudflare-tunnel` component binds `system:service-account-issuer-discovery` to `system:unauthenticated`. It publishes only those two paths with a path-regex `TunnelBinding` to `https://kubernetes.default.svc`.
+- **Origin TLS:** cloudflared verifies the API server against the cluster CA, which trust-manager copies from `kube-root-ca.crt` into the tunnel's `originCaPool` Secret.
+- **Substrate:** it uses the public issuer for its JWT provider and drops the pinned CA and token.
+- **Effect:** the issuer is stable across rebuilds, and RustFS fetches the JWKS over public TLS.
 - **RustFS:** it gets one OpenID provider: `CONFIG_URL` points at that issuer, `CLIENT_ID` is the audience `sts.rustfs`, `CLAIM_NAME=sub`, and `CLAIM_PREFIX` is empty.
 - **Policies:** foundation creates one RustFS policy per declared ServiceAccount, named after its token `sub` (`system:serviceaccount:<ns>:<sa>`). The policy grants only that entry's prefixes.
 - **Workloads:** each workload mounts a projected token with audience `sts.rustfs` and sets `AWS_WEB_IDENTITY_TOKEN_FILE`, `AWS_ROLE_ARN` (ignored by RustFS but required by some SDKs) and `AWS_ENDPOINT_URL_STS`. The standard AWS SDK credential chain then refreshes credentials itself. Spark, Flink and Iceberg use `WebIdentityTokenFileCredentialsProvider`, and KFP uses `fromEnv: true`.

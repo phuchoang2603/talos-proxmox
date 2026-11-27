@@ -65,3 +65,7 @@ variable "talos_install_disk" {
 variable "talos_network_interface" {
   type = string
 }
+
+variable "service_account_issuer" {
+  type = string
+}

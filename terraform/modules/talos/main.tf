@@ -15,7 +15,18 @@ locals {
     yamlencode({
       apiVersion = "v1alpha1"
       kind       = "KubeServiceAccountConfig"
-      issuer     = { issuerURL = "https://kubernetes.default.svc.cluster.local" }
+      issuer     = { issuerURL = var.service_account_issuer }
+    }),
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "KubeAuthenticationConfig"
+      configuration = {
+        anonymous = {
+          enabled    = true
+          conditions = [for path in ["/livez", "/readyz", "/healthz", "/.well-known/openid-configuration", "/openid/v1/jwks"] : { path = path }]
+        }
+        jwt = []
+      }
     }),
     yamlencode(merge({
       apiVersion = "v1alpha1"

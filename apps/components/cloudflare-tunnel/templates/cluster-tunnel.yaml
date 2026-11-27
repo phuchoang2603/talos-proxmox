@@ -5,6 +5,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
+  originCaPool: {{ .Values.originCaPool }}
   existingTunnel:
     name: {{ required "tunnel.name is required" .Values.tunnel.name }}
   cloudflare:

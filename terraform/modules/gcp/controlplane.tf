@@ -1,8 +1,9 @@
 module "talos" {
-  source             = "../talos"
-  cluster_name       = var.cluster_name
-  controlplane_ips   = [google_compute_address.controlplane.address]
-  controlplane_nodes = ["10.81.0.10"]
+  source                 = "../talos"
+  cluster_name           = var.cluster_name
+  service_account_issuer = var.service_account_issuer
+  controlplane_ips       = [google_compute_address.controlplane.address]
+  controlplane_nodes     = ["10.81.0.10"]
 
   controlplane_schedulable = var.controlplane_schedulable
 

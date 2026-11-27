@@ -65,3 +65,7 @@ variable "spot_max" {
     error_message = "Spot maximum must be a positive integer."
   }
 }
+
+variable "service_account_issuer" {
+  type = string
+}

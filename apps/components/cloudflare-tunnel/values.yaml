@@ -9,6 +9,11 @@ cloudflare:
 tunnel:
   name: ""
 
+originCaPool: kubernetes-origin-ca
+
+oidcDiscovery:
+  hostname: ""
+
 replicaCount: 1
 
 image:

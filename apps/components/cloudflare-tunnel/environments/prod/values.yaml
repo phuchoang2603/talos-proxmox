@@ -2,3 +2,6 @@ tunnel:
   name: prod-talos
 
 replicaCount: 1
+
+oidcDiscovery:
+  hostname: oidc.phuchoang.sbs

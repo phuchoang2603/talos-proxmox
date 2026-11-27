@@ -1,6 +1,7 @@
 module "gcp" {
   count                     = var.cloud_provider == "gcp" ? 1 : 0
   source                    = "../modules/gcp"
+  service_account_issuer    = var.service_account_issuer
   project_id                = var.gcp_project_id
   region                    = var.gcp_region
   zone                      = var.gcp_zone
@@ -24,6 +25,7 @@ module "gcp" {
 module "aws" {
   count                     = var.cloud_provider == "aws" ? 1 : 0
   source                    = "../modules/aws"
+  service_account_issuer    = var.service_account_issuer
   env                       = var.env
   region                    = var.aws_region
   zone                      = var.aws_zone
@@ -43,6 +45,7 @@ module "aws" {
 module "proxmox" {
   count                   = var.cloud_provider == "proxmox" ? 1 : 0
   source                  = "../modules/proxmox"
+  service_account_issuer  = var.service_account_issuer
   env                     = var.env
   nodes                   = jsondecode(file("${path.module}/env/${var.env}/k8s_nodes.json"))
   vm_node_name            = var.vm_node_name

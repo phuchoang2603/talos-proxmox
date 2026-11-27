@@ -8,10 +8,11 @@ resource "aws_eip" "controlplane" {
 }
 
 module "talos" {
-  source             = "../talos"
-  cluster_name       = var.cluster_name
-  controlplane_ips   = [aws_eip.controlplane.public_ip]
-  controlplane_nodes = [aws_instance.controlplane.private_ip]
+  source                 = "../talos"
+  cluster_name           = var.cluster_name
+  service_account_issuer = var.service_account_issuer
+  controlplane_ips       = [aws_eip.controlplane.public_ip]
+  controlplane_nodes     = [aws_instance.controlplane.private_ip]
 }
 
 data "talos_machine_configuration" "controlplane" {

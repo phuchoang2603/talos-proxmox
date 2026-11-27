@@ -1,3 +1,4 @@
+serviceAccountIssuer: https://oidc-dev.phuchoang.sbs
 routerRequestParking:
   budget: 30s
   max: 1024
