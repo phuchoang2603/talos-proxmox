@@ -1,3 +1,15 @@
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: Password
+metadata:
+  name: agentregistry-database
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  length: 32
+  allowRepeat: true
+  noUpper: false
+  encoding: hex
+---
 apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
@@ -5,8 +17,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
-  refreshInterval: 1h
-  secretStoreRef: {kind: ClusterSecretStore, name: doppler}
+  refreshInterval: "0"
   target:
     template:
       type: kubernetes.io/basic-auth
@@ -14,9 +25,12 @@ spec:
         username: agentregistry
         password: '{{ "{{ .password }}" }}'
         url: 'postgresql://agentregistry:{{ "{{ .password }}" }}@agentregistry-postgres-rw:5432/agentregistry?sslmode=require'
-  data:
-    - secretKey: password
-      remoteRef: {key: AGENTREGISTRY_POSTGRES_PASSWORD}
+  dataFrom:
+    - sourceRef:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: Password
+          name: agentregistry-database
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
