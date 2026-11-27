@@ -1,9 +1,20 @@
 {{- range $name, $entry := dict
-  "agent-runtime-database" (dict "user" "agent_runtime_admin" "key" "AGENT_RUNTIME_POSTGRES_PASSWORD")
-  "kagent-postgres-owner" (dict "user" "kagent_owner_user" "key" "KAGENT_POSTGRES_OWNER_PASSWORD")
-  "kagent-postgres-readwrite" (dict "user" "kagent_readwrite_user" "key" "KAGENT_POSTGRES_READWRITE_PASSWORD")
-  "substrate-postgres-owner" (dict "user" "substrate_owner_user" "key" "SUBSTRATE_POSTGRES_OWNER_PASSWORD")
-  "substrate-postgres-readwrite" (dict "user" "substrate_readwrite_user" "key" "SUBSTRATE_POSTGRES_READWRITE_PASSWORD") }}
+  "kagent-postgres-owner" (dict "user" "kagent_owner_user")
+  "kagent-postgres-readwrite" (dict "user" "kagent_readwrite_user")
+  "substrate-postgres-owner" (dict "user" "substrate_owner_user")
+  "substrate-postgres-readwrite" (dict "user" "substrate_readwrite_user") }}
+---
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: Password
+metadata:
+  name: {{ $name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-3"
+spec:
+  length: 32
+  allowRepeat: true
+  noUpper: false
+  encoding: hex
 ---
 apiVersion: external-secrets.io/v1
 kind: ExternalSecret
@@ -12,8 +23,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-3"
 spec:
-  refreshInterval: 1h
-  secretStoreRef: {kind: ClusterSecretStore, name: doppler}
+  refreshInterval: "0"
   target:
     template:
       type: kubernetes.io/basic-auth
@@ -22,9 +32,12 @@ spec:
         password: '{{ "{{ .password }}" }}'
         ownerConnectionString: 'postgresql://{{ $entry.user }}:{{ "{{ .password }}" }}@agent-runtime-postgres-rw.ate-system.svc:5432/agents?sslmode=require'
         readWriteConnectionString: 'postgresql://{{ $entry.user }}:{{ "{{ .password }}" }}@agent-runtime-postgres-rw.ate-system.svc:5432/agents?sslmode=require'
-  data:
-    - secretKey: password
-      remoteRef: {key: {{ $entry.key }}}
+  dataFrom:
+    - sourceRef:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: Password
+          name: {{ $name }}
 {{- end }}
 ---
 apiVersion: postgresql.cnpg.io/v1
@@ -45,7 +58,6 @@ spec:
     initdb:
       database: agents
       owner: agent_runtime_admin
-      secret: {name: agent-runtime-database}
       postInitApplicationSQL:
         - CREATE ROLE kagent_owner NOLOGIN;
         - CREATE ROLE kagent_readwrite NOLOGIN;

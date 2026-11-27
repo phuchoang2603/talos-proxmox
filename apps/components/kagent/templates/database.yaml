@@ -1,6 +1,30 @@
-{{- range $name, $entry := dict
-  "kagent-postgres-owner" (dict "user" "kagent_owner_user" "key" "KAGENT_POSTGRES_OWNER_PASSWORD")
-  "kagent-postgres-readwrite" (dict "user" "kagent_readwrite_user" "key" "KAGENT_POSTGRES_READWRITE_PASSWORD") }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kagent-postgres-reader
+  annotations:
+    argocd.argoproj.io/sync-wave: "-3"
+---
+apiVersion: external-secrets.io/v1
+kind: SecretStore
+metadata:
+  name: substrate-platform
+  annotations:
+    argocd.argoproj.io/sync-wave: "-3"
+spec:
+  provider:
+    kubernetes:
+      remoteNamespace: ate-system
+      server:
+        url: https://kubernetes.default.svc
+        caProvider:
+          type: ConfigMap
+          name: kube-root-ca.crt
+          key: ca.crt
+      auth:
+        serviceAccount:
+          name: kagent-postgres-reader
+{{- range $name := list "kagent-postgres-owner" "kagent-postgres-readwrite" }}
 ---
 apiVersion: external-secrets.io/v1
 kind: ExternalSecret
@@ -10,16 +34,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "-3"
 spec:
   refreshInterval: 1h
-  secretStoreRef: {kind: ClusterSecretStore, name: doppler}
-  target:
-    template:
-      type: kubernetes.io/basic-auth
-      data:
-        username: {{ $entry.user }}
-        password: '{{ "{{ .password }}" }}'
-        ownerConnectionString: 'postgresql://{{ $entry.user }}:{{ "{{ .password }}" }}@agent-runtime-postgres-rw.ate-system.svc:5432/agents?sslmode=require'
-        readWriteConnectionString: 'postgresql://{{ $entry.user }}:{{ "{{ .password }}" }}@agent-runtime-postgres-rw.ate-system.svc:5432/agents?sslmode=require'
-  data:
-    - secretKey: password
-      remoteRef: {key: {{ $entry.key }}}
+  secretStoreRef: {kind: SecretStore, name: substrate-platform}
+  dataFrom:
+    - extract: {key: {{ $name }}}
 {{- end }}

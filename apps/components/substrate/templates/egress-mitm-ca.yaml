@@ -1,0 +1,26 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: egress-mitm-selfsigned
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: egress-mitm-ca-pool
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  secretName: egress-mitm-ca-pool
+  commonName: egress-mitm-ca
+  isCA: true
+  duration: 87600h
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: egress-mitm-selfsigned
+    kind: Issuer

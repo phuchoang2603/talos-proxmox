@@ -1,0 +1,28 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kagent-postgres-reader
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-3"
+rules:
+  - apiGroups: [""]
+    resources: [secrets]
+    resourceNames: [kagent-postgres-owner, kagent-postgres-readwrite]
+    verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kagent-postgres-reader
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-3"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kagent-postgres-reader
+subjects:
+  - kind: ServiceAccount
+    name: kagent-postgres-reader
+    namespace: kagent
