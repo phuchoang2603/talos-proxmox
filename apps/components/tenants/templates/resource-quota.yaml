@@ -1,0 +1,15 @@
+{{- range $id, $t := .Values.tenants }}
+{{- $ml := dig "ml" "namespace" "" $t }}
+{{- range $ns := splitList " " (include "tenants.namespaces" (dict "id" $id "purposes" $t.namespaces) | trim) }}
+{{- if ne $ns $ml }}
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: tenant
+  namespace: {{ $ns }}
+spec:
+{{- toYaml $.Values.resourceQuota | nindent 2 }}
+{{- end }}
+{{- end }}
+{{- end }}

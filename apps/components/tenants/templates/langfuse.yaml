@@ -1,0 +1,26 @@
+{{- $langfuse := false }}
+{{- range .Values.tenants }}
+{{- if .langfuse }}
+{{- $langfuse = true }}
+{{- end }}
+{{- end }}
+{{- if $langfuse }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: langfuse
+  labels:
+    istio.io/dataplane-mode: ambient
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+{{- end }}
+{{- range $id, $t := .Values.tenants }}
+{{- with $t.langfuse }}
+---
+{{ include "tenants.secretReader" (dict "name" (printf "%s-langfuse-reader" $id) "namespace" "langfuse" "secret" (printf "langfuse-%s" $id)) }}
+---
+{{ include "tenants.kubernetesStore" (dict "name" "langfuse" "namespace" .namespace "remoteNamespace" "langfuse" "serviceAccount" (printf "%s-langfuse-reader" $id)) }}
+{{- end }}
+{{- end }}

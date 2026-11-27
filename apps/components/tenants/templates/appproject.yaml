@@ -1,0 +1,27 @@
+{{- range $id, $t := .Values.tenants }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: {{ $id }}
+  namespace: argo-cd
+  labels:
+    platform.phuchoang.sbs/tenant: {{ $id }}
+spec:
+  description: {{ printf "Namespaces and workloads of the %s tenant" $id | quote }}
+  sourceRepos:
+    - {{ $t.repo | quote }}
+  destinations:
+{{- range $ns := splitList " " (include "tenants.namespaces" (dict "id" $id "purposes" $t.namespaces) | trim) }}
+    - server: https://kubernetes.default.svc
+      namespace: {{ $ns }}
+{{- end }}
+  clusterResourceWhitelist: []
+  namespaceResourceBlacklist:
+    - group: external-secrets.io
+      kind: SecretStore
+    - group: ""
+      kind: ResourceQuota
+    - group: ""
+      kind: LimitRange
+{{- end }}

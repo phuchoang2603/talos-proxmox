@@ -126,6 +126,15 @@ components:
         - environments/dev/values.yaml
       prod:
         - environments/prod/values.yaml
+  tenants:
+    path: apps/components/tenants
+    namespace: argo-cd
+    syncWave: "3"
+    releaseName: tenants
+    clusters: [dev]
+    valueFilesByCluster:
+      dev:
+        - environments/dev/values.yaml
   metrics-server:
     path: apps/components/metrics-server
     namespace: kube-system

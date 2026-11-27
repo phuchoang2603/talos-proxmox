@@ -1,0 +1,18 @@
+{{- range $id, $t := .Values.tenants }}
+{{- $ml := dig "ml" "namespace" "" $t }}
+{{- range $ns := splitList " " (include "tenants.namespaces" (dict "id" $id "purposes" $t.namespaces) | trim) }}
+{{- if ne $ns $ml }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ $ns }}
+  labels:
+    istio.io/dataplane-mode: ambient
+    platform.phuchoang.sbs/tenant: {{ $id }}
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+{{- end }}
+{{- end }}
+{{- end }}

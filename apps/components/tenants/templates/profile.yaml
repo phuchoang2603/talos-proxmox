@@ -1,0 +1,15 @@
+{{- range $id, $t := .Values.tenants }}
+{{- with $t.ml }}
+---
+apiVersion: kubeflow.org/v1
+kind: Profile
+metadata:
+  name: {{ .namespace }}
+spec:
+  owner:
+    kind: User
+    name: {{ .owner | quote }}
+  resourceQuotaSpec:
+{{- toYaml $.Values.resourceQuota | nindent 4 }}
+{{- end }}
+{{- end }}

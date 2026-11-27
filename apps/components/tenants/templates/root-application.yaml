@@ -1,0 +1,29 @@
+{{- range $id, $t := .Values.tenants }}
+{{- $primary := first (splitList " " (include "tenants.namespaces" (dict "id" $id "purposes" $t.namespaces) | trim)) }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ $id }}
+  namespace: argo-cd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io/foreground
+spec:
+  project: {{ $id }}
+  source:
+    repoURL: {{ $t.repo | quote }}
+    targetRevision: {{ printf "deploy/%s" $.Values.cluster | quote }}
+    path: infra/argocd/app-of-apps
+    helm:
+      valueFiles:
+        - {{ printf "values-%s.yaml" $.Values.cluster }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ $primary }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
+{{- end }}

@@ -1,0 +1,61 @@
+{{- range $id, $t := .Values.tenants }}
+{{- with $t.doppler }}
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: {{ $id }}-doppler-token
+  namespace: operators
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: doppler
+  target:
+    name: {{ $id }}-doppler-token
+    creationPolicy: Owner
+  data:
+    - secretKey: dopplerToken
+      remoteRef:
+        key: {{ printf "ESO_%s_DOPPLER_TOKEN" (upper $id) }}
+---
+{{ include "tenants.secretReader" (dict "name" (printf "%s-doppler-reader" $id) "namespace" "operators" "secret" (printf "%s-doppler-token" $id)) }}
+{{- range $ns := .namespaces }}
+---
+{{ include "tenants.kubernetesStore" (dict "name" "operators" "namespace" $ns "remoteNamespace" "operators" "serviceAccount" (printf "%s-doppler-reader" $id)) }}
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: doppler-token
+  namespace: {{ $ns }}
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: SecretStore
+    name: operators
+  target:
+    name: doppler-token
+    creationPolicy: Owner
+  data:
+    - secretKey: dopplerToken
+      remoteRef:
+        key: {{ printf "%s-doppler-token" $id }}
+        property: dopplerToken
+---
+apiVersion: external-secrets.io/v1
+kind: SecretStore
+metadata:
+  name: doppler
+  namespace: {{ $ns }}
+spec:
+  provider:
+    doppler:
+      auth:
+        secretRef:
+          dopplerToken:
+            name: doppler-token
+            key: dopplerToken
+{{- end }}
+{{- end }}
+{{- end }}
