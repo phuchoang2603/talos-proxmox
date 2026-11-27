@@ -51,6 +51,18 @@ resource "proxmox_virtual_environment_vm" "vm" {
     size         = var.disk_size_gb
   }
 
+  dynamic "disk" {
+    for_each = var.data_disk == null ? [] : [var.data_disk]
+    content {
+      datastore_id = disk.value.datastore_id
+      interface    = "virtio1"
+      iothread     = true
+      discard      = "on"
+      file_format  = "raw"
+      size         = disk.value.size_gb
+    }
+  }
+
   network_device {
     bridge = var.bridge
   }

@@ -14,7 +14,10 @@ variable "nodes" {
     datastore_id = string
     disk_size_gb = number
     gpu_pci      = optional(list(string), [])
-    nvme_pci     = optional(string)
+    data_disk = optional(object({
+      datastore_id = string
+      size_gb      = number
+    }))
   }))
 
   validation {

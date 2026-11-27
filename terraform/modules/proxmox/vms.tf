@@ -17,5 +17,6 @@ module "nodes" {
   dns_server   = var.dns_server
   ip_address   = each.value.address
   ip_gateway   = var.vm_ip_gateway
-  pci          = compact(concat(each.value.gpu_pci, [each.value.nvme_pci]))
+  pci          = each.value.gpu_pci
+  data_disk    = each.value.data_disk
 }

@@ -67,7 +67,7 @@ locals {
       }),
       ],
       contains(keys(local.gpu_nodes), name) ? local.gpu_machine_patches : [],
-      node.nvme_pci != null ? local.nvme_volume_patches[node.role] : [],
+      node.data_disk != null ? local.data_disk_volume_patches[node.role] : [],
     )
   }
 
@@ -76,25 +76,25 @@ locals {
     [for module in ["nvidia", "nvidia_uvm", "nvidia_drm", "nvidia_modeset"] : yamlencode({ apiVersion = "v1alpha1", kind = "KernelModuleConfig", name = module })],
   )
 
-  nvme_disk_selector = { match = "disk.transport == \"nvme\" && !system_disk" }
+  data_disk_selector = { match = "!system_disk" }
 
-  nvme_local_path_volume = yamlencode({
+  data_disk_local_path_volume = yamlencode({
     apiVersion   = "v1alpha1"
     kind         = "UserVolumeConfig"
     name         = "local-path-provisioner"
-    provisioning = { diskSelector = local.nvme_disk_selector, minSize = "50GiB", grow = true }
+    provisioning = { diskSelector = local.data_disk_selector, minSize = "50GiB", grow = true }
   })
 
-  nvme_volume_patches = {
+  data_disk_volume_patches = {
     servers = [
       yamlencode({
         apiVersion   = "v1alpha1"
         kind         = "VolumeConfig"
         name         = "ETCD"
-        provisioning = { diskSelector = local.nvme_disk_selector, minSize = "10GiB", maxSize = "10GiB" }
+        provisioning = { diskSelector = local.data_disk_selector, minSize = "10GiB", maxSize = "10GiB" }
       }),
-      local.nvme_local_path_volume,
+      local.data_disk_local_path_volume,
     ]
-    worker = [local.nvme_local_path_volume]
+    worker = [local.data_disk_local_path_volume]
   }
 }

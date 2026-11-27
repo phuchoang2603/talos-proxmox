@@ -15,7 +15,10 @@
       "0000:65:00.0",
       "0000:65:00.1"
     ],
-    "nvme_pci": "0000:18:00.0"
+    "data_disk": {
+      "datastore_id": "nvme",
+      "size_gb": 236
+    }
   },
   "dev-server2": {
     "vm_id": 1212,

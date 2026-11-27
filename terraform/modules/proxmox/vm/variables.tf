@@ -73,3 +73,11 @@ variable "pci" {
   type        = list(string)
   default     = []
 }
+
+variable "data_disk" {
+  type = object({
+    datastore_id = string
+    size_gb      = number
+  })
+  default = null
+}
