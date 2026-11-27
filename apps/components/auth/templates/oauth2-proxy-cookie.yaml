@@ -1,0 +1,33 @@
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: Password
+metadata:
+  name: oauth2-proxy-cookie
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  length: 32
+  allowRepeat: true
+  noUpper: false
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: oauth2-proxy-cookie
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  refreshInterval: "0"
+  target:
+    name: oauth2-proxy-cookie
+    template:
+      engineVersion: v2
+      data:
+        cookie-secret: {{ `"{{ .password }}"` }}
+  dataFrom:
+    - sourceRef:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: Password
+          name: oauth2-proxy-cookie

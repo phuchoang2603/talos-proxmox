@@ -39,8 +39,15 @@ oauth2-proxy:
     pass-authorization-header: "true"
   config:
     existingSecret: oauth2-proxy-credentials
+    requiredSecretKeys: [client-id, client-secret]
     cookieName: __Secure-platform
     emailDomains: []
+  extraEnv:
+    - name: OAUTH2_PROXY_COOKIE_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: oauth2-proxy-cookie
+          key: cookie-secret
   authenticatedEmailsFile:
     enabled: true
     restricted_access: |-
