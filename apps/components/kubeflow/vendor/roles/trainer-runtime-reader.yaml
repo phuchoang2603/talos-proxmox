@@ -1,0 +1,10 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kubeflow-trainer-runtimes-view
+  labels:
+    rbac.authorization.kubeflow.org/aggregate-to-kubeflow-edit: "true"
+rules:
+- apiGroups: [trainer.kubeflow.org]
+  resources: [clustertrainingruntimes]
+  verbs: [get, list, watch]

@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kserve-controller-manager
+  namespace: kserve
+spec:
+  template:
+    spec:
+      containers:
+      - name: manager
+        resources:
+          limits:
+            cpu: null
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: null
+      - name: kube-rbac-proxy
+        resources:
+          limits:
+            cpu: null
+            memory: 48Mi
+          requests:
+            cpu: 10m
+            memory: null
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kserve-localmodel-controller-manager
+  namespace: kserve
+spec:
+  template:
+    spec:
+      containers:
+      - name: manager
+        resources:
+          limits:
+            cpu: null
+            memory: 64Mi
+          requests:
+            cpu: 10m
+            memory: null
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llmisvc-controller-manager
+  namespace: kserve
+spec:
+  template:
+    spec:
+      containers:
+      - name: manager
+        resources:
+          limits:
+            cpu: null
+            memory: 96Mi
+          requests:
+            cpu: 10m
+            memory: null
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kserve-kernelcachenode-agent
+  namespace: kserve
+spec:
+  template:
+    spec:
+      containers:
+      - name: manager
+        resources:
+          limits:
+            cpu: null
+            memory: 384Mi
+          requests:
+            cpu: 10m
+            memory: null

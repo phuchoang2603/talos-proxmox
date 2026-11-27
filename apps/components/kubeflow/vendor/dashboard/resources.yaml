@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dashboard
+  namespace: kubeflow
+spec:
+  template:
+    spec:
+      containers:
+      - name: dashboard
+        resources:
+          limits:
+            memory: 192Mi
+          requests:
+            cpu: 25m
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: poddefaults-webhook-deployment
+  namespace: kubeflow
+spec:
+  template:
+    spec:
+      containers:
+      - name: poddefaults-webhook
+        resources:
+          limits:
+            memory: 32Mi
+          requests:
+            cpu: 10m
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: profiles-deployment
+  namespace: kubeflow
+spec:
+  template:
+    spec:
+      containers:
+      - name: access-management
+        resources:
+          limits:
+            memory: 48Mi
+          requests:
+            cpu: 10m

@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: katib-controller
+  namespace: kubeflow
+spec:
+  template:
+    spec:
+      containers:
+      - name: katib-controller
+        resources:
+          limits:
+            memory: 96Mi
+          requests:
+            cpu: 10m
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: katib-db-manager
+  namespace: kubeflow
+spec:
+  template:
+    spec:
+      containers:
+      - name: katib-db-manager
+        resources:
+          limits:
+            memory: 32Mi
+          requests:
+            cpu: 10m
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: katib-ui
+  namespace: kubeflow
+spec:
+  template:
+    spec:
+      containers:
+      - name: katib-ui
+        resources:
+          limits:
+            memory: 48Mi
+          requests:
+            cpu: 10m

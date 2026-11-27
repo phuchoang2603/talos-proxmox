@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: profiles-namespace-labels-data
+  namespace: kubeflow
+data:
+  namespace-labels.yaml: |
+    istio.io/dataplane-mode: "ambient"
+    pod-security.kubernetes.io/enforce: "restricted"
+    pod-security.kubernetes.io/enforce-version: "latest"
+    pod-security.kubernetes.io/audit: "restricted"
+    pod-security.kubernetes.io/warn: "restricted"
+    app.kubernetes.io/part-of: "kubeflow-profile"
+    katib.kubeflow.org/metrics-collector-injection: "enabled"
+    pipelines.kubeflow.org/enabled: "true"
+    serving.kubeflow.org/inferenceservice: "enabled"

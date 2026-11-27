@@ -1,0 +1,115 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jupyter-web-app-deployment
+  namespace: kubeflow
+spec:
+  template:
+    spec:
+      containers:
+      - name: jupyter-web-app
+        resources:
+          limits:
+            memory: 384Mi
+          requests:
+            cpu: 10m
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notebook-controller-deployment
+  namespace: kubeflow
+spec:
+  template:
+    spec:
+      containers:
+      - name: manager
+        resources:
+          limits:
+            memory: 64Mi
+          requests:
+            cpu: 10m
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pvcviewer-controller-manager
+  namespace: kubeflow
+spec:
+  template:
+    spec:
+      containers:
+      - name: manager
+        resources:
+          limits:
+            cpu: null
+            memory: 48Mi
+          requests:
+            cpu: 10m
+            memory: null
+      - name: kube-rbac-proxy
+        resources:
+          limits:
+            cpu: null
+            memory: 32Mi
+          requests:
+            cpu: 10m
+            memory: null
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tensorboard-controller-deployment
+  namespace: kubeflow
+spec:
+  template:
+    spec:
+      containers:
+      - name: manager
+        resources:
+          limits:
+            cpu: null
+            memory: 64Mi
+          requests:
+            cpu: 10m
+            memory: null
+      - name: kube-rbac-proxy
+        resources:
+          limits:
+            cpu: null
+            memory: 32Mi
+          requests:
+            cpu: 10m
+            memory: null
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tensorboards-web-app-deployment
+  namespace: kubeflow
+spec:
+  template:
+    spec:
+      containers:
+      - name: tensorboards-web-app
+        resources:
+          limits:
+            memory: 384Mi
+          requests:
+            cpu: 10m
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: volumes-web-app-deployment
+  namespace: kubeflow
+spec:
+  template:
+    spec:
+      containers:
+      - name: volumes-web-app
+        resources:
+          limits:
+            memory: 384Mi
+          requests:
+            cpu: 10m

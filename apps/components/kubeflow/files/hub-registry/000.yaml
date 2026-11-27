@@ -2,13 +2,13 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: model-registry-server
-  namespace: ml
+  namespace: kubeflow
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: model-registry-ui
-  namespace: ml
+  namespace: kubeflow
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -61,7 +61,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: model-registry-ui
-  namespace: ml
+  namespace: kubeflow
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -74,7 +74,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: model-registry-ui
-  namespace: ml
+  namespace: kubeflow
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -87,7 +87,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: model-registry-ui
-  namespace: ml
+  namespace: kubeflow
 ---
 apiVersion: v1
 data:
@@ -99,7 +99,7 @@ metadata:
   labels:
     component: model-registry-server
   name: model-registry-configmap
-  namespace: ml
+  namespace: kubeflow
 ---
 apiVersion: v1
 kind: Service
@@ -115,7 +115,7 @@ metadata:
     app.kubernetes.io/part-of: model-registry
     component: model-registry
   name: model-registry-service
-  namespace: ml
+  namespace: kubeflow
 spec:
   ports:
   - appProtocol: http
@@ -133,7 +133,7 @@ metadata:
     app: model-registry-ui
     run: model-registry-ui
   name: model-registry-ui-service
-  namespace: ml
+  namespace: kubeflow
 spec:
   ports:
   - name: http
@@ -150,7 +150,7 @@ metadata:
   labels:
     component: model-registry-server
   name: model-registry-deployment
-  namespace: ml
+  namespace: kubeflow
 spec:
   replicas: 1
   selector:
@@ -158,6 +158,8 @@ spec:
       component: model-registry-server
   template:
     metadata:
+      annotations:
+        traffic.sidecar.istio.io/excludeOutboundPorts: "5432"
       labels:
         component: model-registry-server
         sidecar.istio.io/inject: "false"
@@ -178,7 +180,10 @@ spec:
             secretKeyRef:
               key: dsn
               name: kubeflow-registry-db-credentials
-        image: ghcr.io/kubeflow/hub/server:v0.3.17
+        envFrom:
+        - configMapRef:
+            name: model-registry-configmap
+        image: ghcr.io/kubeflow/hub/server:v0.3.18
         livenessProbe:
           failureThreshold: 3
           httpGet:
@@ -210,7 +215,7 @@ spec:
             drop:
             - ALL
         startupProbe:
-          failureThreshold: 60
+          failureThreshold: 6
           httpGet:
             path: /readyz/isDirty
             port: http-api
@@ -237,7 +242,7 @@ metadata:
   labels:
     app: model-registry-ui
   name: model-registry-ui
-  namespace: ml
+  namespace: kubeflow
 spec:
   replicas: 1
   selector:
@@ -252,7 +257,7 @@ spec:
       - args:
         - --deployment-mode=kubeflow
         - --port=8080
-        image: ghcr.io/kubeflow/hub/ui:v0.3.17
+        image: ghcr.io/kubeflow/hub/ui:v0.3.18
         imagePullPolicy: Always
         livenessProbe:
           failureThreshold: 3
@@ -294,15 +299,59 @@ spec:
       serviceAccountName: model-registry-ui
 ---
 apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: model-registry-service
+  namespace: kubeflow
+spec:
+  host: model-registry-service.kubeflow-user-example-com.svc.cluster.local
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  labels:
+    app: model-registry-ui
+  name: model-registry-ui
+  namespace: kubeflow
+spec:
+  host: model-registry-ui-service.kubeflow-user-example-com.svc.cluster.local
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: model-registry
+  namespace: kubeflow
+spec:
+  gateways:
+  - kubeflow/kubeflow-gateway
+  hosts:
+  - '*'
+  http:
+  - match:
+    - uri:
+        prefix: /api/model_registry/
+    route:
+    - destination:
+        host: model-registry-service.kubeflow-user-example-com.svc.cluster.local
+        port:
+          number: 8080
+---
+apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
   labels:
     app: model-registry-ui
   name: model-registry-ui
-  namespace: ml
+  namespace: kubeflow
 spec:
   gateways:
-  - kubeflow-gateway
+  - kubeflow/kubeflow-gateway
   hosts:
   - '*'
   http:
@@ -317,9 +366,36 @@ spec:
       uri: /
     route:
     - destination:
-        host: model-registry-ui-service.ml.svc.cluster.local
+        host: model-registry-ui-service.kubeflow-user-example-com.svc.cluster.local
         port:
           number: 80
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: model-registry-service
+  namespace: kubeflow
+spec:
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals:
+        - cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account
+  - from:
+    - source:
+        namespaces:
+        - kubeflow
+    when:
+    - key: request.headers[authorization]
+      values:
+      - '*'
+    - key: request.headers[kubeflow-userid]
+      notValues:
+      - '*'
+  selector:
+    matchLabels:
+      component: model-registry-server
 ---
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
@@ -327,7 +403,7 @@ metadata:
   labels:
     app: model-registry-ui
   name: model-registry-ui
-  namespace: ml
+  namespace: kubeflow
 spec:
   action: ALLOW
   rules:

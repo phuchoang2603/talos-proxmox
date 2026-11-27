@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/name: kserve
     kustomize.component: kserve-models-web-application
   name: kserve-models-web-application
-  namespace: ml
+  namespace: kserve
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -100,7 +100,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: kserve-models-web-application
-  namespace: ml
+  namespace: kserve
 ---
 apiVersion: v1
 data:
@@ -118,7 +118,7 @@ metadata:
     app.kubernetes.io/name: kserve
     kustomize.component: kserve-models-web-application
   name: kserve-models-web-application-config
-  namespace: ml
+  namespace: kserve
 ---
 apiVersion: v1
 kind: Service
@@ -129,7 +129,7 @@ metadata:
     app.kubernetes.io/name: kserve
     kustomize.component: kserve-models-web-application
   name: kserve-models-web-application
-  namespace: ml
+  namespace: kserve
 spec:
   ports:
   - name: http
@@ -152,7 +152,7 @@ metadata:
     app.kubernetes.io/name: kserve
     kustomize.component: kserve-models-web-application
   name: kserve-models-web-application
-  namespace: ml
+  namespace: kserve
 spec:
   replicas: 1
   selector:
@@ -164,13 +164,13 @@ spec:
   template:
     metadata:
       annotations:
-        sidecar.istio.io/inject: "false"
+        sidecar.istio.io/inject: "true"
       labels:
         app: kserve
         app.kubernetes.io/component: kserve-models-web-application
         app.kubernetes.io/name: kserve
         kustomize.component: kserve-models-web-application
-        sidecar.istio.io/inject: "false"
+        sidecar.istio.io/inject: "true"
     spec:
       containers:
       - env:
@@ -179,7 +179,7 @@ spec:
         envFrom:
         - configMapRef:
             name: kserve-models-web-application-config
-        image: ghcr.io/kserve/models-web-app:1.0.5
+        image: ghcr.io/kserve/models-web-app:1.1.0
         imagePullPolicy: Always
         livenessProbe:
           failureThreshold: 3
@@ -227,10 +227,10 @@ metadata:
     app: kserve
     app.kubernetes.io/name: kserve
   name: kserve-models-web-application
-  namespace: ml
+  namespace: kserve
 spec:
   gateways:
-  - ml/kubeflow-gateway
+  - kubeflow/kubeflow-gateway
   hosts:
   - '*'
   http:
@@ -241,7 +241,7 @@ spec:
       uri: /
     route:
     - destination:
-        host: kserve-models-web-application.ml.svc.cluster.local
+        host: kserve-models-web-application.kserve.svc.cluster.local
         port:
           number: 80
 ---
@@ -249,7 +249,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: kserve-models-web-application
-  namespace: ml
+  namespace: kserve
 spec:
   ingress:
   - from:
@@ -259,12 +259,6 @@ spec:
           operator: In
           values:
           - istio-system
-  - from:
-    - ipBlock:
-        cidr: 169.254.7.127/32
-    ports:
-    - port: 5000
-      protocol: TCP
   podSelector:
     matchExpressions:
     - key: app.kubernetes.io/component
@@ -283,7 +277,7 @@ metadata:
     app.kubernetes.io/name: kserve
     kustomize.component: kserve-models-web-application
   name: kserve-models-web-application
-  namespace: ml
+  namespace: kserve
 spec:
   action: ALLOW
   rules:

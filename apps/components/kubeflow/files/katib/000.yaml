@@ -7,7 +7,7 @@ spec:
   names:
     categories:
     - all
-    - ml
+    - kubeflow
     - katib
     kind: Experiment
     plural: experiments
@@ -43,7 +43,7 @@ spec:
   names:
     categories:
     - all
-    - ml
+    - kubeflow
     - katib
     kind: Suggestion
     plural: suggestions
@@ -85,7 +85,7 @@ spec:
   names:
     categories:
     - all
-    - ml
+    - kubeflow
     - katib
     kind: Trial
     plural: trials
@@ -116,13 +116,13 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: katib-controller
-  namespace: ml
+  namespace: kubeflow
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: katib-ui
-  namespace: ml
+  namespace: kubeflow
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -388,7 +388,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: katib-controller
-  namespace: ml
+  namespace: kubeflow
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -401,7 +401,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: katib-ui
-  namespace: ml
+  namespace: kubeflow
 ---
 apiVersion: v1
 data:
@@ -412,7 +412,6 @@ data:
     init:
       controller:
         webhookPort: 8443
-        injectSecurityContext: true
         trialResources:
           - TrainJob.v1alpha1.trainer.kubeflow.org
           - Job.v1.batch
@@ -433,117 +432,29 @@ data:
               memory: 1Gi
       suggestions:
         - algorithmName: random
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: [ALL]
-            runAsNonRoot: true
-            runAsUser: 1000
-            seccompProfile:
-              type: RuntimeDefault
           image: ghcr.io/kubeflow/katib/suggestion-hyperopt:v0.19.0
         - algorithmName: tpe
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: [ALL]
-            runAsNonRoot: true
-            runAsUser: 1000
-            seccompProfile:
-              type: RuntimeDefault
           image: ghcr.io/kubeflow/katib/suggestion-hyperopt:v0.19.0
         - algorithmName: grid
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: [ALL]
-            runAsNonRoot: true
-            runAsUser: 1000
-            seccompProfile:
-              type: RuntimeDefault
           image: ghcr.io/kubeflow/katib/suggestion-optuna:v0.19.0
         - algorithmName: hyperband
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: [ALL]
-            runAsNonRoot: true
-            runAsUser: 1000
-            seccompProfile:
-              type: RuntimeDefault
           image: ghcr.io/kubeflow/katib/suggestion-hyperband:v0.19.0
         - algorithmName: bayesianoptimization
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: [ALL]
-            runAsNonRoot: true
-            runAsUser: 1000
-            seccompProfile:
-              type: RuntimeDefault
           image: ghcr.io/kubeflow/katib/suggestion-skopt:v0.19.0
         - algorithmName: cmaes
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: [ALL]
-            runAsNonRoot: true
-            runAsUser: 1000
-            seccompProfile:
-              type: RuntimeDefault
           image: ghcr.io/kubeflow/katib/suggestion-goptuna:v0.19.0
         - algorithmName: sobol
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: [ALL]
-            runAsNonRoot: true
-            runAsUser: 1000
-            seccompProfile:
-              type: RuntimeDefault
           image: ghcr.io/kubeflow/katib/suggestion-goptuna:v0.19.0
         - algorithmName: multivariate-tpe
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: [ALL]
-            runAsNonRoot: true
-            runAsUser: 1000
-            seccompProfile:
-              type: RuntimeDefault
           image: ghcr.io/kubeflow/katib/suggestion-optuna:v0.19.0
         - algorithmName: enas
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: [ALL]
-            runAsNonRoot: true
-            runAsUser: 1000
-            seccompProfile:
-              type: RuntimeDefault
           image: ghcr.io/kubeflow/katib/suggestion-enas:v0.19.0
           resources:
             limits:
               memory: 400Mi
         - algorithmName: darts
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: [ALL]
-            runAsNonRoot: true
-            runAsUser: 1000
-            seccompProfile:
-              type: RuntimeDefault
           image: ghcr.io/kubeflow/katib/suggestion-darts:v0.19.0
         - algorithmName: pbt
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: [ALL]
-            runAsNonRoot: true
-            runAsUser: 1000
-            seccompProfile:
-              type: RuntimeDefault
           image: ghcr.io/kubeflow/katib/suggestion-pbt:v0.19.0
           persistentVolumeClaimSpec:
             accessModes:
@@ -557,7 +468,7 @@ data:
 kind: ConfigMap
 metadata:
   name: katib-config
-  namespace: ml
+  namespace: kubeflow
 ---
 apiVersion: v1
 data:
@@ -633,7 +544,7 @@ metadata:
   labels:
     katib.kubeflow.org/component: trial-templates
   name: trial-templates
-  namespace: ml
+  namespace: kubeflow
 ---
 apiVersion: v1
 kind: Service
@@ -645,7 +556,7 @@ metadata:
   labels:
     katib.kubeflow.org/component: controller
   name: katib-controller
-  namespace: ml
+  namespace: kubeflow
 spec:
   ports:
   - name: webhook
@@ -667,7 +578,7 @@ metadata:
   labels:
     katib.kubeflow.org/component: db-manager
   name: katib-db-manager
-  namespace: ml
+  namespace: kubeflow
 spec:
   ports:
   - name: api
@@ -683,7 +594,7 @@ metadata:
   labels:
     katib.kubeflow.org/component: ui
   name: katib-ui
-  namespace: ml
+  namespace: kubeflow
 spec:
   ports:
   - name: ui
@@ -700,7 +611,7 @@ metadata:
   labels:
     katib.kubeflow.org/component: controller
   name: katib-controller
-  namespace: ml
+  namespace: kubeflow
 spec:
   replicas: 1
   selector:
@@ -783,7 +694,7 @@ metadata:
   labels:
     katib.kubeflow.org/component: db-manager
   name: katib-db-manager
-  namespace: ml
+  namespace: kubeflow
 spec:
   replicas: 1
   selector:
@@ -793,7 +704,7 @@ spec:
     metadata:
       labels:
         katib.kubeflow.org/component: db-manager
-        sidecar.istio.io/inject: 'false'
+        sidecar.istio.io/inject: "false"
     spec:
       containers:
       - command:
@@ -804,17 +715,17 @@ spec:
         - name: DB_USER
           valueFrom:
             secretKeyRef:
-              name: katib-postgres-secret
               key: username
+              name: katib-postgres-secret
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: katib-postgres-secret
               key: password
+              name: katib-postgres-secret
         - name: KATIB_POSTGRESQL_DB_HOST
           value: kubeflow-katib-db-rw
         - name: KATIB_POSTGRESQL_DB_PORT
-          value: '5432'
+          value: "5432"
         - name: KATIB_POSTGRESQL_DB_DATABASE
           value: katib
         - name: KATIB_POSTGRESQL_SSL_MODE
@@ -851,7 +762,7 @@ metadata:
   labels:
     katib.kubeflow.org/component: ui
   name: katib-ui
-  namespace: ml
+  namespace: kubeflow
 spec:
   replicas: 1
   selector:
@@ -861,7 +772,7 @@ spec:
     metadata:
       labels:
         katib.kubeflow.org/component: ui
-        sidecar.istio.io/inject: "false"
+        sidecar.istio.io/inject: "true"
     spec:
       containers:
       - args:
@@ -900,12 +811,12 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: katib-webhook-cert
-  namespace: ml
+  namespace: kubeflow
 spec:
-  commonName: katib-controller.ml.svc
+  commonName: katib-controller.kubeflow.svc
   dnsNames:
-  - katib-controller.ml.svc
-  - katib-controller.ml.svc.cluster.local
+  - katib-controller.kubeflow.svc
+  - katib-controller.kubeflow.svc.cluster.local
   isCA: true
   issuerRef:
     kind: Issuer
@@ -916,7 +827,7 @@ apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: katib-selfsigned-issuer
-  namespace: ml
+  namespace: kubeflow
 spec:
   selfSigned: {}
 ---
@@ -924,7 +835,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
   name: katib-ui
-  namespace: ml
+  namespace: kubeflow
 spec:
   gateways:
   - kubeflow-gateway
@@ -938,7 +849,7 @@ spec:
       uri: /katib/
     route:
     - destination:
-        host: katib-ui.ml.svc.cluster.local
+        host: katib-ui.kubeflow.svc.cluster.local
         port:
           number: 80
 ---
@@ -946,7 +857,7 @@ apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: katib-ui
-  namespace: ml
+  namespace: kubeflow
 spec:
   action: ALLOW
   rules:
@@ -962,7 +873,7 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   annotations:
-    cert-manager.io/inject-ca-from: ml/katib-webhook-cert
+    cert-manager.io/inject-ca-from: kubeflow/katib-webhook-cert
   name: katib.kubeflow.org
 webhooks:
 - admissionReviewVersions:
@@ -970,7 +881,7 @@ webhooks:
   clientConfig:
     service:
       name: katib-controller
-      namespace: ml
+      namespace: kubeflow
       path: /mutate-experiment
   name: defaulter.experiment.katib.kubeflow.org
   rules:
@@ -989,16 +900,12 @@ webhooks:
   clientConfig:
     service:
       name: katib-controller
-      namespace: ml
+      namespace: kubeflow
       path: /mutate-pod
   matchConditions:
   - expression: request.userInfo.username != "system:serviceaccount:kubeflow:katib-controller"
     name: exclude-katib-controller
   name: mutator.pod.katib.kubeflow.org
-  objectSelector:
-    matchExpressions:
-    - key: katib.kubeflow.org/trial
-      operator: Exists
   namespaceSelector:
     matchLabels:
       katib.kubeflow.org/metrics-collector-injection: enabled
@@ -1017,7 +924,7 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   annotations:
-    cert-manager.io/inject-ca-from: ml/katib-webhook-cert
+    cert-manager.io/inject-ca-from: kubeflow/katib-webhook-cert
   name: katib.kubeflow.org
 webhooks:
 - admissionReviewVersions:
@@ -1025,7 +932,7 @@ webhooks:
   clientConfig:
     service:
       name: katib-controller
-      namespace: ml
+      namespace: kubeflow
       path: /validate-experiment
   name: validator.experiment.katib.kubeflow.org
   rules:

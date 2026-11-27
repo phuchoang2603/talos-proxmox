@@ -1,0 +1,13 @@
+[
+  {"op": "replace", "path": "/spec/template/spec/containers/0/env", "value": [
+    {"name": "PGHOST", "value": "kubeflow-catalog-db-rw.kubeflow.svc"},
+    {"name": "PGDATABASE", "value": "catalog"},
+    {"name": "PGSSLMODE", "value": "verify-full"},
+    {"name": "PGSSLROOTCERT", "value": "/etc/db-ca/ca.crt"},
+    {"name": "PGUSER", "valueFrom": {"secretKeyRef": {"name": "kubeflow-catalog-db-credentials", "key": "username"}}},
+    {"name": "PGPASSWORD", "valueFrom": {"secretKeyRef": {"name": "kubeflow-catalog-db-credentials", "key": "password"}}},
+    {"name": "HF_API_KEY", "valueFrom": {"secretKeyRef": {"name": "model-catalog-hf-api-key", "key": "HF_API_KEY", "optional": true}}}
+  ]},
+  {"op": "add", "path": "/spec/template/spec/containers/0/volumeMounts/-", "value": {"name": "db-ca", "mountPath": "/etc/db-ca", "readOnly": true}},
+  {"op": "add", "path": "/spec/template/spec/volumes/-", "value": {"name": "db-ca", "secret": {"secretName": "kubeflow-catalog-db-ca"}}}
+]

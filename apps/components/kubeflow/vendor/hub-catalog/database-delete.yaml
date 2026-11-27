@@ -1,0 +1,14 @@
+$patch: delete
+apiVersion: apps/v1
+kind: StatefulSet
+metadata: {name: model-catalog-postgres}
+---
+$patch: delete
+apiVersion: v1
+kind: Service
+metadata: {name: model-catalog-postgres}
+---
+$patch: delete
+apiVersion: v1
+kind: Secret
+metadata: {name: model-catalog-postgres}

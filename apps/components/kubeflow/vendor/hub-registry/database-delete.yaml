@@ -1,0 +1,24 @@
+$patch: delete
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: model-registry-db}
+---
+$patch: delete
+apiVersion: v1
+kind: Service
+metadata: {name: model-registry-db}
+---
+$patch: delete
+apiVersion: v1
+kind: ConfigMap
+metadata: {name: model-registry-db-parameters}
+---
+$patch: delete
+apiVersion: v1
+kind: Secret
+metadata: {name: model-registry-db-secrets}
+---
+$patch: delete
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata: {name: metadata-postgres}

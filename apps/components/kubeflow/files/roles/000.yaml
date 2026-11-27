@@ -304,6 +304,22 @@ rules:
   - list
   - watch
 ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    rbac.authorization.kubeflow.org/aggregate-to-kubeflow-edit: "true"
+  name: kubeflow-trainer-runtimes-view
+rules:
+- apiGroups:
+  - trainer.kubeflow.org
+  resources:
+  - clustertrainingruntimes
+  verbs:
+  - get
+  - list
+  - watch
+---
 aggregationRule:
   clusterRoleSelectors:
   - matchLabels:

@@ -1,0 +1,22 @@
+[
+  {"op": "replace", "path": "/spec/template/metadata/labels/sidecar.istio.io~1inject", "value": "false"},
+  {"op": "replace", "path": "/spec/template/spec/containers/0/args", "value": [
+    "--hostname=0.0.0.0",
+    "--port=8080",
+    "--datastore-type=embedmd",
+    "--embedmd-database-type=postgres",
+    "--embedmd-database-dsn=$(DATABASE_DSN)"
+  ]},
+  {"op": "replace", "path": "/spec/template/spec/containers/0/env", "value": [
+    {"name": "DATABASE_DSN", "valueFrom": {"secretKeyRef": {"name": "kubeflow-registry-db-credentials", "key": "dsn"}}}
+  ]},
+  {"op": "replace", "path": "/spec/template/spec/containers/0/envFrom", "value": [
+    {"configMapRef": {"name": "model-registry-configmap"}}
+  ]},
+  {"op": "add", "path": "/spec/template/spec/containers/0/volumeMounts", "value": [
+    {"name": "db-ca", "mountPath": "/etc/db-ca", "readOnly": true}
+  ]},
+  {"op": "add", "path": "/spec/template/spec/volumes", "value": [
+    {"name": "db-ca", "secret": {"secretName": "kubeflow-registry-db-ca"}}
+  ]}
+]

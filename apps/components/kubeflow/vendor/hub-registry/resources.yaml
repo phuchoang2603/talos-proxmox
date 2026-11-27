@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model-registry-deployment
+spec:
+  template:
+    spec:
+      containers:
+      - name: rest-container
+        resources:
+          limits:
+            memory: 64Mi
+          requests:
+            cpu: 10m
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model-registry-ui
+spec:
+  template:
+    spec:
+      containers:
+      - name: model-registry-ui
+        resources:
+          limits:
+            cpu: null
+            memory: 64Mi
+          requests:
+            cpu: 10m
+            memory: null

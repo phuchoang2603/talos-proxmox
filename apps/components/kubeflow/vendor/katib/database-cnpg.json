@@ -1,0 +1,11 @@
+[
+  {"op": "replace", "path": "/spec/template/spec/containers/0/env", "value": [
+    {"name": "DB_NAME", "value": "postgres"},
+    {"name": "DB_USER", "valueFrom": {"secretKeyRef": {"name": "katib-postgres-secret", "key": "username"}}},
+    {"name": "DB_PASSWORD", "valueFrom": {"secretKeyRef": {"name": "katib-postgres-secret", "key": "password"}}},
+    {"name": "KATIB_POSTGRESQL_DB_HOST", "value": "kubeflow-katib-db-rw"},
+    {"name": "KATIB_POSTGRESQL_DB_PORT", "value": "5432"},
+    {"name": "KATIB_POSTGRESQL_DB_DATABASE", "value": "katib"},
+    {"name": "KATIB_POSTGRESQL_SSL_MODE", "value": "disable"}
+  ]}
+]
