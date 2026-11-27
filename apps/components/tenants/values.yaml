@@ -1,0 +1,52 @@
+resourceQuota:
+  hard:
+    pods: "100"
+    requests.cpu: "16"
+    requests.memory: 32Gi
+    limits.memory: 64Gi
+
+tenants:
+  gateway:
+    repo: https://github.com/phuchoang2603/payment-gateway-fraud-detection.git
+    namespaces: ["", "data", "ml", "llm"]
+    doppler:
+      project: payment-gateway-fraud-detection
+      config:
+        dev: dev
+        prod: prd
+      namespaces: [gateway]
+    objectAccess:
+      - namespace: gateway-data
+        serviceAccount: spark
+        prefixes: [datasets/payment-gateway/, lakehouse/]
+        mode: readwrite
+      - namespace: gateway-data
+        serviceAccount: flink
+        prefixes: [runs/payment-gateway/]
+        mode: readwrite
+      - namespace: gateway-ml
+        serviceAccount: pipeline-runner
+        prefixes: [datasets/payment-gateway/, runs/payment-gateway/]
+        mode: readwrite
+      - namespace: gateway-llm
+        serviceAccount: rag
+        prefixes: [lakehouse/]
+        mode: read
+    modelClients:
+      - namespace: gateway-llm
+        serviceAccount: agents
+        rateLimit:
+          requestsPerMinute: 600
+      - namespace: gateway-llm
+        serviceAccount: rag
+        rateLimit:
+          requestsPerMinute: 600
+    langfuse:
+      project: gateway
+      namespace: gateway-llm
+    ml:
+      namespace: gateway-ml
+      owner: xuanphuc.a1gv@gmail.com
+  marketplace:
+    repo: https://github.com/phuchoang2603/refurbished-marketplace.git
+    namespaces: [""]
