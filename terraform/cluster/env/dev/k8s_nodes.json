@@ -6,7 +6,7 @@
     "address": "10.69.12.11/16",
     "cpu_cores": 8,
     "cpu_type": "host",
-    "memory_mb": 40960,
+    "memory_mb": 43008,
     "disk_size_gb": 364,
     "datastore_id": "local-lvm",
     "gpu_pci": [
@@ -24,7 +24,7 @@
     "address": "10.69.12.12/16",
     "cpu_cores": 8,
     "cpu_type": "host",
-    "memory_mb": 12288,
+    "memory_mb": 14336,
     "disk_size_gb": 364,
     "datastore_id": "local-lvm"
   },
@@ -35,7 +35,7 @@
     "address": "10.69.12.13/16",
     "cpu_cores": 4,
     "cpu_type": "host",
-    "memory_mb": 16384,
+    "memory_mb": 14336,
     "disk_size_gb": 364,
     "datastore_id": "local-lvm"
   }
