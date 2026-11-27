@@ -40,7 +40,13 @@
 - [ ] 6.1 Gateway: implement design D8. Verify its render contains no cluster-scoped kind, no object key, and no LLM gateway API key.
 - [ ] 6.2 Marketplace: implement design D8. Verify its render contains no cluster-scoped kind and no Doppler store reference.
 
-## 7. Rebuild and acceptance
+## 7. Native-configuration sweep
 
-- [ ] 7.1 Delete the internal keys from the Doppler `talos-proxmox` dev config, delete tenant Doppler projects that are no longer declared, and delete the RustFS users. Then destroy and re-provision dev. Verify every Argo CD application is `Synced` and `Healthy`.
-- [ ] 7.2 Run every spec scenario on dev and record the evidence, including a rejected cluster-scoped sync, a cross-namespace Secret denial, a scoped STS exchange and an out-of-scope denial, a pipeline run in `gateway-ml`, a model call with a token and one without, and a Langfuse trace. List any scenario not verified.
+- [ ] 7.1 Replace the Kubeflow `ml-waypoint-seccomp` MutatingAdmissionPolicy with Istio's per-class waypoint defaults (a `gateway.istio.io/defaults-for-class: istio-waypoint` ConfigMap that sets `RuntimeDefault` seccomp). Verify on dev that a new waypoint pod gets RuntimeDefault with the policy removed.
+- [ ] 7.2 Review `platform-gpu-access`, `substrate-router-parking` and `substrate-egress-ambient` against the upstream values of the GPU operator and Substrate (DRA claim templates and tolerations in the workload templates, the Substrate router and egress chart settings). Remove each policy that a native setting covers and keep only the ones with no upstream option, giving the reason in the commit message. Verify the remaining policies have the matching render and dev behavior.
+- [ ] 7.3 Replace the rendered `cloudflare-tunnel/files/cloudflare-operator.yaml` and its `replace` munging with the operator's upstream release manifests through a kustomize overlay that sets the namespace and names. Verify that the render diff shows only metadata changes and that tunnels stay connected on dev.
+
+## 8. Rebuild and acceptance
+
+- [ ] 8.1 Delete the internal keys from the Doppler `talos-proxmox` dev config, delete tenant Doppler projects that are no longer declared, and delete the RustFS users. Then destroy and re-provision dev. Verify every Argo CD application is `Synced` and `Healthy`.
+- [ ] 8.2 Run every spec scenario on dev and record the evidence, including a rejected cluster-scoped sync, a cross-namespace Secret denial, a scoped STS exchange and an out-of-scope denial, a pipeline run in `gateway-ml`, a model call with a token and one without, and a Langfuse trace. List any scenario not verified.
