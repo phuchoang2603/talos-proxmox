@@ -13,7 +13,8 @@ variable "nodes" {
     memory_mb    = number
     datastore_id = string
     disk_size_gb = number
-    pci          = optional(list(string), [])
+    gpu_pci      = optional(list(string), [])
+    nvme_pci     = optional(string)
   }))
 
   validation {

@@ -6,15 +6,16 @@
     "address": "10.69.12.11/16",
     "cpu_cores": 8,
     "cpu_type": "host",
-    "memory_mb": 32768,
+    "memory_mb": 40960,
     "disk_size_gb": 364,
     "datastore_id": "local-lvm",
-    "pci": [
+    "gpu_pci": [
       "0000:b3:00.0",
       "0000:b3:00.1",
       "0000:65:00.0",
       "0000:65:00.1"
-    ]
+    ],
+    "nvme_pci": "0000:18:00.0"
   },
   "dev-server2": {
     "vm_id": 1212,
@@ -23,7 +24,7 @@
     "address": "10.69.12.12/16",
     "cpu_cores": 8,
     "cpu_type": "host",
-    "memory_mb": 16384,
+    "memory_mb": 12288,
     "disk_size_gb": 364,
     "datastore_id": "local-lvm"
   },

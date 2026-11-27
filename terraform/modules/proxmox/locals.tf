@@ -7,7 +7,7 @@ locals {
   bootstrap_ip       = split("/", local.controlplane_nodes[local.bootstrap_name].address)[0]
   controlplane_ips   = [for name in local.controlplane_names : split("/", local.controlplane_nodes[name].address)[0]]
   cert_sans          = local.controlplane_ips
-  gpu_nodes          = { for name, node in var.nodes : name => node if length(node.pci) > 0 }
+  gpu_nodes          = { for name, node in var.nodes : name => node if length(node.gpu_pci) > 0 }
 
   common_machine_patches = [
     yamlencode({ machine = { certSANs = local.cert_sans } }),
@@ -65,8 +65,36 @@ locals {
         addresses  = [{ address = node.address }]
         routes     = [{ gateway = var.vm_ip_gateway }]
       }),
-      ], contains(keys(local.gpu_nodes), name) ? concat([
-        yamlencode({ apiVersion = "v1alpha1", kind = "KubeNodeConfig", labels = { "nvidia.com/gpu.deploy.device-plugin" = "false" } }),
-    ], [for module in ["nvidia", "nvidia_uvm", "nvidia_drm", "nvidia_modeset"] : yamlencode({ apiVersion = "v1alpha1", kind = "KernelModuleConfig", name = module })]) : [])
+      ],
+      contains(keys(local.gpu_nodes), name) ? local.gpu_machine_patches : [],
+      node.nvme_pci != null ? local.nvme_volume_patches[node.role] : [],
+    )
+  }
+
+  gpu_machine_patches = concat(
+    [yamlencode({ apiVersion = "v1alpha1", kind = "KubeNodeConfig", labels = { "nvidia.com/gpu.deploy.device-plugin" = "false" } })],
+    [for module in ["nvidia", "nvidia_uvm", "nvidia_drm", "nvidia_modeset"] : yamlencode({ apiVersion = "v1alpha1", kind = "KernelModuleConfig", name = module })],
+  )
+
+  nvme_disk_selector = { match = "disk.transport == \"nvme\" && !system_disk" }
+
+  nvme_local_path_volume = yamlencode({
+    apiVersion   = "v1alpha1"
+    kind         = "UserVolumeConfig"
+    name         = "local-path-provisioner"
+    provisioning = { diskSelector = local.nvme_disk_selector, minSize = "50GiB", grow = true }
+  })
+
+  nvme_volume_patches = {
+    servers = [
+      yamlencode({
+        apiVersion   = "v1alpha1"
+        kind         = "VolumeConfig"
+        name         = "ETCD"
+        provisioning = { diskSelector = local.nvme_disk_selector, minSize = "10GiB", maxSize = "10GiB" }
+      }),
+      local.nvme_local_path_volume,
+    ]
+    worker = [local.nvme_local_path_volume]
   }
 }
