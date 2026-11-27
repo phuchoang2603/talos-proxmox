@@ -64,4 +64,5 @@ argo-cd:
         '
     params:
       server.insecure: true
+      application.namespaces: '*'
       controller.diff.server.side: true

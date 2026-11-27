@@ -1,3 +1,6 @@
+platformServices:
+  langfuse: false
+
 resourceQuota:
   hard:
     pods: "100"

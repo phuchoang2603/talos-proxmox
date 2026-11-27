@@ -11,6 +11,8 @@ spec:
   description: {{ printf "Namespaces and workloads of the %s tenant" $id | quote }}
   sourceRepos:
     - {{ $t.repo | quote }}
+  sourceNamespaces:
+    - {{ $id }}
   destinations:
 {{- range $ns := splitList " " (include "tenants.namespaces" (dict "id" $id "purposes" $t.namespaces) | trim) }}
     - server: https://kubernetes.default.svc

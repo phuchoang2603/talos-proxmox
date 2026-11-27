@@ -19,43 +19,24 @@ spec:
       remoteRef:
         key: {{ printf "ESO_%s_DOPPLER_TOKEN" (upper $id) }}
 ---
-{{ include "tenants.secretReader" (dict "name" (printf "%s-doppler-reader" $id) "namespace" "operators" "secret" (printf "%s-doppler-token" $id)) }}
-{{- range $ns := .namespaces }}
----
-{{ include "tenants.kubernetesStore" (dict "name" "operators" "namespace" $ns "remoteNamespace" "operators" "serviceAccount" (printf "%s-doppler-reader" $id)) }}
----
 apiVersion: external-secrets.io/v1
-kind: ExternalSecret
+kind: ClusterSecretStore
 metadata:
-  name: doppler-token
-  namespace: {{ $ns }}
+  name: {{ printf "doppler-%s" $id }}
 spec:
-  refreshInterval: 1h
-  secretStoreRef:
-    kind: SecretStore
-    name: operators
-  target:
-    name: doppler-token
-    creationPolicy: Owner
-  data:
-    - secretKey: dopplerToken
-      remoteRef:
-        key: {{ printf "%s-doppler-token" $id }}
-        property: dopplerToken
----
-apiVersion: external-secrets.io/v1
-kind: SecretStore
-metadata:
-  name: doppler
-  namespace: {{ $ns }}
-spec:
+  conditions:
+    - namespaceSelector:
+        matchLabels:
+          platform.phuchoang.sbs/tenant: {{ $id }}
+      namespaces:
+{{- toYaml .namespaces | nindent 8 }}
   provider:
     doppler:
       auth:
         secretRef:
           dopplerToken:
-            name: doppler-token
+            namespace: operators
+            name: {{ $id }}-doppler-token
             key: dopplerToken
-{{- end }}
 {{- end }}
 {{- end }}

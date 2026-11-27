@@ -43,7 +43,7 @@ Every Kubernetes Secret derived from Doppler SHALL be produced by External Secre
 - **THEN** Doppler rejects the request
 
 ### Requirement: Tenant Doppler stores
-A tenant SHALL have a Doppler project and token only if its inventory entry declares external secrets. For such a tenant, foundation SHALL issue one read-only `external-secrets` token per environment config. The platform SHALL deliver that token directly into a namespaced `SecretStore` named `doppler` in each tenant namespace that the inventory lists for it. No tenant store SHALL be cluster-wide, and tenant repositories SHALL NOT declare a store or a token manifest.
+A tenant SHALL have a Doppler project and token only if its inventory entry declares external secrets. For such a tenant, foundation SHALL issue one read-only `external-secrets` token per environment config. The platform SHALL deliver that token into the platform `operators` namespace through ESO, and SHALL own one `ClusterSecretStore` named `doppler-<tenant>`. That store's conditions SHALL admit only namespaces that carry the tenant's label and are listed for Doppler in the inventory. Tenant repositories SHALL NOT declare a store or a token manifest.
 
 #### Scenario: Tenant without external secrets
 - **WHEN** a tenant entry declares no external secrets
@@ -51,7 +51,11 @@ A tenant SHALL have a Doppler project and token only if its inventory entry decl
 
 #### Scenario: Tenant with external secrets
 - **WHEN** a tenant entry declares external secrets
-- **THEN** its listed namespaces each hold a ready `doppler` `SecretStore` reading only that tenant's config, and no `ClusterSecretStore` exists for the tenant
+- **THEN** `doppler-<tenant>` is ready, and ExternalSecrets in the tenant's listed namespaces resolve against it
+
+#### Scenario: Store used outside the tenant
+- **WHEN** an ExternalSecret in another tenant's namespace or a platform namespace references `doppler-<tenant>`
+- **THEN** ESO refuses it
 
 #### Scenario: Consumer store token scope
 - **WHEN** a tenant store's token is used to read another tenant's project, the platform project, or to write

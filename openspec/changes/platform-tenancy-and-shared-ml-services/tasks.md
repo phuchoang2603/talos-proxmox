@@ -12,12 +12,13 @@
 - [x] 2.1 Create `apps/components/tenants` to render the D6 objects per tenant: Namespaces, Profile, optional Doppler stores with token ExternalSecrets, the D5 platform `kubernetes` stores with reader Roles restricted by `resourceNames`, ResourceQuotas, the AppProject and the root Application. Verify the dev render contains exactly those objects for both tenants.
 - [x] 2.2 Register `tenants` in `apps/argocd/platform/values.yaml` after `external-secrets` and `kubeflow`. Verify the platform chart lint and conftest pass.
 - [x] 2.3 In `apps/components/external-secrets/values.yaml`, remove `gateway-doppler` and `marketplace-doppler` and exclude tenant-labelled namespaces from the platform store. Reduce `terraform/platform/external-secrets.tf` to the platform token. Verify grep finds no `gateway-doppler`, `marketplace-doppler` or `ESO_.*_DOPPLER_TOKEN` consumer Secret in `kube-system`.
-- [ ] 2.4 Add conftest rules that reject: a tenant AppProject whose `clusterResourceWhitelist` is not empty; any rendered Secret or ExternalSecret key matching `ACCESS_KEY|SECRET_ACCESS_KEY`; and any ExternalSecret that reads an internal credential from the platform Doppler store. Verify each rule fails on a fixture and passes on the render.
+- [x] 2.4 Add conftest rules that reject a tenant AppProject with a non-empty `clusterResourceWhitelist`, and any ClusterSecretStore other than `doppler` or a tenant-restricted `doppler-<tenant>`. Verify each rule fails on a fixture and passes on the render.
 
 ## 3. Platform components use generated credentials and workload identity
 
 - [ ] 3.1 Convert every platform ExternalSecret that reads an internal credential to CNPG-generated, ESO-generator or cert-manager sources, per design D3, across `auth`, `observability`, `kagent`, `agentregistry`, `substrate`, `openmetadata` and `kubeflow`. Verify that every remaining `remoteRef.key` in the render appears in the D3 external list.
 - [ ] 3.2 Move Dex client secrets to generator ExternalSecrets in `auth`, delivered to each client namespace through platform `kubernetes` stores. Verify the render and that oauth2-proxy login works on dev.
+- [ ] 3.4 Add conftest rules that reject any rendered Secret or ExternalSecret key matching `ACCESS_KEY|SECRET_ACCESS_KEY`, and any ExternalSecret `remoteRef.key` outside the D3 external list. Verify each fails on a fixture and passes on the render after 3.1 and 3.3.
 - [ ] 3.3 Give Substrate and the Kubeflow pipeline runner projected `sts.rustfs` tokens and web-identity environment variables, with KFP `fromEnv: true`. Remove their object key ExternalSecrets. Verify grep finds no object keys in those components.
 
 ## 4. Kubeflow multi-user and shared services

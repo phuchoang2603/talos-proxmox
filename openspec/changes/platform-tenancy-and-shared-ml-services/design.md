@@ -95,12 +95,16 @@ The source Secrets are ESO generator outputs in `langfuse` and `polaris`. Langfu
 For each tenant, the chart renders:
 - **Namespaces:** labelled for ambient, pod security, and `platform.phuchoang.sbs/tenant=<id>`.
 - **Profile:** a Kubeflow `Profile` for `ml`.
-- **Stores:** a Doppler `SecretStore` in the listed namespaces, if declared, fed by a token `ExternalSecret` from the platform store. Also the D5 stores.
 - **ResourceQuotas.**
-- **AppProject:** sources limited to its repo, destinations limited to its namespaces, an empty `clusterResourceWhitelist`, and a `namespaceResourceBlacklist` covering `SecretStore`, `ResourceQuota` and `LimitRange`.
-- **Root Application:** `<repo>` at `deploy/<env>`, path `infra/argocd/app-of-apps`, with `values-<env>.yaml`.
+- **Doppler store,** if declared: an ExternalSecret in `operators` that copies `ESO_<TENANT>_DOPPLER_TOKEN` out of the platform store, plus a `ClusterSecretStore` named `doppler-<id>`. That store's conditions are the tenant label plus the inventory's Doppler namespaces.
+  - *Alternative:* a namespaced store per namespace, fed through a `kubernetes` provider hop. Rejected: it takes seven objects per namespace for the same boundary, because a namespaced store can't reference a token in another namespace.
+- **D5 stores:** rendered only once the platform service exists (`platformServices.<name>`).
+- **AppProject:** sources limited to its repo, `sourceNamespaces: [<id>]`, destinations limited to its namespaces, an empty `clusterResourceWhitelist`, and a `namespaceResourceBlacklist` covering `SecretStore`, `ResourceQuota` and `LimitRange`.
+- **Root Application:** named `root`, in namespace `<id>`, pointing at `<repo>` revision `deploy/<env>`, path `infra/argocd/app-of-apps`, values `values-<env>.yaml`.
 
-The platform `doppler` `ClusterSecretStore` gets `conditions` that exclude tenant-labelled namespaces. `terraform/platform/external-secrets.tf` then creates only the platform token Secret.
+Argo CD runs with `application.namespaces: '*'`, which is the native "Applications in any namespace" feature. Each AppProject's `sourceNamespaces` is the boundary, so a tenant's child Applications live in its primary namespace and never in `argo-cd`.
+
+The platform `doppler` `ClusterSecretStore` excludes tenant-labelled namespaces. `terraform/platform/external-secrets.tf` creates only the platform token Secret.
 
 ### D7. Namespaces, Kubeflow, shared services
 - **Namespaces:**
