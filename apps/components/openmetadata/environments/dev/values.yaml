@@ -1,5 +1,17 @@
+tunnel:
+  hostname: openmetadata-dev.phuchoang.sbs
 openmetadata:
   replicaCount: 0
+  openmetadata:
+    config:
+      authentication:
+        authority: https://auth-dev.phuchoang.sbs/dex
+        callbackUrl: https://openmetadata-dev.phuchoang.sbs/callback
+        oidcConfiguration:
+          callbackUrl: https://openmetadata-dev.phuchoang.sbs/callback
+          serverUrl: https://openmetadata-dev.phuchoang.sbs
+      jwtTokenConfiguration:
+        jwtissuer: openmetadata-dev.phuchoang.sbs
 opensearch:
   singleNode: false
   replicas: 0

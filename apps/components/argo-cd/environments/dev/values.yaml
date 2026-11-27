@@ -1,0 +1,17 @@
+argo-cd:
+  configs:
+    cm:
+      url: https://argocd-dev.phuchoang.sbs
+      oidc.config: 'name: Dex
+
+        issuer: https://auth-dev.phuchoang.sbs/dex
+
+        clientID: argocd
+
+        clientSecret: $argocd-oidc:client-secret
+
+        requestedScopes: [openid, profile, email]
+
+        enablePKCEAuthentication: true
+
+        '

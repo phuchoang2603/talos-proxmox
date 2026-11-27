@@ -1,0 +1,7 @@
+argo-workflows:
+  server:
+    sso:
+      issuerAlias: https://auth-dev.phuchoang.sbs/dex
+      redirectUrl: https://workflows-dev.phuchoang.sbs/oauth2/callback
+tunnel:
+  hostname: workflows-dev.phuchoang.sbs
