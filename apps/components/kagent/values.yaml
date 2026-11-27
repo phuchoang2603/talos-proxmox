@@ -3,8 +3,7 @@ kagent:
   providers: false
   global:
     watchNamespaces:
-    - llm
-    - llm-agents
+    - gateway-llm
     - kagent
   config:
     database:

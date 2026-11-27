@@ -82,10 +82,10 @@ nvidia-dra-driver-gpu:
 manageClaims: false
 claims:
   ml:
-    namespace: ml
-    name: ml-gpu
+    namespace: gateway-ml
+    name: gpu
     selectors: []
   llm:
-    namespace: llm
-    name: llm-gpu
+    namespace: gateway-llm
+    name: gpu
     selectors: []

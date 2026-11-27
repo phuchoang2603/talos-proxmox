@@ -3,7 +3,7 @@ agentregistry:
   fullnameOverride: agentregistry
   image: {tag: "v0.4.0"}
   rbac:
-    watchedNamespaces: [llm]
+    watchedNamespaces: [gateway-llm]
   service:
     type: ClusterIP
     ports: {http: 12121, mcp: 31313}

@@ -1,5 +1,6 @@
 gatewayApiNamespaces:
-  - payment-gateway
+  - gateway
+  - gateway-llm
 argo-rollouts:
   fullnameOverride: argo-rollouts
   installCRDs: true

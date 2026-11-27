@@ -54,10 +54,10 @@ spec:
           values: [{{ .Values.auth.dexIssuer | quote }}]
     - from:
         - source:
-            principals: [cluster.local/ns/llm/sa/agentgateway]
+            principals: [cluster.local/ns/llm-gateway/sa/agentgateway]
       to:
         - operation:
-            paths: [/agents/llm-agents/*]
+            paths: [/agents/gateway-llm/*]
       when:
         - key: request.auth.claims[iss]
           values: [urn:platform:kagent:gateway]
