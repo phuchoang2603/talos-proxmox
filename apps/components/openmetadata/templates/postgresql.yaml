@@ -16,8 +16,6 @@ spec:
     initdb:
       database: openmetadata
       owner: openmetadata
-      secret:
-        name: openmetadata-postgres-credentials
   storage:
     storageClass: {{ .Values.storageClass | quote }}
     size: {{ .Values.postgresStorage }}

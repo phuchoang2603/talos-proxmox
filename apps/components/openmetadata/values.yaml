@@ -24,7 +24,7 @@ openmetadata:
         auth:
           username: openmetadata
           password:
-            secretRef: openmetadata-postgres-credentials
+            secretRef: openmetadata-postgres-app
             secretKey: password
       elasticsearch:
         host: openmetadata-search
