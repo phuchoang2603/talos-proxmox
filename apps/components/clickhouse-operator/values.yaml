@@ -1,6 +1,6 @@
 altinity-clickhouse-operator:
   fullnameOverride: clickhouse-operator
-  watchNamespaces: [data]
+  watchNamespaces: [gateway-data]
   secret:
     create: false
   operator:

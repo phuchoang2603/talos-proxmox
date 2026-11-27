@@ -1,4 +1,4 @@
-dataNamespace: data
+dataNamespace: gateway-data
 storageClass: local-path
 openmetadata:
   fullnameOverride: openmetadata

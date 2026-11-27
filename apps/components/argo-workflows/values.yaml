@@ -1,11 +1,11 @@
-dataNamespace: data
+dataNamespace: gateway-data
 argo-workflows:
   crds:
     full: true
   controller:
     workflowNamespaces:
-      - ml
-      - data
+      - gateway-ml
+      - gateway-data
     resources:
       requests:
         cpu: 25m

@@ -80,12 +80,12 @@ victoria-metrics-k8s-stack:
     fullnameOverride: grafana
     sidecar:
       dashboards:
-        searchNamespace: [observability, llm, data, payment-gateway]
+        searchNamespace: ALL
         folderAnnotation: grafana_folder
         provider:
           foldersFromFilesStructure: true
       datasources:
-        searchNamespace: [observability, data]
+        searchNamespace: ALL
     admin:
       existingSecret: grafana-admin
       userKey: admin-user

@@ -30,7 +30,7 @@
 - [ ] 4.4 Add an `llm-gateway` component: the Gateway with tenant-label `allowedRoutes`, model backends, JWT auth against the cluster JWKS with audience `llm-gateway`, per-`sub` rate limits, and PII and screening policies from `modelClients`. Verify the render has no API key Secret.
 - [ ] 4.5 Add a `models` component for the `LLMInferenceService`s and local model cache, and a `polaris` component with web-identity storage and generated tenant principals. Move `openmetadata` to its namespace. Verify each component lints.
 - [ ] 4.6 List every object-store client (Spark, Flink, Iceberg REST, ClickHouse S3, KFP, Langfuse, OpenMetadata, Substrate, Polaris) with its web-identity support and pinned version in the change notes. Verify each one supports web identity; if any does not, stop and report.
-- [ ] 4.7 Set the Grafana sidecars and vmagent to select all namespaces. Verify the render.
+- [x] 4.7 Set the Grafana sidecars and vmagent to select all namespaces. Verify the render.
 
 ## 5. Docs
 

@@ -69,6 +69,6 @@ substrate:
       requests: {cpu: 10m, memory: 32Mi}
       limits: {memory: 32Mi}
     namespacePolicies:
-    - atespace: llm-agents
+    - atespace: gateway-llm
       allowedNamespaces:
-      - llm-agents
+      - gateway-llm
